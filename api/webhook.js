@@ -81,12 +81,12 @@ async function onPostback(uid, ev) {
     await clearPending(uid);
     if (a === 'no') return reply(ev.replyToken, text('ยกเลิกแล้ว ✖️ พิมพ์ใหม่ได้เลยครับ'));
 
-    await addEntries(uid, pending.items.map(i => ({ ...i, date: pending.date })), 'b' + pending.id);
+    await addEntries(uid, pending.items.map(i => ({ ...i, date: i.date || pending.date })), 'b' + pending.id);
     const today = bkkDate();
     const list = await listEntries(uid, today, today);
     const net = list.reduce((s, e) => s + (e.type === 'income' ? e.amount : -e.amount), 0);
     return reply(ev.replyToken, text(
-      `บันทึกแล้ว ✅ ${pending.items.length} รายการ (${thaiDate(pending.date)})\n` +
+      `บันทึกแล้ว ✅ ${pending.items.length} รายการ (${new Set(pending.items.map(i => i.date || pending.date)).size > 1 ? 'หลายวัน' : thaiDate(pending.date)})\n` +
       `ยอดวันนี้: ${net >= 0 ? 'กำไร' : 'ขาดทุน'} ${baht(Math.abs(net))} บาท`));
   }
 
