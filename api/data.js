@@ -24,6 +24,12 @@ export async function GET(request) {
   if (!user) return json({ error: 'unauthorized' }, 401);
   try {
     if (action === 'profile') return json({ ...(await getProfile(user.uid, user.name)), name: user.name });
+    if (action === 'boot') { // เปิดเว็บครั้งแรก: ดึงหมวด + รายการเดือนนี้ในครั้งเดียว
+      const from = url.searchParams.get('from'), to = url.searchParams.get('to');
+      if (!isDate(from) || !isDate(to)) return json({ error: 'bad date' }, 400);
+      const [profile, entries] = await Promise.all([getProfile(user.uid, user.name), listEntries(user.uid, from, to)]);
+      return json({ profile: { ...profile, name: user.name }, entries });
+    }
     if (action === 'entries') {
       const from = url.searchParams.get('from'), to = url.searchParams.get('to');
       if (!isDate(from) || !isDate(to)) return json({ error: 'bad date' }, 400);
