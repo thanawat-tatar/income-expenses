@@ -1,10 +1,11 @@
 // LINE ส่งข้อความของผู้ใช้มาที่นี่ (Webhook URL = https://<เว็บของคุณ>/api/webhook)
 import { verifySignature, reply } from '../lib/line.js';
-import { parseMessage } from '../lib/parser.js';
+import { parseMessage, normalizeThai } from '../lib/parser.js';
+import { OTHER } from '../lib/categories.js';
 import { bkkDate, thaiDate } from '../lib/date.js';
-import { confirmMessage, summaryMessage, undoMessage, HELP_TEXT, text, baht } from '../lib/messages.js';
+import { confirmMessage, askMessage, summaryMessage, undoMessage, HELP_TEXT, text, baht } from '../lib/messages.js';
 import {
-  getProfile, addEntries, listEntries, lastBatch, deleteEntries,
+  getProfile, saveProfile, addEntries, listEntries, lastBatch, deleteEntries,
   setPending, getPending, clearPending,
 } from '../lib/store.js';
 
@@ -60,13 +61,97 @@ async function onText(uid, ev) {
     return reply(ev.replyToken, undoMessage(last, byId));
   }
 
-  const { date, items } = parseMessage(msg, profile.categories, profile.keywords, bkkDate());
+  const hasDigit = /\d|[๐-๙]/.test(msg);
+  const pending = hasDigit ? null : await getPending(uid);
+
+  // รอชื่อหมวดใหม่ (หลังกด "➕ หมวดใหม่")
+  if (!hasDigit && pending && pending.awaitCat != null && msg.length <= 30) {
+    const it = pending.items[pending.awaitCat];
+    const cat = { id: 'c_' + Date.now().toString(36), name: msg, type: it.type, icon: '🏷️' };
+    await learn(uid, profile, it.word, cat.id, [...profile.customCategories, cat]);
+    applyWord(pending, it.word, cat, pending.awaitCat);
+    delete pending.awaitCat;
+    await setPending(uid, pending);
+    byId[cat.id] = cat;
+    return reply(ev.replyToken, [text(`สร้างหมวด 🏷️ ${cat.name} แล้ว ✅${it.word ? `\nจำแล้ว: "${it.word}" = ${cat.name}` : ''}`), ...nextStep(pending, byId, profile.categories.concat(cat))]);
+  }
+
+  // สอนคำในแชท: "แซนวิช = ค่ากิน" หรือ "นมลูก คือ ครอบครัว"
+  const teach = !hasDigit && msg.match(/^(.{1,30}?)\s*(?:=|คือ)\s*(.{1,30})$/);
+  if (teach) {
+    const word = normalizeThai(teach[1]).trim(), cat = findCategory(teach[2], profile);
+    if (cat) {
+      await learn(uid, profile, word, cat.id);
+      const extra = [];
+      if (pending && applyWord(pending, word, cat)) { await setPending(uid, pending); extra.push(...nextStep(pending, byId, profile.categories)); }
+      return reply(ev.replyToken, [text(`จำแล้ว ✅ "${word}" = ${cat.icon} ${cat.name}`), ...extra]);
+    }
+    if (msg.includes('=')) return reply(ev.replyToken, text(`ไม่พบหมวด "${teach[2]}"\nสร้างหมวดใหม่: พิมพ์ "หมวดใหม่ ${teach[2]}"`));
+  }
+
+  // สร้างหมวดในแชท: "หมวดใหม่ ค่าขนมลูก" / "หมวดใหม่ รายรับ ขายของออนไลน์"
+  const nc = !hasDigit && msg.match(/^(?:หมวดใหม่|สร้างหมวด|เพิ่มหมวด)\s*(รายรับ|รายจ่าย)?\s*(.{1,30})$/);
+  if (nc) {
+    const name = nc[2].trim();
+    if (profile.categories.some(c => c.name === name)) return reply(ev.replyToken, text(`มีหมวด "${name}" อยู่แล้ว`));
+    const cat = { id: 'c_' + Date.now().toString(36), name, type: nc[1] === 'รายรับ' ? 'income' : 'expense', icon: '🏷️' };
+    await learn(uid, profile, name, cat.id, [...profile.customCategories, cat]);
+    return reply(ev.replyToken, text(`สร้างหมวด 🏷️ ${name} (${nc[1] || 'รายจ่าย'}) แล้ว ✅\nพิมพ์ "${name} 100" ได้เลย`));
+  }
+
+  // ลบคำที่สอน: "ลบคำ แซนวิช"
+  const del = !hasDigit && msg.match(/^ลบคำ\s*(.{1,30})$/);
+  if (del) {
+    const word = normalizeThai(del[1]).trim();
+    if (!profile.keywords.some(k => k.word === word)) return reply(ev.replyToken, text(`ไม่มีคำ "${word}" ที่สอนไว้`));
+    await saveProfile(uid, { keywords: profile.keywords.filter(k => k.word !== word) });
+    return reply(ev.replyToken, text(`ลบคำ "${word}" แล้ว 🗑️`));
+  }
+
+  const { date, items, truncated } = parseMessage(msg, profile.categories, profile.keywords, bkkDate());
   if (!items.length) {
     return reply(ev.replyToken, text('ไม่พบจำนวนเงินในข้อความ 🤔\nลองพิมพ์ เช่น "น้ำมัน 60 ข้าว 50"\nหรือพิมพ์ "วิธีใช้"'));
   }
   const pid = Math.random().toString(36).slice(2, 10);
-  await setPending(uid, { id: pid, items, date });
-  return reply(ev.replyToken, confirmMessage(items, date, pid, byId));
+  const pend = { id: pid, items, date };
+  await setPending(uid, pend);
+  const out = [confirmMessage(items, date, pid, byId), ...nextStep(pend, byId, profile.categories, true)];
+  if (truncated) out.unshift(text('⚠️ รายการเยอะเกินไป บอทรับได้ครั้งละ 30 รายการ ที่เหลือส่งข้อความใหม่ได้เลย'));
+  return reply(ev.replyToken, out);
+}
+
+// ---------- บอทถามคำที่ไม่รู้จัก แล้วจำไว้ ----------
+// หาหมวดจากชื่อที่ผู้ใช้พิมพ์ เช่น "กิน", "ค่ากิน", "ครอบครัว"
+function findCategory(name, profile) {
+  const n = normalizeThai(name).trim();
+  const cats = profile.categories;
+  return cats.find(c => c.name === n)
+    || cats.find(c => n.length >= 2 && c.name.includes(n))
+    || cats.find(c => n.includes(c.name))
+    || (() => { const it = parseMessage(`${n} 1`, cats, profile.keywords).items[0]; return it?.sure ? cats.find(c => c.id === it.category) : null; })();
+}
+
+async function learn(uid, profile, word, categoryId, categories) {
+  const keywords = word ? [...profile.keywords.filter(k => k.word !== word), { word, category: categoryId }] : profile.keywords;
+  await saveProfile(uid, { keywords, ...(categories ? { categories } : {}) });
+}
+
+// เปลี่ยนหมวดของรายการที่รอยืนยัน ที่ใช้คำเดียวกัน
+function applyWord(pending, word, cat, index) {
+  let changed = false;
+  pending.items.forEach((it, i) => {
+    if (i === index || (word && !it.sure && it.word === word)) {
+      it.category = cat.id; it.type = cat.type; it.sure = true; changed = true;
+    }
+  });
+  return changed;
+}
+
+// ถามคำถัดไปที่ไม่รู้จัก หรือถ้าตอบครบแล้ว ส่งการ์ดยืนยันใหม่
+function nextStep(pending, byId, categories, first) {
+  const i = pending.items.findIndex(it => !it.sure && it.word && !it.skipAsk);
+  if (i >= 0) return [askMessage(pending.items[i], i, pending.id, categories)];
+  return first ? [] : [confirmMessage(pending.items, pending.date, pending.id, byId)];
 }
 
 async function onPostback(uid, ev) {
@@ -88,6 +173,37 @@ async function onPostback(uid, ev) {
     return reply(ev.replyToken, text(
       `บันทึกแล้ว ✅ ${pending.items.length} รายการ (${new Set(pending.items.map(i => i.date || pending.date)).size > 1 ? 'หลายวัน' : thaiDate(pending.date)})\n` +
       `ยอดวันนี้: ${net >= 0 ? 'กำไร' : 'ขาดทุน'} ${baht(Math.abs(net))} บาท`));
+  }
+
+  if (['learn', 'newcat', 'flip', 'skip'].includes(a)) {
+    const pending = await getPending(uid);
+    const i = Number(p.get('i'));
+    const it = pending?.items?.[i];
+    if (!pending || pending.id !== p.get('p') || !it) return reply(ev.replyToken, text('รายการนี้หมดอายุหรือทำไปแล้วครับ'));
+    const profile = await getProfile(uid);
+    const byId = catMap(profile.categories);
+    if (a === 'newcat') {
+      pending.awaitCat = i;
+      await setPending(uid, pending);
+      return reply(ev.replyToken, text('พิมพ์ชื่อหมวดใหม่ได้เลย ✍️\nเช่น ค่าขนมลูก'));
+    }
+    if (a === 'flip') {
+      it.type = it.type === 'income' ? 'expense' : 'income';
+      it.category = OTHER[it.type];
+      await setPending(uid, pending);
+      return reply(ev.replyToken, nextStep(pending, byId, profile.categories, true));
+    }
+    if (a === 'skip') {
+      it.skipAsk = true;
+      await setPending(uid, pending);
+      return reply(ev.replyToken, nextStep(pending, byId, profile.categories));
+    }
+    const cat = byId[p.get('c')];
+    if (!cat) return reply(ev.replyToken, text('ไม่พบหมวดนี้แล้ว'));
+    await learn(uid, profile, it.word, cat.id);
+    applyWord(pending, it.word, cat, i);
+    await setPending(uid, pending);
+    return reply(ev.replyToken, [text(`จำแล้ว ✅ "${it.word}" = ${cat.icon} ${cat.name}`), ...nextStep(pending, byId, profile.categories)]);
   }
 
   if (a === 'del') {
