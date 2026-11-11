@@ -11,28 +11,112 @@ const ICON_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path 
 const ICON_MOON = '<svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
 const ICON_TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>';
 
-// ---------- น้องหมูออมสิน (มาสคอต) ----------
-// mood: happy | sad | sleep | wink
+// ---------- น้องหมูออมสิน (มาสคอต วาดเอง ไม่ใช้ตัวการ์ตูนของใคร) ----------
+// mood: happy | sad | sleep | wink | wow
 function pig(mood = 'happy', cls = '') {
-  const eyes = mood === 'sleep'
-    ? '<path d="M36 47q6 5 12 0M72 47q6 5 12 0" stroke="#3B1530" stroke-width="3" fill="none" stroke-linecap="round"/>'
-    : mood === 'wink'
-      ? '<g class="eye"><ellipse cx="42" cy="46" rx="5" ry="7" fill="#3B1530"/><circle cx="44" cy="43" r="2" fill="#fff"/></g><path d="M72 47q6-5 12 0" stroke="#3B1530" stroke-width="3" fill="none" stroke-linecap="round"/>'
-      : '<g class="eye"><ellipse cx="42" cy="46" rx="5" ry="7" fill="#3B1530"/><ellipse cx="78" cy="46" rx="5" ry="7" fill="#3B1530"/><circle cx="44" cy="43" r="2" fill="#fff"/><circle cx="80" cy="43" r="2" fill="#fff"/></g>';
-  const mouth = mood === 'sad' ? 'M53 81q7-6 14 0' : 'M53 77q7 6 14 0';
-  return `<svg class="pig ${cls}" viewBox="0 0 120 112" aria-hidden="true">
-    <defs><radialGradient id="pg" cx="40%" cy="30%" r="75%"><stop offset="0" stop-color="#FFD6E8"/><stop offset="1" stop-color="#FF8CC3"/></radialGradient></defs>
-    <path d="M22 30 L30 4 L48 22Z M98 30 L90 4 L72 22Z" fill="#FF7DB4"/>
-    <ellipse cx="60" cy="56" rx="46" ry="40" fill="url(#pg)"/>
-    <ellipse cx="46" cy="28" rx="16" ry="6" fill="#fff" opacity=".35"/>
-    <g transform="translate(86 14) rotate(18)"><path d="M0 0l-12-7v14zM0 0l12-7v14z" fill="#FF4F9A"/><circle r="4" fill="#D93A80"/></g>
-    ${eyes}
-    <ellipse cx="30" cy="62" rx="8" ry="5" fill="#FF5FA2" opacity=".45"/><ellipse cx="90" cy="62" rx="8" ry="5" fill="#FF5FA2" opacity=".45"/>
-    <ellipse cx="60" cy="64" rx="16" ry="11" fill="#FF7DB4"/><ellipse cx="54" cy="64" rx="3" ry="4.5" fill="#C2336F"/><ellipse cx="66" cy="64" rx="3" ry="4.5" fill="#C2336F"/>
-    <path d="${mouth}" stroke="#3B1530" stroke-width="3" fill="none" stroke-linecap="round"/>
-    ${mood === 'sleep' ? '<text x="96" y="22" font-size="16" fill="#D93A80" class="zz">z</text>' : ''}
-    <g class="paws"><ellipse cx="36" cy="100" rx="11" ry="9" fill="#FFB3D3" stroke="#FF7DB4" stroke-width="2"/><ellipse cx="84" cy="100" rx="11" ry="9" fill="#FFB3D3" stroke="#FF7DB4" stroke-width="2"/></g>
+  const eye = (x, flip) => mood === 'sleep'
+    ? `<path d="M${x - 9} 80 q9 8 18 0" stroke="#3B1530" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
+    : mood === 'wink' && flip
+      ? `<path d="M${x - 9} 82 q9 -9 18 0" stroke="#3B1530" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
+      : `<g class="eye"><ellipse cx="${x}" cy="80" rx="8.5" ry="${mood === 'wow' ? 11 : 10}" fill="#3B1530"/><circle cx="${x + 3}" cy="75.5" r="3.4" fill="#fff"/><circle cx="${x - 3}" cy="85" r="1.7" fill="#fff"/></g>`;
+  const brows = mood === 'sad' ? '<path d="M62 64 l18 6M138 64 l-18 6" stroke="#B02A63" stroke-width="3" stroke-linecap="round"/>' : '';
+  const tear = mood === 'sad' ? '<path class="tear" d="M134 92 q-5 9 0 12 q5 -3 0 -12z" fill="#8FD3FF"/>' : '';
+  const mouth = mood === 'sad'
+    ? '<path d="M91 123 q9 -8 18 0" stroke="#3B1530" stroke-width="3.2" fill="none" stroke-linecap="round"/>'
+    : mood === 'sleep'
+      ? '<ellipse cx="100" cy="121" rx="4" ry="3" fill="#B02A63"/>'
+      : mood === 'wow'
+        ? '<ellipse cx="100" cy="122" rx="7" ry="8" fill="#B02A63"/><ellipse cx="100" cy="126" rx="4" ry="3" fill="#FF8FB8"/>'
+        : '<path d="M90 117 q10 11 20 0z" fill="#B02A63" stroke="#3B1530" stroke-width="2.6" stroke-linejoin="round"/><path d="M95 121 q5 4 10 0" fill="#FF8FB8"/>';
+  return `<svg class="pig ${cls}" viewBox="0 0 200 200" aria-hidden="true">
+    <ellipse class="pig-shadow" cx="100" cy="193" rx="58" ry="7" fill="#D93A80" opacity=".18"/>
+    <path class="tail" d="M164 128 q16 -4 13 -17 q-3 -10 -12 -3 q-7 7 5 10" fill="none" stroke="#F27AAE" stroke-width="5.5" stroke-linecap="round"/>
+    <rect x="60" y="158" width="26" height="32" rx="12" fill="url(#pgLeg)"/><rect x="114" y="158" width="26" height="32" rx="12" fill="url(#pgLeg)"/>
+    <path d="M60 181h26v3a6 6 0 0 1-6 6h-14a6 6 0 0 1-6-6z M114 181h26v3a6 6 0 0 1-6 6h-14a6 6 0 0 1-6-6z" fill="#C94683"/>
+    <ellipse cx="100" cy="140" rx="70" ry="46" fill="url(#pgBody)"/>
+    <ellipse cx="74" cy="126" rx="24" ry="10" fill="#fff" opacity=".35" transform="rotate(-10 74 126)"/>
+    <rect x="128" y="104" width="22" height="6" rx="3" fill="#C2336F" opacity=".75" transform="rotate(14 139 107)"/>
+    <g class="ear ear-l"><path d="M50 56 Q42 12 82 30 Q72 50 50 56Z" fill="#F27AAE"/><path d="M57 49 Q53 25 74 33 Q66 45 57 49Z" fill="#FFCFE3"/></g>
+    <g class="ear ear-r"><path d="M150 56 Q158 12 118 30 Q128 50 150 56Z" fill="#F27AAE"/><path d="M143 49 Q147 25 126 33 Q134 45 143 49Z" fill="#FFCFE3"/></g>
+    <ellipse cx="100" cy="86" rx="60" ry="49" fill="url(#pgHead)"/>
+    <ellipse cx="78" cy="56" rx="24" ry="9" fill="#fff" opacity=".5" transform="rotate(-14 78 56)"/>
+    <g class="bow" transform="translate(142 40) rotate(18)">
+      <path d="M0 0C-10-15-28-11-26 2C-24 15-8 11 0 0Z" fill="url(#pgBow)"/>
+      <path d="M0 0C10-15 28-11 26 2C24 15 8 11 0 0Z" fill="url(#pgBow)"/>
+      <path d="M-3 3l-8 16 7-4 3 7 2-18zM3 3l8 16-7-4-3 7-2-18z" fill="#D92E76"/>
+      <circle r="6.5" fill="#E8357F"/><circle cx="-2" cy="-2.5" r="2.2" fill="#fff" opacity=".8"/>
+      <path d="M-19-5q5-5 10-2M19-5q-5-5-10-2" stroke="#fff" stroke-width="2" opacity=".55" fill="none" stroke-linecap="round"/>
+    </g>
+    ${brows}${eye(74)}${eye(126, true)}${tear}
+    <ellipse cx="56" cy="102" rx="15" ry="9" fill="url(#pgBlush)"/><ellipse cx="144" cy="102" rx="15" ry="9" fill="url(#pgBlush)"/>
+    <ellipse cx="100" cy="103" rx="23" ry="16" fill="url(#pgSnout)"/>
+    <ellipse cx="93" cy="96" rx="9" ry="3.5" fill="#fff" opacity=".55"/>
+    <ellipse cx="92" cy="104" rx="4.2" ry="6.2" fill="#A3245B"/><ellipse cx="108" cy="104" rx="4.2" ry="6.2" fill="#A3245B"/>
+    ${mouth}
+    <g class="hooves"><ellipse cx="74" cy="160" rx="13" ry="10" fill="url(#pgLeg)"/><ellipse cx="126" cy="160" rx="13" ry="10" fill="url(#pgLeg)"/>
+      <path d="M74 152v8M126 152v8" stroke="#C94683" stroke-width="2" stroke-linecap="round"/></g>
+    ${mood === 'sleep' ? '<text x="150" y="40" font-size="22" font-weight="700" fill="#D93A80" class="zz">z</text><text x="166" y="22" font-size="15" font-weight="700" fill="#D93A80" class="zz z2">z</text>' : ''}
   </svg>`;
+}
+
+// หมูโผล่จากหลังการ์ด เอากีบเกาะขอบไว้
+function pigPeek(mood, small) {
+  return `<button class="peek-body ${small ? 'small' : ''}" data-mood="${mood}" aria-label="น้องหมู">${pig(mood)}</button>
+    <div class="peek-paws ${small ? 'small' : ''}"><svg viewBox="0 0 200 40" aria-hidden="true">
+      <ellipse cx="70" cy="18" rx="17" ry="13" fill="url(#pgLeg)"/><ellipse cx="130" cy="18" rx="17" ry="13" fill="url(#pgLeg)"/>
+      <path d="M70 8v12M130 8v12" stroke="#C94683" stroke-width="2.5" stroke-linecap="round"/>
+      <ellipse cx="64" cy="12" rx="5" ry="3" fill="#fff" opacity=".5"/><ellipse cx="124" cy="12" rx="5" ry="3" fill="#fff" opacity=".5"/></svg></div>`;
+}
+
+// ---------- คำพูดน้องหมู (ให้กำลังใจ ชวนจดต่อ) ----------
+const PIG_LINES = {
+  happy: ['วันนี้เก่งมาก! 💖', 'กำไรแล้ว เย้~ 🎉', 'ออมเก่งที่สุดในโลก 🐷', 'ป้อนเหรียญอีกนะ 🪙', 'จดครบแบบนี้ รวยแน่ ✨'],
+  sad: ['ไม่เป็นไรนะ พรุ่งนี้เอาคืน 💪', 'ใจเย็นๆ ค่อยๆ ออม 🌷', 'หนูอยู่ข้างๆ นะ 🫶', 'ลองดูหมวดไหนจ่ายเยอะสุด 👀'],
+  wink: ['จดรายการแรกกัน! ✍️', 'วันนี้ใช้อะไรไปบ้าง? 🤔', 'พิมพ์ในแชท LINE ก็ได้นะ 💬'],
+  sleep: ['zZ… ยังไม่มีรายการ', 'ปลุกหนูด้วยการจดสิ 😴'],
+};
+function pigSay(mood, extra) {
+  const lines = [...(PIG_LINES[mood] || PIG_LINES.happy), ...(extra || [])];
+  return lines[Math.floor(Math.random() * lines.length)];
+}
+function burst(x, y, emojis = ['💖', '✨', '🪙', '💕', '🌸']) {
+  for (let i = 0; i < 10; i++) {
+    const s = document.createElement('span');
+    s.className = 'particle';
+    s.textContent = emojis[i % emojis.length];
+    const a = (Math.PI * 2 * i) / 10 + Math.random() * .5, r = 50 + Math.random() * 50;
+    s.style.cssText = `left:${x}px;top:${y}px;--dx:${Math.cos(a) * r}px;--dy:${Math.sin(a) * r - 40}px;--r:${Math.random() * 120 - 60}deg`;
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 1000);
+  }
+}
+function showBubble(anchor, text) {
+  const wrap = anchor.closest('.hero-wrap') || anchor.parentElement;
+  wrap.querySelector('.bubble')?.remove();
+  const b = document.createElement('div');
+  b.className = 'bubble' + (anchor.classList.contains('small') ? ' small' : '');
+  b.textContent = text;
+  wrap.appendChild(b);
+  clearTimeout(showBubble.t);
+  showBubble.t = setTimeout(() => b.classList.add('out'), 2600);
+  setTimeout(() => b.remove(), 3000);
+}
+function bindPig(root) {
+  root.querySelectorAll('.peek-body').forEach(p => {
+    p.onclick = () => {
+      p.classList.remove('boing'); void p.offsetWidth; p.classList.add('boing');
+      const r = p.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + r.height * .45);
+      showBubble(p, pigSay(p.dataset.mood, state.streak > 1 ? [`จดติดกัน ${state.streak} วันแล้ว 🔥`] : []));
+      navigator.vibrate?.(12);
+    };
+  });
+  // ทักทายครั้งเดียวตอนเปิดหน้า
+  const first = root.querySelector('.peek-body');
+  if (first && !bindPig.greeted) {
+    bindPig.greeted = true;
+    setTimeout(() => showBubble(first, state.streak > 1 ? `จดติดกัน ${state.streak} วันแล้ว 🔥` : pigSay(first.dataset.mood)), 900);
+  }
 }
 
 const params = new URLSearchParams(location.search);
@@ -172,7 +256,9 @@ async function loadPeriod() {
     });
     return { inc, exp, ti, te, perMonth, entries: null };
   }
+  if (ymOf(date) < archiveBefore()) return archived(mode, date);
   let entries = await getMonth(ymOf(date));
+  state.streak = streakOf(entries);
   if (mode === 'day') entries = entries.filter(e => e.date === date);
   const inc = {}, exp = {};
   let ti = 0, te = 0;
@@ -181,6 +267,29 @@ async function loadPeriod() {
     else { exp[e.category] = (exp[e.category] || 0) + e.amount; te += e.amount; }
   }
   return { inc, exp, ti, te, entries };
+}
+
+// จดติดกันกี่วัน (นับถึงวันนี้ หรือเมื่อวานถ้าวันนี้ยังไม่จด)
+function streakOf(entries) {
+  const days = new Set(entries.map(e => e.date));
+  let d = todayISO(), n = 0;
+  if (!days.has(d)) d = shiftDate(d, 'day', -1);
+  while (days.has(d)) { n++; d = shiftDate(d, 'day', -1); }
+  return n;
+}
+
+// ข้อมูลเก่ากว่าเดือนก่อน เก็บเป็นยอดรวมรายเดือนตามหมวด (ประหยัดพื้นที่)
+function archiveBefore() {
+  const [y, m] = todayISO().split('-').map(Number);
+  return new Date(Date.UTC(y, m - 2, 1)).toISOString().slice(0, 7);
+}
+async function archived(mode, date) {
+  if (mode === 'day') return { inc: {}, exp: {}, ti: 0, te: 0, entries: [], archived: 'day' };
+  const months = await getYear(date.slice(0, 4));
+  const mo = months[Number(date.slice(5, 7)) - 1] || {};
+  const inc = { ...(mo.inc || {}) }, exp = { ...(mo.exp || {}) };
+  const sum = o => Object.values(o).reduce((s, v) => s + v, 0);
+  return { inc, exp, ti: sum(inc), te: sum(exp), entries: [], archived: 'month' };
 }
 
 function periodLabel() {
@@ -268,9 +377,10 @@ const emptyEntries = `<div class="empty">${pig('sleep', 'nap')}<div>ยังไ
 
 function homeHTML(d) {
   const net = d.ti - d.te, zero = !d.ti && !d.te, profit = net >= 0;
-  const hero = `<div class="hero-wrap">${pig(zero ? 'wink' : profit ? 'happy' : 'sad', 'peek')}<div class="card hero tilt ${zero ? '' : profit ? 'profit' : 'loss'}">
+  const streak = state.mode === 'day' && state.date === todayISO() && state.streak > 1 ? `<span class="streak">🔥 ${state.streak} วัน</span>` : '';
+  const hero = `<div class="hero-wrap">${pigPeek(zero ? 'wink' : profit ? 'happy' : 'sad')}<div class="card hero tilt ${zero ? '' : profit ? 'profit' : 'loss'}">
     <i class="spark s1">✦</i><i class="spark s2">✦</i><i class="spark s3">✦</i>
-    <div class="hero-top"><span class="hero-label">${esc(periodWord())}</span><span class="badge">${zero ? '—' : profit ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
+    <div class="hero-top"><span class="hero-label">${esc(periodWord())} ${streak}</span><span class="badge">${zero ? '—' : profit ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${!zero && !profit ? '-' : ''}<span data-count="${Math.abs(net)}">0</span><small>บาท</small></div>
     <div class="split">
       <div class="pill"><span><i>💰</i>รายรับ</span><b>+${fmt(d.ti)}</b></div>
@@ -285,6 +395,9 @@ function homeHTML(d) {
         <div class="bars"><i class="i" data-h="${(m.inc / max) * 100}"></i><i class="o" data-h="${(m.exp / max) * 100}"></i></div>
         <small>${MONTHS[i].replace('.', '').slice(0, 3)}</small></div>`).join('')}</div>
       <div class="legend"><span><i style="background:var(--income)"></i>รายรับ</span><span><i style="background:var(--expense)"></i>รายจ่าย</span></div></div>`;
+  } else if (d.archived) {
+    middle = `<div class="card empty archived">${pig('sleep', 'nap')}<div>📦 ข้อมูลเก่ารวมเป็นยอดตามหมวดแล้ว</div>
+      ${d.archived === 'day' ? '<button class="btn" data-month-view>ดูยอดรายเดือน</button>' : ''}</div>`;
   } else {
     const isDay = state.mode === 'day';
     const list = isDay ? d.entries : d.entries.slice(0, 5);
@@ -322,9 +435,10 @@ function listHTML(d) {
         <small>รับ ${fmt(m.inc)} · จ่าย ${fmt(m.exp)}</small><small></small></button>`;
     }).join('')}</div>`;
   }
+  if (d.archived) return homeHTML(d);
   if (!d.entries.length) return `<div class="card">${emptyEntries}</div>`;
   const net = d.ti - d.te;
-  const top = `<div class="hero-wrap">${pig(net >= 0 ? 'happy' : 'sad', 'peek small')}<div class="card hero mini tilt ${net >= 0 ? 'profit' : 'loss'}">
+  const top = `<div class="hero-wrap small">${pigPeek(net >= 0 ? 'happy' : 'sad', true)}<div class="card hero mini tilt ${net >= 0 ? 'profit' : 'loss'}">
     <div class="hero-top"><span class="hero-label">${esc(periodWord())} · ${d.entries.length} รายการ</span><span class="badge">${net >= 0 ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${net < 0 ? '-' : ''}${fmt(Math.abs(net))}<small>บาท</small></div>
     <div class="split"><div class="pill"><span><i>💰</i>รายรับ</span><b>+${fmt(d.ti)}</b></div><div class="pill"><span><i>💸</i>รายจ่าย</span><b>-${fmt(d.te)}</b></div></div></div></div>`;
@@ -352,6 +466,7 @@ function bindTilt(root) {
 function bindView() {
   const view = $('#view');
   bindTilt(view);
+  bindPig(view);
   $$('.entry', view).forEach(b => b.onclick = async () => {
     const list = await getMonth(b.dataset.ym);
     const e = list.find(x => x.id === b.dataset.id);
@@ -364,6 +479,7 @@ function bindView() {
   });
   $$('[data-go]', view).forEach(b => b.onclick = () => go(b.dataset.go));
   $$('[data-add]', view).forEach(b => b.onclick = () => openEntry(null));
+  $$('[data-month-view]', view).forEach(b => b.onclick = () => { state.mode = 'month'; render(); });
 }
 
 // ---------- ปฏิทินเลือกวัน/เดือน/ปี ----------
@@ -425,7 +541,7 @@ function settingsHTML() {
   const theme = store.get('theme') || 'auto';
   return `<div class="grid two">
     <div class="card">
-      ${pig('wink', 'peek corner')}<h2 class="section-title">🗂️ หมวดหมู่</h2>
+      <div class="corner-pig">${pig('wink')}</div><h2 class="section-title">🗂️ หมวดหมู่</h2>
 
       <div class="sub">หมวดที่สร้างเอง</div>
       ${state.custom.length ? state.custom.map(c => `
@@ -598,11 +714,12 @@ function openEntry(entry) {
 async function showSaved(d, title) {
   const c = catById(d.category);
   $('#sheet').innerHTML = `<div class="saved">
-    <div class="saved-pig"><span class="coin">🪙</span>${pig('happy', 'jump')}</div>
+    <div class="saved-pig"><span class="coin">🪙</span>${pig('wow', 'jump')}</div>
     <div class="saved-title">${title}</div>
     <div class="saved-amt ${d.type === 'income' ? 'amt-in' : 'amt-out'}">${d.type === 'income' ? '+' : '-'}${fmt(d.amount)} ฿</div>
     <div class="saved-cat">${esc(c.icon)} ${esc(c.name)} · ${thaiDay(d.date)}</div></div>`;
-  await sleep(1000);
+  setTimeout(() => { const r = $('.saved-pig')?.getBoundingClientRect(); if (r) burst(r.left + r.width / 2, r.top + 20, ['🪙', '💖', '✨', '🎉']); }, 650);
+  await sleep(1300);
   closeSheet();
 }
 

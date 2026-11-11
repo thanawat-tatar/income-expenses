@@ -3,9 +3,13 @@ import { verifySignature, reply } from '../lib/line.js';
 import { parseMessage, normalizeThai, hasNumber } from '../lib/parser.js';
 import { OTHER } from '../lib/categories.js';
 import { bkkDate, thaiDate } from '../lib/date.js';
-import { confirmMessage, askMessage, summaryMessage, undoMessage, helpMessage, savedMessage, noteCard, text } from '../lib/messages.js';
+import { extractDate } from '../lib/parser.js';
 import {
-  getProfile, saveProfile, addEntries, listEntries, lastBatch, deleteEntries,
+  confirmMessage, askMessage, summaryMessage, undoMessage, helpMessage, savedMessage, noteCard, text, baht,
+  editListMessage, editEntryMessage, editCategoryMessage, withQuick,
+} from '../lib/messages.js';
+import {
+  getProfile, saveProfile, addEntries, updateEntry, recentEntries, getEntry, setEdit, getEdit, clearEdit, listEntries, lastBatch, deleteEntries,
   setPending, getPending, clearPending,
 } from '../lib/store.js';
 
@@ -51,7 +55,7 @@ async function onText(uid, ev) {
     return reply(ev.replyToken, summaryMessage(await listEntries(uid, today, today), today, byId));
   }
   if (/^(วิธีใช้|ช่วย|ช่วยด้วย|help|\?|เมนู|ใช้ยังไง|ทำยังไง)$/i.test(msg)) return reply(ev.replyToken, helpMessage());
-  if (/^(ยกเลิก|cancel|ลบ|ลบล่าสุด)$/i.test(msg)) {
+  if (/^(ยกเลิก|cancel|ลบล่าสุด|ยกเลิกล่าสุด)$/i.test(msg)) {
     if (await getPending(uid)) {
       await clearPending(uid);
       return reply(ev.replyToken, noteCard('✖️', 'ยกเลิกรายการที่รอยืนยันแล้ว'));
@@ -63,6 +67,55 @@ async function onText(uid, ev) {
 
   const hasDigit = hasNumber(msg);
   const pending = hasDigit ? null : await getPending(uid);
+
+  // ---- กำลังแก้รายการ: รอพิมพ์จำนวนเงิน / ชื่อ / วันที่ ----
+  const edit = await getEdit(uid);
+  if (edit) {
+    const e = await getEntry(uid, edit.id);
+    if (e && edit.await === 'amount' && hasDigit) {
+      const amount = parseMessage(msg, profile.categories, profile.keywords).items[0]?.amount;
+      if (amount) return saveEdit(uid, ev, e, { amount }, byId, `${baht(e.amount)} → ${baht(amount)} บาท`);
+    }
+    if (e && edit.await === 'note' && msg.length <= 60) return saveEdit(uid, ev, e, { note: msg }, byId, `ชื่อ: ${msg}`);
+    if (e && edit.await === 'date') {
+      const d = extractDate(normalizeThai(msg), bkkDate());
+      if (d.marks.length) return saveEdit(uid, ev, e, { date: d.marks[0].date }, byId, thaiDate(d.marks[0].date));
+    }
+    await clearEdit(uid);
+  }
+
+  // ---- แก้ไข/ลบ แบบพิมพ์สั่ง: "แก้ข้าว 50 เป็น 60", "แก้ข้าว เป็น ค่าเดินทาง", "ลบ ข้าว 50" ----
+  const change = msg.match(/^(?:ขอ)?(?:แก้|เปลี่ยน)(?:ไข)?\s*(.+?)\s*(?:เป็น|=|->|→)\s*(.+)$/);
+  if (change) {
+    const recent = await recentEntries(uid, 30);
+    const e = findEntry(recent, change[1], byId);
+    if (!e) return reply(ev.replyToken, [noteCard('🔍', `ไม่เจอ "${change[1]}"`, 'แตะเลือกรายการที่จะแก้ได้เลย'), ...(recent.length ? [editListMessage(recent.slice(0, 8), byId)] : [])]);
+    const target = change[2].trim();
+    if (hasNumber(target)) {
+      const amount = parseMessage(target, profile.categories, profile.keywords).items[0]?.amount;
+      if (amount) return saveEdit(uid, ev, e, { amount }, byId, `${baht(e.amount)} → ${baht(amount)} บาท`);
+    }
+    const cat = findCategory(target, profile);
+    if (cat) return saveEdit(uid, ev, e, { category: cat.id, type: cat.type }, byId, `${cat.icon} ${cat.name}`);
+    return reply(ev.replyToken, editEntryMessage(e, byId));
+  }
+  const del1 = msg.match(/^(?:ขอ)?(?:ลบ|เอาออก)\s*(?!คำ)(.+)$/);
+  if (del1 && hasDigit) {
+    const recent = await recentEntries(uid, 30);
+    const e = findEntry(recent, del1[1], byId);
+    if (e) return reply(ev.replyToken, deleteAsk(e, byId));
+  }
+
+  // ---- อยากแก้/ลบ แต่ไม่ได้บอกว่าอันไหน: "ขอแก้ไข", "พิมพ์ผิด", "ลบอันเก่า", "ย้อนกลับ" ----
+  if (!hasDigit && msg.length <= 40 && EDIT_RE.test(msg) && !/^ลบคำ/.test(msg)) {
+    if (pending && !pending.awaitCat) {
+      return reply(ev.replyToken, withQuick(noteCard('📝', 'รายการล่าสุดยังไม่ได้บันทึก', 'ยกเลิกแล้วพิมพ์ใหม่ หรือแก้อันที่บันทึกแล้ว'), [
+        ['✖️ ยกเลิกอันใหม่', `a=no&p=${pending.id}`, 'ยกเลิก'],
+        ['✏️ แก้อันเก่า', 'a=elist', 'แก้รายการที่บันทึกแล้ว'],
+      ]));
+    }
+    return reply(ev.replyToken, await editList(uid, byId));
+  }
 
   // รอชื่อหมวดใหม่ (หลังกด "➕ หมวดใหม่")
   if (!hasDigit && pending && pending.awaitCat != null && msg.length <= 30) {
@@ -153,6 +206,40 @@ async function onText(uid, ev) {
   return reply(ev.replyToken, out);
 }
 
+// ---------- แก้ไขรายการในแชท ----------
+const EDIT_RE = /แก้|เปลี่ยน|พิมพ์ผิด|พิมผิด|จดผิด|ใส่ผิด|บันทึกผิด|กดผิด|ลบ|เอาออก|ย้อนกลับ|ย้อน|undo|edit|ไม่ถูกต้อง|ผิดพลาด/i;
+
+async function editList(uid, byId) {
+  const recent = await recentEntries(uid, 8);
+  return recent.length ? editListMessage(recent, byId) : noteCard('📝', 'ยังไม่มีรายการที่บันทึก');
+}
+
+// หารายการจากคำที่พิมพ์ เช่น "ข้าว 50" → รายการที่ชื่อมี "ข้าว" และเงิน 50
+function findEntry(list, query, byId) {
+  const q = normalizeThai(query).replace(/บาท|฿/g, '').trim();
+  const num = Number((q.match(/\d+(?:\.\d+)?/) || [])[0]);
+  const word = q.replace(/[\d.,]+/g, '').trim();
+  return list.find(e => {
+    const name = `${e.note || ''} ${byId[e.category]?.name || ''}`;
+    return (!word || name.includes(word)) && (!num || e.amount === num) && (word || num);
+  });
+}
+
+async function saveEdit(uid, ev, e, change, byId, what) {
+  const next = { ...e, ...change };
+  await updateEntry(uid, e.id, next);
+  await clearEdit(uid);
+  return reply(ev.replyToken, [noteCard('✅', 'แก้แล้ว', what), editEntryMessage({ ...next, id: e.id }, byId)]);
+}
+
+function deleteAsk(e, byId) {
+  const c = byId[e.category] || { name: e.category, icon: '🏷️' };
+  return withQuick(noteCard('🗑️', `ลบ ${c.icon} ${c.name} ${baht(e.amount)} บาท?`, e.note && e.note !== c.name ? e.note : ''), [
+    ['🗑️ ลบเลย', `a=edel2&id=${e.id}`, 'ลบเลย'],
+    ['ไม่ลบ', `a=pick&id=${e.id}`, 'ไม่ลบ'],
+  ]);
+}
+
 // ---------- บอทถามคำที่ไม่รู้จัก แล้วจำไว้ ----------
 // หาหมวดจากชื่อที่ผู้ใช้พิมพ์ เช่น "กิน", "ค่ากิน", "ครอบครัว"
 function findCategory(name, profile) {
@@ -241,6 +328,40 @@ async function onPostback(uid, ev) {
     applyWord(pending, word, cat, i);
     await setPending(uid, pending);
     return reply(ev.replyToken, [noteCard('🧠', `จำแล้ว "${word}"`, `= ${cat.icon} ${cat.name}`), ...nextStep(pending, byId, profile.categories)]);
+  }
+
+  // ---- แก้ไขรายการ ----
+  if (['elist', 'pick', 'eamt', 'ecat', 'ecat2', 'eflip', 'edate', 'enote', 'edel', 'edel2', 'edone'].includes(a)) {
+    const profile = await getProfile(uid);
+    const byId = catMap(profile.categories);
+    if (a === 'edone') { await clearEdit(uid); return reply(ev.replyToken, noteCard('✨', 'เรียบร้อย!', 'พิมพ์รายการใหม่ได้เลย')); }
+    if (a === 'elist') return reply(ev.replyToken, await editList(uid, byId));
+    const e = await getEntry(uid, p.get('id'));
+    if (!e) return reply(ev.replyToken, noteCard('🤔', 'ไม่เจอรายการนี้แล้ว', 'อาจถูกลบไปแล้ว'));
+    if (a === 'pick') return reply(ev.replyToken, editEntryMessage(e, byId));
+    if (a === 'eamt') { await setEdit(uid, { id: e.id, await: 'amount' }); return reply(ev.replyToken, noteCard('💰', 'พิมพ์จำนวนเงินใหม่', `ตอนนี้ ${baht(e.amount)} บาท · เช่น 60 หรือ 30+20`)); }
+    if (a === 'enote') { await setEdit(uid, { id: e.id, await: 'note' }); return reply(ev.replyToken, noteCard('📝', 'พิมพ์ชื่อรายการใหม่', 'เช่น ข้าวมันไก่')); }
+    if (a === 'ecat') return reply(ev.replyToken, editCategoryMessage(e, profile.categories));
+    if (a === 'eflip') {
+      const type = e.type === 'income' ? 'expense' : 'income';
+      return reply(ev.replyToken, editCategoryMessage({ ...e, type, category: '' }, profile.categories));
+    }
+    if (a === 'ecat2') {
+      const cat = byId[p.get('c')];
+      if (!cat) return reply(ev.replyToken, noteCard('🤔', 'ไม่พบหมวดนี้แล้ว'));
+      return saveEdit(uid, ev, e, { category: cat.id, type: cat.type }, byId, `${cat.icon} ${cat.name}`);
+    }
+    if (a === 'edate') {
+      const date = ev.postback.params?.date;
+      if (date) return saveEdit(uid, ev, e, { date }, byId, thaiDate(date));
+      await setEdit(uid, { id: e.id, await: 'date' });
+      return reply(ev.replyToken, noteCard('📅', 'พิมพ์วันที่', 'เช่น เมื่อวาน, วันที่ 3, 3 พ.ย.'));
+    }
+    if (a === 'edel') return reply(ev.replyToken, deleteAsk(e, byId));
+    if (a === 'edel2') {
+      await deleteEntries(uid, [e.id]);
+      return reply(ev.replyToken, withQuick(noteCard('🗑️', 'ลบแล้ว', `${byId[e.category]?.name || ''} ${baht(e.amount)} บาท`), [['📋 แก้รายการอื่น', 'a=elist', 'แก้รายการอื่น']]));
+    }
   }
 
   if (a === 'del') {

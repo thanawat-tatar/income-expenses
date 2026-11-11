@@ -1,7 +1,8 @@
 // API สำหรับเว็บแอป (ต้องล็อกอินด้วย LINE ผ่าน LIFF)
 import { verifyIdToken } from '../lib/line.js';
+import { bkkDate } from '../lib/date.js';
 import {
-  getProfile, saveProfile, addEntries, updateEntry, deleteEntries, listEntries, yearSummary,
+  getProfile, saveProfile, addEntries, updateEntry, deleteEntries, listEntries, yearSummary, compactOld,
 } from '../lib/store.js';
 
 const json = (data, status = 200) => new Response(JSON.stringify(data), {
@@ -27,7 +28,11 @@ export async function GET(request) {
     if (action === 'boot') { // เปิดเว็บครั้งแรก: ดึงหมวด + รายการเดือนนี้ในครั้งเดียว
       const from = url.searchParams.get('from'), to = url.searchParams.get('to');
       if (!isDate(from) || !isDate(to)) return json({ error: 'bad date' }, 400);
-      const [profile, entries] = await Promise.all([getProfile(user.uid, user.name), listEntries(user.uid, from, to)]);
+      const [profile, entries] = await Promise.all([
+        getProfile(user.uid, user.name),
+        listEntries(user.uid, from, to),
+        compactOld(user.uid, bkkDate()).catch(e => console.error('compact', e)), // รวมข้อมูลเก่า เดือนละครั้ง
+      ]);
       return json({ profile: { ...profile, name: user.name }, entries });
     }
     if (action === 'entries') {
