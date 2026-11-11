@@ -6,10 +6,11 @@ import { bkkDate, thaiDate } from '../lib/date.js';
 import { extractDate } from '../lib/parser.js';
 import {
   confirmMessage, askMessage, summaryMessage, undoMessage, helpMessage, savedMessage, noteCard, text, baht,
-  editListMessage, editEntryMessage, editCategoryMessage, withQuick,
+  editListMessage, editEntryMessage, editCategoryMessage, withQuick, stuckMessage,
 } from '../lib/messages.js';
 import {
-  getProfile, saveProfile, addEntries, updateEntry, recentEntries, getEntry, setEdit, getEdit, clearEdit, listEntries, lastBatch, deleteEntries,
+  getProfile, saveProfile, addEntries, updateEntry, recentEntries, getEntry, setEdit, getEdit, clearEdit,
+  getMiss, setMiss, clearMiss, listEntries, lastBatch, deleteEntries,
   setPending, getPending, clearPending,
 } from '../lib/store.js';
 
@@ -99,11 +100,24 @@ async function onText(uid, ev) {
     if (cat) return saveEdit(uid, ev, e, { category: cat.id, type: cat.type }, byId, `${cat.icon} ${cat.name}`);
     return reply(ev.replyToken, editEntryMessage(e, byId));
   }
-  const del1 = msg.match(/^(?:ขอ)?(?:ลบ|เอาออก)\s*(?!คำ)(.+)$/);
-  if (del1 && hasDigit) {
-    const recent = await recentEntries(uid, 30);
-    const e = findEntry(recent, del1[1], byId);
-    if (e) return reply(ev.replyToken, deleteAsk(e, byId));
+  // ---- แก้/ลบ แบบบอกว่าอันไหน: "แก้ค่ากินวันที่12", "แก้รายการวันที่11", "ลบค่ากินเมื่อวาน", "ลบ ข้าว 50" ----
+  const target = msg.match(/^(?:ขอ)?(แก้(?!ว)(?:ไข)?|ลบ(?!คำ)|เอาออก)\s*(.*)$/);
+  if (target && target[2]) {
+    const found = await findTargets(uid, target[2], profile, byId);
+    if (found) {
+      const del = !target[1].startsWith('แก้');
+      const what = [found.word, found.num ? `${baht(found.num)} บาท` : '', found.date ? thaiDate(found.date) : ''].filter(Boolean).join(' · ');
+      if (!found.matches.length) {
+        return reply(ev.replyToken, [noteCard('🔍', `ไม่เจอรายการ ${what}`, 'แตะเลือกจากรายการล่าสุดได้เลย'), await editList(uid, byId)]);
+      }
+      if (found.matches.length === 1) {
+        return reply(ev.replyToken, del ? deleteAsk(found.matches[0], byId) : editEntryMessage(found.matches[0], byId));
+      }
+      return reply(ev.replyToken, [
+        noteCard('🔍', `เจอ ${found.matches.length} รายการ`, `${what} · แตะอันที่จะ${del ? 'ลบ' : 'แก้'}`),
+        editListMessage(found.matches.slice(0, 10), byId),
+      ]);
+    }
   }
 
   // ---- อยากแก้/ลบ แต่ไม่ได้บอกว่าอันไหน: "ขอแก้ไข", "พิมพ์ผิด", "ลบอันเก่า", "ย้อนกลับ" ----
@@ -196,8 +210,14 @@ async function onText(uid, ev) {
 
   const { date, items, truncated, orphans } = parseMessage(msg, profile.categories, profile.keywords, bkkDate());
   if (!items.length) {
+    // ไม่เข้าใจ 2 ครั้งติดกัน (ภายใน 15 นาที) → ส่งปุ่มเปิดหน้าตั้งค่า
+    const miss = await getMiss(uid);
+    const count = miss && Date.now() - miss.at < 15 * 60 * 1000 ? miss.count + 1 : 1;
+    await setMiss(uid, { count, at: Date.now() });
+    if (count >= 2) return reply(ev.replyToken, stuckMessage());
     return reply(ev.replyToken, noteCard('🤔', 'ไม่เจอจำนวนเงิน', 'ลองพิมพ์ เช่น น้ำมัน 60 ข้าว 50\nหรือพิมพ์ "วิธีใช้"'));
   }
+  clearMiss(uid).catch(() => {});
   const pid = Math.random().toString(36).slice(2, 10);
   const pend = { id: pid, items, date, orphans };
   await setPending(uid, pend);
@@ -212,6 +232,28 @@ const EDIT_RE = /แก้|เปลี่ยน|พิมพ์ผิด|พิ
 async function editList(uid, byId) {
   const recent = await recentEntries(uid, 8);
   return recent.length ? editListMessage(recent, byId) : noteCard('📝', 'ยังไม่มีรายการที่บันทึก');
+}
+
+// หารายการจากคำสั่ง เช่น "ค่ากินวันที่12" → ค่ากินของวันที่ 12, "ข้าว 50" → ชื่อมีข้าว เงิน 50
+// ไม่ได้บอกอะไรเฉพาะเจาะจง (เช่น "แก้รายการเมื่อกี้") → คืนค่า null ให้โชว์รายการล่าสุดแทน
+async function findTargets(uid, query, profile, byId) {
+  const q = normalizeThai(query)
+    .replace(/[๐-๙]/g, d => String('๐๑๒๓๔๕๖๗๘๙'.indexOf(d)))
+    .replace(/เมื่อกี้|เมื่อกี๊|เมื่อตะกี้|อันล่าสุด|ล่าสุด|อันเก่า|รายการ|อันนี้|อันที่|หน่อย|ได้ไหม|ได้มั้ย|ครับ|ค่ะ|คะ|นะ|ให้หน่อย/g, ' ');
+  const d = extractDate(q, bkkDate());
+  const date = d.marks[0]?.date || '';
+  const rest = d.text.replace(/บาท|฿|ของ|ที่|อัน/g, ' ');
+  const num = Number((rest.match(/\d+(?:\.\d+)?/) || [])[0]) || 0;
+  const word = rest.replace(/[\d.,]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!date && !word && !num) return null;
+  const list = date ? await listEntries(uid, date, date) : await recentEntries(uid, 30);
+  const cat = word ? findCategory(word, profile) : null;
+  const matches = list.filter(e => {
+    const name = `${e.note || ''} ${byId[e.category]?.name || ''}`;
+    const byWord = !word || name.includes(word) || (cat && e.category === cat.id);
+    return byWord && (!num || e.amount === num);
+  });
+  return { matches, date, word, num };
 }
 
 // หารายการจากคำที่พิมพ์ เช่น "ข้าว 50" → รายการที่ชื่อมี "ข้าว" และเงิน 50

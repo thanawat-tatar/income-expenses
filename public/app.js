@@ -19,10 +19,13 @@ function pig(mood = 'happy', cls = '') {
     : mood === 'wink' && flip
       ? `<path d="M${x - 9} 82 q9 -9 18 0" stroke="#3B1530" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
       : `<g class="eye"><ellipse cx="${x}" cy="80" rx="8.5" ry="${mood === 'wow' ? 11 : 10}" fill="#3B1530"/><circle cx="${x + 3}" cy="75.5" r="3.4" fill="#fff"/><circle cx="${x - 3}" cy="85" r="1.7" fill="#fff"/></g>`;
-  const brows = mood === 'sad' ? '<path d="M62 64 l18 6M138 64 l-18 6" stroke="#B02A63" stroke-width="3" stroke-linecap="round"/>' : '';
+  const brows = mood === 'sad' ? '<path d="M62 64 l18 6M138 64 l-18 6" stroke="#B02A63" stroke-width="3" stroke-linecap="round"/>'
+    : mood === 'angry' ? '<path d="M60 62 l22 10M140 62 l-22 10" stroke="#8E1B4E" stroke-width="4.5" stroke-linecap="round"/><g transform="translate(42 30)"><g class="anger"><path d="M-8-2h5v-5M2-7v5h5M7 2h-5v5M-3 7v-5h-5" stroke="#E2307A" stroke-width="3.2" fill="none" stroke-linecap="round"/></g></g>' : '';
   const tear = mood === 'sad' ? '<path class="tear" d="M134 92 q-5 9 0 12 q5 -3 0 -12z" fill="#8FD3FF"/>' : '';
   const mouth = mood === 'sad'
     ? '<path d="M91 123 q9 -8 18 0" stroke="#3B1530" stroke-width="3.2" fill="none" stroke-linecap="round"/>'
+    : mood === 'angry'
+      ? '<path d="M92 124 q4 -5 8 0 q4 5 8 0" stroke="#3B1530" stroke-width="3" fill="none" stroke-linecap="round"/>'
     : mood === 'sleep'
       ? '<ellipse cx="100" cy="121" rx="4" ry="3" fill="#B02A63"/>'
       : mood === 'wow'
@@ -70,14 +73,30 @@ function pigPeek(mood, small) {
 
 // ---------- คำพูดน้องหมู (ให้กำลังใจ ชวนจดต่อ) ----------
 const PIG_LINES = {
-  happy: ['วันนี้เก่งมาก! 💖', 'กำไรแล้ว เย้~ 🎉', 'ออมเก่งที่สุดในโลก 🐷', 'ป้อนเหรียญอีกนะ 🪙', 'จดครบแบบนี้ รวยแน่ ✨'],
-  sad: ['ไม่เป็นไรนะ พรุ่งนี้เอาคืน 💪', 'ใจเย็นๆ ค่อยๆ ออม 🌷', 'หนูอยู่ข้างๆ นะ 🫶', 'ลองดูหมวดไหนจ่ายเยอะสุด 👀'],
-  wink: ['จดรายการแรกกัน! ✍️', 'วันนี้ใช้อะไรไปบ้าง? 🤔', 'พิมพ์ในแชท LINE ก็ได้นะ 💬'],
-  sleep: ['zZ… ยังไม่มีรายการ', 'ปลุกหนูด้วยการจดสิ 😴'],
+  // กำไร: ชม
+  happy: ['วันนี้เก่งมาก! 💖', 'กำไรแล้ว เย้~ 🎉', 'ออมเก่งที่สุดในโลก 🐷', 'ป้อนเหรียญอีกนะ 🪙', 'จดครบแบบนี้ รวยแน่ ✨',
+    'หนูภูมิใจในตัวเธอ 🥹', 'เงินเข้า เงินเก็บ ปังมาก 💰', 'แบบนี้ต้องให้รางวัลตัวเองแล้ว 🍰', 'คนเก่งของหนู 💕', 'พรุ่งนี้กำไรอีกนะ ✌️'],
+  // ขาดทุน: ให้กำลังใจ
+  sad: ['ไม่เป็นไรนะ พรุ่งนี้เอาคืน 💪', 'ใจเย็นๆ ค่อยๆ ออม 🌷', 'หนูอยู่ข้างๆ นะ 🫶', 'ลองดูหมวดไหนจ่ายเยอะสุด 👀', 'ขาดทุนนิดหน่อย ไม่เป็นไร 🥺',
+    'พรุ่งนี้ลดของไม่จำเป็นกันนะ ✂️', 'จดไว้แบบนี้ เดี๋ยวก็รู้ว่าเงินรั่วตรงไหน 🔍', 'กอดๆ 🤗 สู้ต่อนะ', 'วันนี้เหนื่อยไหม พักบ้างนะ 💗', 'เก็บทีละนิด เดี๋ยวก็กลับมาบวก 📈'],
+  // ยังไม่จด (0 บาท): งอน ชวนมาจด
+  angry: ['ยังไม่จดเลยนะ! 😤', 'หนูหิว… ป้อนรายการหน่อย 🪙', 'วันนี้ใช้เงินไปกับอะไร บอกหนูสิ 😠', 'ไม่จด = เงินรั่วนะ! 💸', 'พิมพ์ในแชท LINE แค่ "ข้าว 50" ก็พอ ✍️',
+    'หนูรออยู่นะ… 🙄', 'จดวันละนิด รวยวันละหน่อย 💖', 'กดปุ่ม + ด้านล่างเลย! 👇', 'อย่าปล่อยหนูว่างเปล่าสิ 🥺', 'จดเดี๋ยวนี้ ไม่งั้นงอนจริงนะ 😾'],
 };
-function pigSay(mood, extra) {
-  const lines = [...(PIG_LINES[mood] || PIG_LINES.happy), ...(extra || [])];
-  return lines[Math.floor(Math.random() * lines.length)];
+// สุ่มแบบไม่ซ้ำ: ครบ 10 ประโยคก่อนค่อยวนใหม่
+const pigQueue = {};
+let lastLine = '';
+function pigSay(mood) {
+  const pool = PIG_LINES[mood] || PIG_LINES.happy;
+  if (!pigQueue[mood]?.length) {
+    const q = [...pool];
+    if (state.streak > 1 && mood !== 'angry') q.push(`จดติดกัน ${state.streak} วันแล้ว 🔥`);
+    for (let i = q.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [q[i], q[j]] = [q[j], q[i]]; }
+    if (q[q.length - 1] === lastLine) q.unshift(q.pop());
+    pigQueue[mood] = q;
+  }
+  lastLine = pigQueue[mood].pop();
+  return lastLine;
 }
 function burst(x, y, emojis = ['💖', '✨', '🪙', '💕', '🌸']) {
   for (let i = 0; i < 10; i++) {
@@ -107,7 +126,7 @@ function bindPig(root) {
       p.classList.remove('boing'); void p.offsetWidth; p.classList.add('boing');
       const r = p.getBoundingClientRect();
       burst(r.left + r.width / 2, r.top + r.height * .45);
-      showBubble(p, pigSay(p.dataset.mood, state.streak > 1 ? [`จดติดกัน ${state.streak} วันแล้ว 🔥`] : []));
+      showBubble(p, pigSay(p.dataset.mood));
       navigator.vibrate?.(12);
     };
   });
@@ -115,7 +134,8 @@ function bindPig(root) {
   const first = root.querySelector('.peek-body');
   if (first && !bindPig.greeted) {
     bindPig.greeted = true;
-    setTimeout(() => showBubble(first, state.streak > 1 ? `จดติดกัน ${state.streak} วันแล้ว 🔥` : pigSay(first.dataset.mood)), 900);
+    const mood = first.dataset.mood;
+    setTimeout(() => showBubble(first, state.streak > 1 && mood !== 'angry' ? `จดติดกัน ${state.streak} วันแล้ว 🔥` : pigSay(mood)), 900);
   }
 }
 
@@ -378,7 +398,7 @@ const emptyEntries = `<div class="empty">${pig('sleep', 'nap')}<div>ยังไ
 function homeHTML(d) {
   const net = d.ti - d.te, zero = !d.ti && !d.te, profit = net >= 0;
   const streak = state.mode === 'day' && state.date === todayISO() && state.streak > 1 ? `<span class="streak">🔥 ${state.streak} วัน</span>` : '';
-  const hero = `<div class="hero-wrap">${pigPeek(zero ? 'wink' : profit ? 'happy' : 'sad')}<div class="card hero tilt ${zero ? '' : profit ? 'profit' : 'loss'}">
+  const hero = `<div class="hero-wrap">${pigPeek(zero ? 'angry' : profit ? 'happy' : 'sad')}<div class="card hero tilt ${zero ? '' : profit ? 'profit' : 'loss'}">
     <i class="spark s1">✦</i><i class="spark s2">✦</i><i class="spark s3">✦</i>
     <div class="hero-top"><span class="hero-label">${esc(periodWord())} ${streak}</span><span class="badge">${zero ? '—' : profit ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${!zero && !profit ? '-' : ''}<span data-count="${Math.abs(net)}">0</span><small>บาท</small></div>

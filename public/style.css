@@ -1,24 +1,14 @@
-/* ---------- สี (โหมดสว่าง) ---------- */
+/* ---------- สี (โหมดสว่าง) ธีมชมพู ---------- */
 :root {
-  --bg: #FFF4F8;
-  --surface: #FFFFFF;
-  --surface-2: #FDEEF4;
-  --text: #2B1220;
-  --muted: #8A6577;
-  --faint: #B996A7;
-  --line: #F5DCE7;
-  --accent: #E8467C;
-  --accent-2: #F472B6;
-  --accent-soft: #FFE1ED;
-  --on-accent: #FFFFFF;
-  --income: #12A594;
-  --income-soft: #D9F5F0;
-  --expense: #E5484D;
-  --expense-soft: #FDE5E5;
-  --hero-profit: linear-gradient(135deg, #E8467C 0%, #F06AA0 55%, #FB8F6C 100%);
-  --hero-loss: linear-gradient(135deg, #8E1B4E 0%, #C2185B 60%, #E8467C 100%);
-  --hero-zero: linear-gradient(135deg, #D63B78 0%, #F06AA0 100%);
-  --shadow: 0 1px 2px rgba(120, 20, 60, .04), 0 6px 18px rgba(232, 70, 124, .08);
+  --bg: #FFF0F6; --surface: #FFFFFF; --surface-2: #FFE9F2; --text: #3B1530; --muted: #9C6B85; --faint: #C9A2B6; --line: #FFD6E6;
+  --accent: #FF4F9A; --accent-2: #FF8CC3; --accent-soft: #FFE0EF; --on-accent: #FFFFFF; --accent-edge: #D93A80;
+  --income: #12A594; --income-soft: #DAF6F1; --expense: #F0455A; --expense-soft: #FFE3E7;
+  --hero-profit: linear-gradient(160deg, #FF8CC3 0%, #FF4F9A 55%, #FF6F91 100%);
+  --hero-loss: linear-gradient(160deg, #D9468F 0%, #A8286E 60%, #7E1A55 100%);
+  --hero-zero: linear-gradient(160deg, #FFA6CF 0%, #FF6FAE 100%);
+  --hero-edge: #D93A80; --card-edge: #FFD3E4;
+  --shadow: 0 3px 0 var(--card-edge), 0 12px 26px rgba(255, 79, 154, .12);
+  --font: "Mali", "Sukhumvit Set", "Noto Sans Thai", system-ui, sans-serif;
   --radius: 20px;
   --nav-h: 68px;
   --ease: cubic-bezier(.2, .8, .2, 1);
@@ -26,23 +16,27 @@
 }
 /* ---------- สี (โหมดมืด) ---------- */
 :root[data-theme="dark"] {
-  --bg: #150B11; --surface: #20131A; --surface-2: #2B1A23; --text: #FBEAF1; --muted: #C09AAD; --faint: #8A6878; --line: #3A2430;
-  --accent: #FF6FA3; --accent-2: #F9A8D4; --accent-soft: #4A1D33; --on-accent: #2B0716;
-  --income: #2DD4BF; --income-soft: #0F3330; --expense: #FF7A7A; --expense-soft: #3E1A1D;
-  --hero-profit: linear-gradient(135deg, #B83268 0%, #D9488A 55%, #D9735A 100%);
-  --hero-loss: linear-gradient(135deg, #5E1033 0%, #8E1B4E 60%, #B83268 100%);
-  --hero-zero: linear-gradient(135deg, #8E1B4E 0%, #B83268 100%);
-  --shadow: 0 1px 2px rgba(0, 0, 0, .4); color-scheme: dark;
+  --bg: #1A0D16; --surface: #26131F; --surface-2: #33192A; --text: #FFE9F3; --muted: #D7A5BF; --faint: #9A6B84; --line: #4A2238;
+  --accent: #FF6FB0; --accent-2: #FFA6CF; --accent-soft: #4D1F3A; --on-accent: #FFFFFF; --accent-edge: #B8336F;
+  --income: #3FE0C5; --income-soft: #10352F; --expense: #FF7A8A; --expense-soft: #451A24;
+  --hero-profit: linear-gradient(160deg, #F06AAA 0%, #D9468F 55%, #C73F73 100%);
+  --hero-loss: linear-gradient(160deg, #9B2A66 0%, #6E1A4A 100%);
+  --hero-zero: linear-gradient(160deg, #C24B88 0%, #9B2A66 100%);
+  --hero-edge: #7E1A55; --card-edge: #3A1A2D;
+  --shadow: 0 3px 0 var(--card-edge), 0 12px 26px rgba(0, 0, 0, .35);
+  color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #150B11; --surface: #20131A; --surface-2: #2B1A23; --text: #FBEAF1; --muted: #C09AAD; --faint: #8A6878; --line: #3A2430;
-    --accent: #FF6FA3; --accent-2: #F9A8D4; --accent-soft: #4A1D33; --on-accent: #2B0716;
-    --income: #2DD4BF; --income-soft: #0F3330; --expense: #FF7A7A; --expense-soft: #3E1A1D;
-    --hero-profit: linear-gradient(135deg, #B83268 0%, #D9488A 55%, #D9735A 100%);
-    --hero-loss: linear-gradient(135deg, #5E1033 0%, #8E1B4E 60%, #B83268 100%);
-    --hero-zero: linear-gradient(135deg, #8E1B4E 0%, #B83268 100%);
-    --shadow: 0 1px 2px rgba(0, 0, 0, .4); color-scheme: dark;
+    --bg: #1A0D16; --surface: #26131F; --surface-2: #33192A; --text: #FFE9F3; --muted: #D7A5BF; --faint: #9A6B84; --line: #4A2238;
+    --accent: #FF6FB0; --accent-2: #FFA6CF; --accent-soft: #4D1F3A; --on-accent: #FFFFFF; --accent-edge: #B8336F;
+    --income: #3FE0C5; --income-soft: #10352F; --expense: #FF7A8A; --expense-soft: #451A24;
+    --hero-profit: linear-gradient(160deg, #F06AAA 0%, #D9468F 55%, #C73F73 100%);
+    --hero-loss: linear-gradient(160deg, #9B2A66 0%, #6E1A4A 100%);
+    --hero-zero: linear-gradient(160deg, #C24B88 0%, #9B2A66 100%);
+    --hero-edge: #7E1A55; --card-edge: #3A1A2D;
+    --shadow: 0 3px 0 var(--card-edge), 0 12px 26px rgba(0, 0, 0, .35);
+    color-scheme: dark;
   }
 }
 
@@ -155,7 +149,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .bar.in i { background: var(--income); } .bar.out i { background: var(--expense); }
 .cat-amt { font-weight: 600; font-variant-numeric: tabular-nums; font-size: 14px; }
 .empty { color: var(--muted); text-align: center; padding: 18px 0; font-size: 14px; }
-.empty .big { display: block; font-size: 40px; margin-bottom: 6px; animation: pop .5s var(--ease); }
 .empty .btn { margin-top: 12px; }
 
 /* กราฟรายเดือน */
@@ -258,10 +251,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 
 /* บันทึกสำเร็จ */
 .saved { display: grid; justify-items: center; gap: 4px; padding: 26px 0 30px; text-align: center; }
-.check { width: 84px; height: 84px; margin-bottom: 10px; animation: pop .5s var(--ease); }
-.check svg { width: 84px; height: 84px; stroke-width: 3.5; }
-.check circle { stroke: var(--accent); stroke-dasharray: 151; stroke-dashoffset: 151; animation: draw .5s var(--ease) forwards; }
-.check path { stroke: var(--accent); stroke-dasharray: 40; stroke-dashoffset: 40; animation: draw .35s .35s var(--ease) forwards; }
 .saved-title { font-size: 20px; font-weight: 700; }
 .saved-amt { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .saved-cat { color: var(--muted); font-size: 14px; }
@@ -277,7 +266,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(14px, -10px); } }
 @keyframes bounce { 0% { transform: scale(1); } 40% { transform: scale(1.18) translateY(-3px); } 100% { transform: translateY(-2px); } }
 @keyframes shimmer { to { background-position: -200% 0; } }
-@keyframes draw { to { stroke-dashoffset: 0; } }
 @keyframes pop { 0% { transform: scale(.5); opacity: 0; } 70% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
 @keyframes flash { 0%, 40% { background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent); } 100% { box-shadow: 0 0 0 0 transparent; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition: none !important; } .ring { animation: spin 1.5s linear infinite !important; } }
@@ -320,43 +308,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   .grid.home { grid-template-columns: 1.1fr 1fr; align-items: start; }
 }
 
-/* =========================================================
-   ธีมชมพูน่ารัก แบบนูน 3 มิติ (ทับค่าด้านบน)
-   ========================================================= */
-:root {
-  --bg: #FFF0F6; --surface: #FFFFFF; --surface-2: #FFE9F2; --text: #3B1530; --muted: #9C6B85; --faint: #C9A2B6; --line: #FFD6E6;
-  --accent: #FF4F9A; --accent-2: #FF8CC3; --accent-soft: #FFE0EF; --on-accent: #FFFFFF; --accent-edge: #D93A80;
-  --income: #12A594; --income-soft: #DAF6F1; --expense: #F0455A; --expense-soft: #FFE3E7;
-  --hero-profit: linear-gradient(160deg, #FF8CC3 0%, #FF4F9A 55%, #FF6F91 100%);
-  --hero-loss: linear-gradient(160deg, #D9468F 0%, #A8286E 60%, #7E1A55 100%);
-  --hero-zero: linear-gradient(160deg, #FFA6CF 0%, #FF6FAE 100%);
-  --hero-edge: #D93A80;
-  --card-edge: #FFD3E4;
-  --shadow: 0 3px 0 var(--card-edge), 0 12px 26px rgba(255, 79, 154, .12);
-  --font: "Mali", "Sukhumvit Set", "Noto Sans Thai", system-ui, sans-serif;
-}
-:root[data-theme="dark"] {
-  --bg: #1A0D16; --surface: #26131F; --surface-2: #33192A; --text: #FFE9F3; --muted: #D7A5BF; --faint: #9A6B84; --line: #4A2238;
-  --accent: #FF6FB0; --accent-2: #FFA6CF; --accent-soft: #4D1F3A; --on-accent: #FFFFFF; --accent-edge: #B8336F;
-  --income: #3FE0C5; --income-soft: #10352F; --expense: #FF7A8A; --expense-soft: #451A24;
-  --hero-profit: linear-gradient(160deg, #F06AAA 0%, #D9468F 55%, #C73F73 100%);
-  --hero-loss: linear-gradient(160deg, #9B2A66 0%, #6E1A4A 100%);
-  --hero-zero: linear-gradient(160deg, #C24B88 0%, #9B2A66 100%);
-  --hero-edge: #7E1A55; --card-edge: #3A1A2D;
-  --shadow: 0 3px 0 var(--card-edge), 0 12px 26px rgba(0, 0, 0, .35);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #1A0D16; --surface: #26131F; --surface-2: #33192A; --text: #FFE9F3; --muted: #D7A5BF; --faint: #9A6B84; --line: #4A2238;
-    --accent: #FF6FB0; --accent-2: #FFA6CF; --accent-soft: #4D1F3A; --on-accent: #FFFFFF; --accent-edge: #B8336F;
-    --income: #3FE0C5; --income-soft: #10352F; --expense: #FF7A8A; --expense-soft: #451A24;
-    --hero-profit: linear-gradient(160deg, #F06AAA 0%, #D9468F 55%, #C73F73 100%);
-    --hero-loss: linear-gradient(160deg, #9B2A66 0%, #6E1A4A 100%);
-    --hero-zero: linear-gradient(160deg, #C24B88 0%, #9B2A66 100%);
-    --hero-edge: #7E1A55; --card-edge: #3A1A2D;
-    --shadow: 0 3px 0 var(--card-edge), 0 12px 26px rgba(0, 0, 0, .35);
-  }
-}
+/* ---------- ธีมชมพูน่ารัก แบบนูน 3 มิติ ---------- */
 body {
   font-family: var(--font);
   background:
@@ -406,23 +358,12 @@ body {
 
 /* ---------- แก้ตัวหนังสือทับกัน (ฟอนต์ Mali สูงกว่าปกติ) ---------- */
 body { line-height: 1.6; }
-.hello { line-height: 1.7; }
-.title { line-height: 1.45; margin-top: 2px; }
+.hello { line-height: 1.7; margin-bottom: 6px; }
+.title { line-height: 1.6; margin-top: 2px; }
 .topbar-text { padding-top: 2px; }
 
-/* ---------- น้องหมูโผล่จากกรอบ ---------- */
-.hero-wrap { position: relative; margin-top: 40px; }
-.hero-wrap .hero { position: relative; z-index: 1; }
+/* ---------- ลูกเล่นการ์ด / หน้าโหลด ---------- */
 .pig { display: block; overflow: visible; }
-.peek { position: absolute; right: 22px; top: -58px; width: 92px; z-index: 2; pointer-events: none;
-  filter: drop-shadow(0 6px 6px rgba(217, 58, 128, .25)); animation: peekIn .8s var(--ease) both, bob 3.2s .8s ease-in-out infinite; }
-.peek.small { width: 70px; top: -44px; right: 18px; }
-.peek.corner { position: relative; top: auto; right: auto; float: right; width: 64px; margin: -50px -4px 0 0; animation: peekIn .8s var(--ease) both, wiggle 4s 1s ease-in-out infinite; }
-.pig .eye { transform-origin: 60px 46px; animation: blink 4.2s infinite; }
-.pig .zz { animation: zz 2s ease-in-out infinite; }
-.nap { width: 110px; margin: 0 auto 4px; animation: breathe 3s ease-in-out infinite; }
-.saved-pig { position: relative; width: 110px; height: 110px; margin-bottom: 6px; }
-.saved-pig .jump { width: 110px; animation: jump .9s var(--ease) .25s both; }
 .saved-pig .coin { position: absolute; left: 50%; top: -6px; font-size: 30px; transform: translateX(-50%); animation: coin .7s ease-in both; z-index: 2; }
 .hero { transition: transform .25s var(--ease); will-change: transform; }
 .spark { position: absolute; color: #fff; font-style: normal; opacity: 0; pointer-events: none; z-index: 1; animation: twinkle 2.6s ease-in-out infinite; }
@@ -448,11 +389,8 @@ body { line-height: 1.6; }
 
 /* มาสคอตไม่ใช้สไตล์ไอคอนเส้น */
 svg.pig { height: auto; fill: initial; stroke: none; stroke-width: 0; }
-.peek, .peek.small, .peek.corner, .nap, .saved-pig .jump { height: auto; }
 .hero-wrap .hero-top { padding-right: 104px; gap: 8px; }
 .hero-wrap .hero.mini .hero-top { padding-right: 80px; }
-.hello { margin-bottom: 6px; }
-.title { line-height: 1.6; }
 
 /* =========================================================
    น้องหมูออมสิน v2: ตัวใหญ่ มีรายละเอียด แตะแล้วตอบสนอง
@@ -479,8 +417,8 @@ svg.pig { height: auto; fill: initial; stroke: none; stroke-width: 0; }
 .corner-pig { float: right; width: 84px; margin: -64px -8px 0 0; animation: peekIn .8s var(--ease) both; }
 .corner-pig .pig { width: 100%; animation: wiggle 4s 1s ease-in-out infinite; }
 .nap { width: 130px; margin: 0 auto 6px; animation: breathe 3s ease-in-out infinite; }
-.saved-pig { width: 130px; height: 130px; }
-.saved-pig .jump { width: 130px; }
+.saved-pig { position: relative; width: 130px; height: 130px; margin-bottom: 6px; }
+.saved-pig .jump { width: 130px; animation: jump .9s var(--ease) .25s both; }
 .streak { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: rgba(255, 255, 255, .25); font-size: 12px; font-weight: 700; animation: pop .5s var(--ease); }
 .archived div { margin-bottom: 8px; }
 
@@ -504,3 +442,7 @@ svg.pig { height: auto; fill: initial; stroke: none; stroke-width: 0; }
 @keyframes bubbleIn { from { transform: translateY(10px) scale(.6); opacity: 0; } 70% { transform: scale(1.06); opacity: 1; } to { transform: none; } }
 @keyframes bubbleOut { to { transform: translateY(-8px) scale(.9); opacity: 0; } }
 @keyframes particle { 0% { transform: translate(-50%, -50%) scale(.4); opacity: 1; } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--r)) scale(1.1); opacity: 0; } }
+
+/* หน้างอน: เครื่องหมายโกรธเต้นตุบๆ */
+.pig .anger { transform-box: fill-box; transform-origin: center; animation: anger 1s ease-in-out infinite; }
+@keyframes anger { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
