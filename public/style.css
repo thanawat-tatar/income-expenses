@@ -1,23 +1,24 @@
 /* ---------- สี (โหมดสว่าง) ---------- */
 :root {
-  --bg: #EEF1F0;
+  --bg: #FFF4F8;
   --surface: #FFFFFF;
-  --surface-2: #F2F5F4;
-  --text: #0F1A17;
-  --muted: #66716D;
-  --faint: #9AA39F;
-  --line: #E2E7E5;
-  --accent: #0F8B6C;
-  --accent-soft: #D7F1E8;
+  --surface-2: #FDEEF4;
+  --text: #2B1220;
+  --muted: #8A6577;
+  --faint: #B996A7;
+  --line: #F5DCE7;
+  --accent: #E8467C;
+  --accent-2: #F472B6;
+  --accent-soft: #FFE1ED;
   --on-accent: #FFFFFF;
-  --income: #10A04F;
-  --income-soft: #DDF5E6;
+  --income: #12A594;
+  --income-soft: #D9F5F0;
   --expense: #E5484D;
   --expense-soft: #FDE5E5;
-  --hero-profit: linear-gradient(135deg, #0E8466 0%, #17A34A 100%);
-  --hero-loss: linear-gradient(135deg, #D63B44 0%, #EE6C3D 100%);
-  --hero-zero: linear-gradient(135deg, #2F3E46 0%, #4A5A62 100%);
-  --shadow: 0 1px 2px rgba(15, 26, 23, .04), 0 6px 18px rgba(15, 26, 23, .06);
+  --hero-profit: linear-gradient(135deg, #E8467C 0%, #F06AA0 55%, #FB8F6C 100%);
+  --hero-loss: linear-gradient(135deg, #8E1B4E 0%, #C2185B 60%, #E8467C 100%);
+  --hero-zero: linear-gradient(135deg, #D63B78 0%, #F06AA0 100%);
+  --shadow: 0 1px 2px rgba(120, 20, 60, .04), 0 6px 18px rgba(232, 70, 124, .08);
   --radius: 20px;
   --nav-h: 68px;
   --ease: cubic-bezier(.2, .8, .2, 1);
@@ -25,23 +26,23 @@
 }
 /* ---------- สี (โหมดมืด) ---------- */
 :root[data-theme="dark"] {
-  --bg: #0C1013; --surface: #151A1E; --surface-2: #1D2328; --text: #E8EEEB; --muted: #93A09A; --faint: #64706B; --line: #252D32;
-  --accent: #34D3A6; --accent-soft: #123A2F; --on-accent: #04241B;
-  --income: #3DD68C; --income-soft: #11301F; --expense: #FF6B6B; --expense-soft: #3A1A1C;
-  --hero-profit: linear-gradient(135deg, #0C6B53 0%, #137A3A 100%);
-  --hero-loss: linear-gradient(135deg, #9C2C33 0%, #B4522C 100%);
-  --hero-zero: linear-gradient(135deg, #1E2930 0%, #2A363E 100%);
-  --shadow: 0 1px 2px rgba(0, 0, 0, .35); color-scheme: dark;
+  --bg: #150B11; --surface: #20131A; --surface-2: #2B1A23; --text: #FBEAF1; --muted: #C09AAD; --faint: #8A6878; --line: #3A2430;
+  --accent: #FF6FA3; --accent-2: #F9A8D4; --accent-soft: #4A1D33; --on-accent: #2B0716;
+  --income: #2DD4BF; --income-soft: #0F3330; --expense: #FF7A7A; --expense-soft: #3E1A1D;
+  --hero-profit: linear-gradient(135deg, #B83268 0%, #D9488A 55%, #D9735A 100%);
+  --hero-loss: linear-gradient(135deg, #5E1033 0%, #8E1B4E 60%, #B83268 100%);
+  --hero-zero: linear-gradient(135deg, #8E1B4E 0%, #B83268 100%);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4); color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0C1013; --surface: #151A1E; --surface-2: #1D2328; --text: #E8EEEB; --muted: #93A09A; --faint: #64706B; --line: #252D32;
-    --accent: #34D3A6; --accent-soft: #123A2F; --on-accent: #04241B;
-    --income: #3DD68C; --income-soft: #11301F; --expense: #FF6B6B; --expense-soft: #3A1A1C;
-    --hero-profit: linear-gradient(135deg, #0C6B53 0%, #137A3A 100%);
-    --hero-loss: linear-gradient(135deg, #9C2C33 0%, #B4522C 100%);
-    --hero-zero: linear-gradient(135deg, #1E2930 0%, #2A363E 100%);
-    --shadow: 0 1px 2px rgba(0, 0, 0, .35); color-scheme: dark;
+    --bg: #150B11; --surface: #20131A; --surface-2: #2B1A23; --text: #FBEAF1; --muted: #C09AAD; --faint: #8A6878; --line: #3A2430;
+    --accent: #FF6FA3; --accent-2: #F9A8D4; --accent-soft: #4A1D33; --on-accent: #2B0716;
+    --income: #2DD4BF; --income-soft: #0F3330; --expense: #FF7A7A; --expense-soft: #3E1A1D;
+    --hero-profit: linear-gradient(135deg, #B83268 0%, #D9488A 55%, #D9735A 100%);
+    --hero-loss: linear-gradient(135deg, #5E1033 0%, #8E1B4E 60%, #B83268 100%);
+    --hero-zero: linear-gradient(135deg, #8E1B4E 0%, #B83268 100%);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4); color-scheme: dark;
   }
 }
 
@@ -79,7 +80,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: var(--faint); padding: 6px 0; transition: color .2s; }
 .nav-item.active { color: var(--accent); font-weight: 600; }
 .nav-item svg { transition: transform .3s var(--ease); }
-.nav-item.active svg { transform: translateY(-2px); }
+.nav-item.active svg { transform: translateY(-2px); animation: bounce .4s var(--ease); }
 .nav-add {
   order: 2; justify-self: center; width: 56px; height: 56px; border-radius: 50%; margin-top: -26px;
   background: var(--accent); color: var(--on-accent); display: grid; place-items: center;
@@ -111,16 +112,23 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .stepper > button:active { background: var(--surface-2); }
 .period-label { flex: 1; height: 36px; display: flex; align-items: center; justify-content: center; gap: 7px; border-radius: 9px; font-weight: 600; font-size: 14px; color: var(--text); }
 .period-label svg { width: 17px; height: 17px; color: var(--accent); }
+.seg button.active { color: var(--accent); }
 
 /* ---------- การ์ด ---------- */
 .view { animation: fadeUp .4s var(--ease); }
+.view[data-anim="l"] { animation: slideL .38s var(--ease); }
+.view[data-anim="r"] { animation: slideR .38s var(--ease); }
+.view .card { animation: fadeUp .45s var(--ease) both; }
+.view .card:nth-child(2) { animation-delay: .05s; } .view .card:nth-child(3) { animation-delay: .1s; }
+.entry { animation-delay: calc(var(--i, 0) * 35ms) !important; }
 .grid { display: grid; gap: 14px; align-content: start; }
 .card { background: var(--surface); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
-.card h3 { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--muted); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.card h3 small { color: var(--text); font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; }
+.card h3 { margin: 0 0 10px; font-size: 15px; font-weight: 700; color: var(--text); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card h3 small { color: var(--muted); font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; }
 
 /* hero: จุดเด่นของหน้า */
-.hero { position: relative; overflow: hidden; color: #fff; background: var(--hero-zero); padding: 20px; box-shadow: 0 10px 28px rgba(15, 26, 23, .14); }
+.hero { position: relative; overflow: hidden; color: #fff; background: var(--hero-zero); padding: 20px; box-shadow: 0 12px 30px color-mix(in srgb, var(--accent) 35%, transparent); }
+.hero::before { content: ""; position: absolute; left: -40px; bottom: -90px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255, 255, 255, .08); animation: float 8s ease-in-out infinite; }
 .hero.profit { background: var(--hero-profit); }
 .hero.loss { background: var(--hero-loss); }
 .hero::after { content: ""; position: absolute; right: -70px; top: -80px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255, 255, 255, .09); }
@@ -134,6 +142,9 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .pill { border-radius: 14px; padding: 10px 12px; background: rgba(255, 255, 255, .16); }
 .pill span { display: block; font-size: 12px; opacity: .85; }
 .pill b { font-size: 18px; font-variant-numeric: tabular-nums; }
+.pill span i { font-style: normal; margin-right: 4px; }
+.hero.mini { padding: 16px 18px; }
+.hero.mini .hero-amount { font-size: 32px; margin: 4px 0 12px; }
 
 .cat-row { display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: center; padding: 8px 0; }
 .cat-ico { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: var(--surface-2); font-size: 18px; flex: none; }
@@ -144,6 +155,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .bar.in i { background: var(--income); } .bar.out i { background: var(--expense); }
 .cat-amt { font-weight: 600; font-variant-numeric: tabular-nums; font-size: 14px; }
 .empty { color: var(--muted); text-align: center; padding: 18px 0; font-size: 14px; }
+.empty .big { display: block; font-size: 40px; margin-bottom: 6px; animation: pop .5s var(--ease); }
 .empty .btn { margin-top: 12px; }
 
 /* กราฟรายเดือน */
@@ -260,6 +272,10 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 
 @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes slideL { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes slideR { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+@keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(14px, -10px); } }
+@keyframes bounce { 0% { transform: scale(1); } 40% { transform: scale(1.18) translateY(-3px); } 100% { transform: translateY(-2px); } }
 @keyframes shimmer { to { background-position: -200% 0; } }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 @keyframes pop { 0% { transform: scale(.5); opacity: 0; } 70% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }

@@ -84,7 +84,7 @@ const isDark = () => {
 function applyTheme(t) {
   const root = document.documentElement;
   if (t === 'light' || t === 'dark') root.dataset.theme = t; else root.removeAttribute('data-theme');
-  $('meta[name="theme-color"]').content = isDark() ? '#0C1013' : '#EEF1F0';
+  $('meta[name="theme-color"]').content = isDark() ? '#150B11' : '#FFF4F8';
   $('#themeBtn').innerHTML = isDark() ? ICON_SUN : ICON_MOON;
 }
 function setTheme(t) { store.set('theme', t); applyTheme(t); }
@@ -188,7 +188,10 @@ async function render(quiet) {
   $('#periodLabel span').textContent = periodLabel();
 
   const view = $('#view');
-  const restartAnim = () => { view.style.animation = 'none'; void view.offsetWidth; view.style.animation = ''; };
+  const restartAnim = () => {
+    view.dataset.anim = state.anim || ''; state.anim = '';
+    view.style.animation = 'none'; void view.offsetWidth; view.style.animation = '';
+  };
   if (state.page === 'settings') {
     if (!quiet) restartAnim();
     view.innerHTML = settingsHTML(); bindSettings(); return;
@@ -227,7 +230,7 @@ async function render(quiet) {
 
 function catRows(map, total, cls) {
   const rows = Object.entries(map).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
-  if (!rows.length) return `<div class="empty">ยังไม่มีรายการ</div>`;
+  if (!rows.length) return `<div class="empty">—</div>`;
   return rows.map(([id, v]) => {
     const c = catById(id), pct = total ? (v / total) * 100 : 0;
     return `<div class="cat-row"><div class="cat-ico">${esc(c.icon)}</div>
@@ -237,22 +240,22 @@ function catRows(map, total, cls) {
   }).join('');
 }
 
-const emptyEntries = `<div class="empty">ยังไม่มีรายการ<br>พิมพ์ในแชท LINE หรือกดปุ่มด้านล่าง<br><button class="btn" data-add>+ เพิ่มรายการ</button></div>`;
+const emptyEntries = `<div class="empty"><span class="big">📝</span>ยังไม่มีรายการ<br><button class="btn" data-add>+ เพิ่ม</button></div>`;
 
 function homeHTML(d) {
   const net = d.ti - d.te, zero = !d.ti && !d.te, profit = net >= 0;
   const hero = `<div class="card hero ${zero ? '' : profit ? 'profit' : 'loss'}">
-    <div class="hero-top"><span class="hero-label">${esc(periodWord())}</span><span class="badge">${zero ? 'ยังไม่มีรายการ' : profit ? 'กำไร' : 'ขาดทุน'}</span></div>
+    <div class="hero-top"><span class="hero-label">${esc(periodWord())}</span><span class="badge">${zero ? '—' : profit ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${!zero && !profit ? '-' : ''}<span data-count="${Math.abs(net)}">0</span><small>บาท</small></div>
     <div class="split">
-      <div class="pill"><span>รายรับ</span><b>+${fmt(d.ti)}</b></div>
-      <div class="pill"><span>รายจ่าย</span><b>-${fmt(d.te)}</b></div>
+      <div class="pill"><span><i>💰</i>รายรับ</span><b>+${fmt(d.ti)}</b></div>
+      <div class="pill"><span><i>💸</i>รายจ่าย</span><b>-${fmt(d.te)}</b></div>
     </div></div>`;
 
   let middle = '';
   if (d.perMonth) {
     const max = Math.max(1, ...d.perMonth.flatMap(m => [m.inc, m.exp]));
-    middle = `<div class="card"><h3>รายเดือน</h3><div class="chart">${d.perMonth.map((m, i) => `
+    middle = `<div class="card"><h3>📊 รายเดือน</h3><div class="chart">${d.perMonth.map((m, i) => `
       <div class="col" data-month="${i}" title="${MONTHS[i]}: +${fmt(m.inc)} / -${fmt(m.exp)}">
         <div class="bars"><i class="i" data-h="${(m.inc / max) * 100}"></i><i class="o" data-h="${(m.exp / max) * 100}"></i></div>
         <small>${MONTHS[i].replace('.', '').slice(0, 3)}</small></div>`).join('')}</div>
@@ -260,23 +263,23 @@ function homeHTML(d) {
   } else {
     const isDay = state.mode === 'day';
     const list = isDay ? d.entries : d.entries.slice(0, 5);
-    middle = `<div class="card"><h3>${isDay ? 'รายการ' : 'รายการล่าสุด'} ${!isDay && d.entries.length > 5 ? '<button class="link" data-go="list">ดูทั้งหมด</button>' : ''}</h3>
+    middle = `<div class="card"><h3>🧾 ${isDay ? 'รายการ' : 'ล่าสุด'} ${!isDay && d.entries.length > 5 ? '<button class="link" data-go="list">ดูทั้งหมด</button>' : ''}</h3>
       ${list.length ? list.map(entryHTML).join('') : emptyEntries}</div>`;
   }
 
   return `<div class="grid home">
     <div class="grid">${hero}${middle}</div>
     <div class="grid">
-      <div class="card"><h3>รายจ่ายตามหมวด <small>${fmt(d.te)} ฿</small></h3>${catRows(d.exp, d.te, 'out')}</div>
-      <div class="card"><h3>รายรับตามหมวด <small>${fmt(d.ti)} ฿</small></h3>${catRows(d.inc, d.ti, 'in')}</div>
+      <div class="card"><h3>💸 รายจ่าย <small>${fmt(d.te)} ฿</small></h3>${catRows(d.exp, d.te, 'out')}</div>
+      <div class="card"><h3>💰 รายรับ <small>${fmt(d.ti)} ฿</small></h3>${catRows(d.inc, d.ti, 'in')}</div>
     </div>
   </div>`;
 }
 
-function entryHTML(e) {
+function entryHTML(e, i = 0) {
   const c = catById(e.category);
   const showNote = e.note && e.note !== c.name;
-  return `<button class="entry" data-id="${esc(e.id)}" data-ym="${esc(ymOf(e.date))}">
+  return `<button class="entry" style="--i:${Math.min(i, 12)}" data-id="${esc(e.id)}" data-ym="${esc(ymOf(e.date))}">
     <div class="cat-ico">${esc(c.icon)}</div>
     <div><div class="entry-name">${esc(c.name)}</div>${showNote ? `<div class="entry-note">${esc(e.note)}</div>` : ''}</div>
     <div class="${e.type === 'income' ? 'amt-in' : 'amt-out'}">${e.type === 'income' ? '+' : '-'}${fmt(e.amount)}</div>
@@ -295,9 +298,14 @@ function listHTML(d) {
     }).join('')}</div>`;
   }
   if (!d.entries.length) return `<div class="card">${emptyEntries}</div>`;
+  const net = d.ti - d.te;
+  const top = `<div class="card hero mini ${net >= 0 ? 'profit' : 'loss'}">
+    <div class="hero-top"><span class="hero-label">${esc(periodWord())} · ${d.entries.length} รายการ</span><span class="badge">${net >= 0 ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
+    <div class="hero-amount">${net < 0 ? '-' : ''}${fmt(Math.abs(net))}<small>บาท</small></div>
+    <div class="split"><div class="pill"><span><i>💰</i>รายรับ</span><b>+${fmt(d.ti)}</b></div><div class="pill"><span><i>💸</i>รายจ่าย</span><b>-${fmt(d.te)}</b></div></div></div>`;
   const groups = {};
   for (const e of d.entries) (groups[e.date] ||= []).push(e);
-  return Object.entries(groups).map(([date, list]) => {
+  return top + Object.entries(groups).map(([date, list]) => {
     const net = list.reduce((s, e) => s + (e.type === 'income' ? e.amount : -e.amount), 0);
     return `<div class="day-group"><div class="day-head"><span>${thaiDay(date)}</span>
       <b class="${net >= 0 ? 'amt-in' : 'amt-out'}">${net >= 0 ? '+' : '-'}${fmt(Math.abs(net))}</b></div>
@@ -381,7 +389,7 @@ function settingsHTML() {
   return `<div class="grid two">
     <div class="card">
       <h2 class="section-title">🗂️ หมวดหมู่</h2>
-      <p class="hint">กลุ่มของรายรับ/รายจ่าย เช่น ค่ากิน ค่าน้ำมัน</p>
+
       <div class="sub">หมวดที่สร้างเอง</div>
       ${state.custom.length ? state.custom.map(c => `
         <div class="item-row"><div class="cat-ico">${esc(c.icon)}</div>
@@ -406,8 +414,7 @@ function settingsHTML() {
 
     <div class="card">
       <h2 class="section-title">💬 คำลัดของฉัน</h2>
-      <p class="hint">สอนบอทให้รู้จักคำที่คุณพิมพ์ประจำ บอทจะจัดหมวดให้ถูกเอง</p>
-      <div class="example">ตัวอย่าง: ตั้งคำว่า <b>นมลูก</b> = หมวด 🍼 ค่านมลูก<br>ต่อไปพิมพ์ในแชทว่า <b>"นมลูก 350"</b><br>บอทจะบันทึกเป็น ค่านมลูก 350 บาท ให้เลย</div>
+      <div class="example">💬 พิมพ์ <b>"นมลูก 350"</b> → 👪 ครอบครัว/ลูก ✅<br>🧠 บอทจะถามคำที่ไม่รู้จักเองในแชท<br>✍️ หรือพิมพ์ในแชท: <b>นมลูก = ครอบครัว</b></div>
       <div class="sub">คำที่ตั้งไว้</div>
       ${state.keywords.length ? state.keywords.map((k, i) => {
         const c = catById(k.category);
@@ -563,12 +570,17 @@ async function showSaved(d, title) {
 }
 
 // ---------- navigation ----------
-function go(page) { state.page = page; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+const PAGES = ['home', 'list', 'settings'];
+function go(page) {
+  if (page === state.page) return;
+  state.anim = PAGES.indexOf(page) > PAGES.indexOf(state.page) ? 'l' : 'r';
+  state.page = page; render(); window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 function bindChrome() {
   $$('.nav-item').forEach(b => b.onclick = () => go(b.dataset.page));
   $$('.seg button[data-mode]').forEach(b => b.onclick = () => { state.mode = b.dataset.mode; state.date = todayISO(); render(); });
-  $('#prev').onclick = () => { state.date = shiftDate(state.date, state.mode, -1); render(); };
-  $('#next').onclick = () => { state.date = shiftDate(state.date, state.mode, 1); render(); };
+  $('#prev').onclick = () => { state.anim = 'r'; state.date = shiftDate(state.date, state.mode, -1); render(); };
+  $('#next').onclick = () => { state.anim = 'l'; state.date = shiftDate(state.date, state.mode, 1); render(); };
   $('#periodLabel').onclick = openPicker;
   $('#addBtn').onclick = () => openEntry(null);
   $('#sheetBg').onclick = closeSheet;
