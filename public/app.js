@@ -11,6 +11,30 @@ const ICON_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path 
 const ICON_MOON = '<svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
 const ICON_TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>';
 
+// ---------- น้องหมูออมสิน (มาสคอต) ----------
+// mood: happy | sad | sleep | wink
+function pig(mood = 'happy', cls = '') {
+  const eyes = mood === 'sleep'
+    ? '<path d="M36 47q6 5 12 0M72 47q6 5 12 0" stroke="#3B1530" stroke-width="3" fill="none" stroke-linecap="round"/>'
+    : mood === 'wink'
+      ? '<g class="eye"><ellipse cx="42" cy="46" rx="5" ry="7" fill="#3B1530"/><circle cx="44" cy="43" r="2" fill="#fff"/></g><path d="M72 47q6-5 12 0" stroke="#3B1530" stroke-width="3" fill="none" stroke-linecap="round"/>'
+      : '<g class="eye"><ellipse cx="42" cy="46" rx="5" ry="7" fill="#3B1530"/><ellipse cx="78" cy="46" rx="5" ry="7" fill="#3B1530"/><circle cx="44" cy="43" r="2" fill="#fff"/><circle cx="80" cy="43" r="2" fill="#fff"/></g>';
+  const mouth = mood === 'sad' ? 'M53 81q7-6 14 0' : 'M53 77q7 6 14 0';
+  return `<svg class="pig ${cls}" viewBox="0 0 120 112" aria-hidden="true">
+    <defs><radialGradient id="pg" cx="40%" cy="30%" r="75%"><stop offset="0" stop-color="#FFD6E8"/><stop offset="1" stop-color="#FF8CC3"/></radialGradient></defs>
+    <path d="M22 30 L30 4 L48 22Z M98 30 L90 4 L72 22Z" fill="#FF7DB4"/>
+    <ellipse cx="60" cy="56" rx="46" ry="40" fill="url(#pg)"/>
+    <ellipse cx="46" cy="28" rx="16" ry="6" fill="#fff" opacity=".35"/>
+    <g transform="translate(86 14) rotate(18)"><path d="M0 0l-12-7v14zM0 0l12-7v14z" fill="#FF4F9A"/><circle r="4" fill="#D93A80"/></g>
+    ${eyes}
+    <ellipse cx="30" cy="62" rx="8" ry="5" fill="#FF5FA2" opacity=".45"/><ellipse cx="90" cy="62" rx="8" ry="5" fill="#FF5FA2" opacity=".45"/>
+    <ellipse cx="60" cy="64" rx="16" ry="11" fill="#FF7DB4"/><ellipse cx="54" cy="64" rx="3" ry="4.5" fill="#C2336F"/><ellipse cx="66" cy="64" rx="3" ry="4.5" fill="#C2336F"/>
+    <path d="${mouth}" stroke="#3B1530" stroke-width="3" fill="none" stroke-linecap="round"/>
+    ${mood === 'sleep' ? '<text x="96" y="22" font-size="16" fill="#D93A80" class="zz">z</text>' : ''}
+    <g class="paws"><ellipse cx="36" cy="100" rx="11" ry="9" fill="#FFB3D3" stroke="#FF7DB4" stroke-width="2"/><ellipse cx="84" cy="100" rx="11" ry="9" fill="#FFB3D3" stroke="#FF7DB4" stroke-width="2"/></g>
+  </svg>`;
+}
+
 const params = new URLSearchParams(location.search);
 const DEMO = params.has('demo');
 
@@ -240,17 +264,18 @@ function catRows(map, total, cls) {
   }).join('');
 }
 
-const emptyEntries = `<div class="empty"><span class="big">📝</span>ยังไม่มีรายการ<br><button class="btn" data-add>+ เพิ่ม</button></div>`;
+const emptyEntries = `<div class="empty">${pig('sleep', 'nap')}<div>ยังไม่มีรายการ</div><button class="btn" data-add>+ เพิ่ม</button></div>`;
 
 function homeHTML(d) {
   const net = d.ti - d.te, zero = !d.ti && !d.te, profit = net >= 0;
-  const hero = `<div class="card hero ${zero ? '' : profit ? 'profit' : 'loss'}">
+  const hero = `<div class="hero-wrap">${pig(zero ? 'wink' : profit ? 'happy' : 'sad', 'peek')}<div class="card hero tilt ${zero ? '' : profit ? 'profit' : 'loss'}">
+    <i class="spark s1">✦</i><i class="spark s2">✦</i><i class="spark s3">✦</i>
     <div class="hero-top"><span class="hero-label">${esc(periodWord())}</span><span class="badge">${zero ? '—' : profit ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${!zero && !profit ? '-' : ''}<span data-count="${Math.abs(net)}">0</span><small>บาท</small></div>
     <div class="split">
       <div class="pill"><span><i>💰</i>รายรับ</span><b>+${fmt(d.ti)}</b></div>
       <div class="pill"><span><i>💸</i>รายจ่าย</span><b>-${fmt(d.te)}</b></div>
-    </div></div>`;
+    </div></div></div>`;
 
   let middle = '';
   if (d.perMonth) {
@@ -299,10 +324,10 @@ function listHTML(d) {
   }
   if (!d.entries.length) return `<div class="card">${emptyEntries}</div>`;
   const net = d.ti - d.te;
-  const top = `<div class="card hero mini ${net >= 0 ? 'profit' : 'loss'}">
+  const top = `<div class="hero-wrap">${pig(net >= 0 ? 'happy' : 'sad', 'peek small')}<div class="card hero mini tilt ${net >= 0 ? 'profit' : 'loss'}">
     <div class="hero-top"><span class="hero-label">${esc(periodWord())} · ${d.entries.length} รายการ</span><span class="badge">${net >= 0 ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${net < 0 ? '-' : ''}${fmt(Math.abs(net))}<small>บาท</small></div>
-    <div class="split"><div class="pill"><span><i>💰</i>รายรับ</span><b>+${fmt(d.ti)}</b></div><div class="pill"><span><i>💸</i>รายจ่าย</span><b>-${fmt(d.te)}</b></div></div></div>`;
+    <div class="split"><div class="pill"><span><i>💰</i>รายรับ</span><b>+${fmt(d.ti)}</b></div><div class="pill"><span><i>💸</i>รายจ่าย</span><b>-${fmt(d.te)}</b></div></div></div></div>`;
   const groups = {};
   for (const e of d.entries) (groups[e.date] ||= []).push(e);
   return top + Object.entries(groups).map(([date, list]) => {
@@ -313,8 +338,20 @@ function listHTML(d) {
   }).join('');
 }
 
+function bindTilt(root) {
+  $$('.tilt', root).forEach(el => {
+    el.onpointermove = e => {
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+      el.style.transform = `perspective(700px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg) translateY(-2px)`;
+    };
+    el.onpointerleave = el.onpointerup = () => { el.style.transform = ''; };
+  });
+}
+
 function bindView() {
   const view = $('#view');
+  bindTilt(view);
   $$('.entry', view).forEach(b => b.onclick = async () => {
     const list = await getMonth(b.dataset.ym);
     const e = list.find(x => x.id === b.dataset.id);
@@ -388,7 +425,7 @@ function settingsHTML() {
   const theme = store.get('theme') || 'auto';
   return `<div class="grid two">
     <div class="card">
-      <h2 class="section-title">🗂️ หมวดหมู่</h2>
+      ${pig('wink', 'peek corner')}<h2 class="section-title">🗂️ หมวดหมู่</h2>
 
       <div class="sub">หมวดที่สร้างเอง</div>
       ${state.custom.length ? state.custom.map(c => `
@@ -561,7 +598,7 @@ function openEntry(entry) {
 async function showSaved(d, title) {
   const c = catById(d.category);
   $('#sheet').innerHTML = `<div class="saved">
-    <div class="check"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M15 27l7 7 15-16"/></svg></div>
+    <div class="saved-pig"><span class="coin">🪙</span>${pig('happy', 'jump')}</div>
     <div class="saved-title">${title}</div>
     <div class="saved-amt ${d.type === 'income' ? 'amt-in' : 'amt-out'}">${d.type === 'income' ? '+' : '-'}${fmt(d.amount)} ฿</div>
     <div class="saved-cat">${esc(c.icon)} ${esc(c.name)} · ${thaiDay(d.date)}</div></div>`;

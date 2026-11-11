@@ -1,80 +1,79 @@
-# สมุดรายรับรายจ่าย (LINE + เว็บ) — คู่มือติดตั้ง
+# 🎀 สมุดรายรับรายจ่าย (LINE + เว็บ)
 
-ใช้ฟรีทั้งหมด: GitHub (เก็บโค้ด) · Vercel (เว็บ + ตัวรับข้อความ) · Firebase Firestore (ฐานข้อมูล) · LINE OA (แชท) · LIFF (เปิดเว็บในไลน์)
+พิมพ์รายรับรายจ่ายในแชท LINE บอทแยกรายการ จัดหมวด และจำคำของแต่ละคนให้เอง ดูสรุปสวยๆ ในเว็บ ใช้ฟรีทั้งหมด
 
-## โครงสร้างไฟล์
-```
-api/webhook.js   รับข้อความจาก LINE แล้วตอบกลับ
-api/data.js      API ให้หน้าเว็บอ่าน/เขียนข้อมูล
-lib/             parser (แยกคำ), categories (หมวด+คำ), store (ฐานข้อมูล), messages (ข้อความตอบกลับ)
-public/          หน้าเว็บ (index.html, style.css, app.js)
-```
-ทดลองหน้าเว็บโดยไม่ต้องต่ออะไร: `https://<เว็บของคุณ>/?demo=1`
+ดูหน้าเว็บแบบทดลอง (ไม่ต้องล็อกอิน): `https://<เว็บของคุณ>/?demo=1`
 
 ---
 
-## ขั้น 1 — Firebase (ฐานข้อมูล)
-1. https://console.firebase.google.com → โปรเจกต์ **income-expense**
-2. เมนูซ้าย **Build → Firestore Database → Create database** → เลือกที่ตั้ง `asia-southeast1` → **Start in production mode**
-3. ⚙️ (Project settings) → แท็บ **Service accounts** → **Generate new private key** → ได้ไฟล์ `.json`
-   - เปิดไฟล์ด้วย Notepad คัดลอก **ทั้งหมด** เก็บไว้ (ขั้น 4) — ห้ามแชร์ไฟล์นี้ให้ใคร และห้ามอัปขึ้น GitHub
+## 📁 ไฟล์อยู่ตรงไหน แก้อะไรที่ไหน
 
-## ขั้น 2 — LINE Messaging API (แชทบอท)
-1. https://developers.line.biz/console → สร้าง Provider (ถ้ายังไม่มี) → เลือก Messaging API channel ของ OA คุณ
-   - ถ้าไม่เจอ: เข้า https://manager.line.biz → OA ของคุณ → **ตั้งค่า → Messaging API → เปิดใช้งาน**
-2. แท็บ **Basic settings** → คัดลอก **Channel secret**
-3. แท็บ **Messaging API** → **Channel access token (long-lived) → Issue** → คัดลอก
-4. ใน LINE OA Manager → **ตั้งค่าการตอบกลับ**: ปิด "ข้อความตอบกลับอัตโนมัติ", ปิด "ข้อความทักทาย" (ถ้าอยากให้บอทต้อนรับเอง), เปิด **Webhook**
-
-## ขั้น 3 — LINE Login + LIFF (เปิดเว็บในไลน์)
-1. ใน Provider เดียวกัน → **Create a new channel → LINE Login** (App types: เลือก **Web app**)
-2. คัดลอก **Channel ID** (แท็บ Basic settings)
-3. แท็บ **LIFF → Add**
-   - Size: **Full**
-   - Endpoint URL: `https://<เว็บของคุณ>.vercel.app/`
-   - Scopes: ติ๊ก **openid** และ **profile**
-   - Bot link feature: **On (Normal)**
-4. คัดลอก **LIFF ID** (หน้าตา `1234567890-AbCdEfGh`)
-5. ตั้ง channel เป็น **Published** (ปุ่มด้านบน) ไม่งั้นคนอื่นใช้ไม่ได้
-
-## ขั้น 4 — Vercel (ใส่รหัสลับ)
-Vercel → โปรเจกต์ **income-expense** → **Settings → Environment Variables** เพิ่ม 5 ตัว:
-
-| Name | Value |
+| อยากแก้ | ไฟล์ |
 |---|---|
-| `LINE_CHANNEL_SECRET` | Channel secret (ขั้น 2) |
-| `LINE_CHANNEL_ACCESS_TOKEN` | Channel access token (ขั้น 2) |
-| `LINE_LOGIN_CHANNEL_ID` | Channel ID ของ LINE Login (ขั้น 3) |
-| `LIFF_ID` | LIFF ID (ขั้น 3) |
-| `FIREBASE_SERVICE_ACCOUNT` | เนื้อหาไฟล์ .json ทั้งหมด (ขั้น 1) |
+| คำที่บอทรู้จัก / หมวดเริ่มต้น | `lib/categories.js` |
+| วิธีแยกข้อความ (วันที่, คิดเลข, ตัวเลขเป็นคำ) | `lib/parser.js` |
+| หน้าตาข้อความในแชท (การ์ดชมพู) | `lib/messages.js` |
+| บอทตอบอะไร เมื่อไหร่ (คำสั่ง, การถามคำ) | `api/webhook.js` |
+| ข้อมูลที่หน้าเว็บขอ | `api/data.js` |
+| อ่าน/เขียนฐานข้อมูล | `lib/store.js` |
+| หน้าเว็บ: โครง / หน้าตา / การทำงาน | `public/index.html` · `public/style.css` · `public/app.js` |
+| ทดสอบตัวแยกข้อความ | `tests/parser.test.mjs` |
 
-แล้วไป **Deployments → ⋯ → Redeploy** (ต้อง redeploy ทุกครั้งที่แก้ค่าพวกนี้)
+```
+api/       ตัวรับข้อความจาก LINE และ API ของเว็บ (Vercel ทำให้เป็นลิงก์ /api/... เอง)
+lib/       โค้ดที่ใช้ร่วมกัน
+public/    หน้าเว็บ
+tests/     ชุดทดสอบ
+```
 
-## ขั้น 5 — ต่อ Webhook
-LINE Developers → Messaging API channel → แท็บ **Messaging API**
-- Webhook URL: `https://<เว็บของคุณ>.vercel.app/api/webhook` → **Verify** (ต้องขึ้น Success)
-- เปิด **Use webhook**
-
-## ขั้น 6 — Rich Menu (เมนูล่างในแชท)
-LINE OA Manager → **หน้าหลัก → Rich menu → สร้าง** → เลือกเทมเพลต 3 ช่อง
-| ช่อง | ประเภท | ค่า |
-|---|---|---|
-| เข้าสู่ระบบ | ลิงก์ | `https://liff.line.me/<LIFF_ID>` |
-| ตั้งค่า | ลิงก์ | `https://liff.line.me/<LIFF_ID>?page=settings` |
-| สรุปวันนี้ | ข้อความ | `สรุปวันนี้` |
-
-รูปเมนู: ใช้ปุ่ม "สร้างรูปภาพ" ในหน้านั้นได้เลย
+**แก้ไฟล์บน GitHub แล้ว Vercel อัปเดตเว็บให้เองใน 1–2 นาที**
 
 ---
 
-## ทดสอบ
-แชทกับ OA พิมพ์ `น้ำมัน 60 ข้าว 50 ทิป 20` → กด **ยืนยัน** → กดเมนู **เข้าสู่ระบบ** ต้องเห็นรายการในเว็บ
+## 🧠 บอทเรียนรู้ยังไง
+- คำที่ไม่รู้จัก บอทถามในแชท มีปุ่มให้เลือกหมวด → จำไว้ใน**บัญชีของคนนั้นคนเดียว**
+- พิมพ์สอนเองได้: `แซนวิช = ค่ากิน` · `หมวดใหม่ ค่าขนมลูก` · `ลบคำ แซนวิช`
+- คำและหมวดของแต่ละคนเก็บแยกที่ `users/{LINE userId}` ไม่ปนกัน
 
-## คำสั่งในแชท
-- พิมพ์รายการ+เงิน (หลายรายการได้, ใส่ `เมื่อวาน` ได้)
-- `สรุปวันนี้` · `ยกเลิก` · `วิธีใช้`
+## 💬 พิมพ์แบบไหนได้บ้าง
+- หลายรายการ: `น้ำมัน 60 ข้าว 50 ทิป 20`
+- คิดเลข: `ข้าว 30+10` · `น้ำ 3x10` · `ข้าว 2 ห่อ ห่อละ 40`
+- ตัวเลขเป็นคำ: `ข้าวห้าสิบ` · `ค่าห้องพันห้า`
+- ระบุวัน: `เมื่อวาน` · `วันที่ 3` · `วันที่ 3 เดือนก่อน` · `3 พ.ย.` · `3/11` · `ศุกร์หน้า` · `อีก 5 วัน`
+- หลายวันในข้อความเดียว: `เมื่อวาน ข้าว 50 และ วันนี้ น้ำมัน 100`
 
-## ทำไมฟรี
-- บอทใช้ **reply** อย่างเดียว (ฟรีไม่จำกัด) ไม่ใช้ push
-- ไม่ใช้ AI — แยกคำด้วยพจนานุกรมใน `lib/categories.js` (เพิ่มคำได้ที่นั่น)
-- Firestore ฟรี 50,000 อ่าน / 20,000 เขียน ต่อวัน; ดูรายปีอ่านแค่ 12 ครั้ง
+---
+
+## 🧪 ทดสอบก่อนแก้ (ถ้ามีคอม)
+```
+npm install
+npm test
+```
+เพิ่มประโยคใหม่ที่อยากให้บอทเข้าใจได้ใน `tests/parser.test.mjs`
+
+---
+
+## ⚙️ ติดตั้งครั้งแรก (ทำครั้งเดียว)
+
+1. **Firebase**: สร้าง Firestore (ที่ตั้ง `asia-southeast1`) → Project settings → Service accounts → Generate new private key
+2. **LINE Messaging API**: เอา Channel secret + Channel access token
+3. **LINE Login + LIFF**: สร้าง LIFF (Size: Full, Endpoint: `https://<เว็บ>.vercel.app/`, Scopes: openid + profile) แล้วตั้ง channel เป็น **Published**
+4. **Vercel → Environment Variables** ใส่ 5 ตัว แล้ว **Redeploy**
+
+   | Name | ค่า |
+   |---|---|
+   | `LINE_CHANNEL_SECRET` | Channel secret |
+   | `LINE_CHANNEL_ACCESS_TOKEN` | Channel access token |
+   | `LINE_LOGIN_CHANNEL_ID` | Channel ID ของ LINE Login |
+   | `LIFF_ID` | LIFF ID |
+   | `FIREBASE_SERVICE_ACCOUNT` | เนื้อหาไฟล์ .json ทั้งไฟล์ |
+
+5. **Webhook URL**: `https://<เว็บ>.vercel.app/api/webhook` → Verify → เปิด Use webhook
+6. **Rich Menu** 3 ช่อง: เข้าสู่ระบบ = `https://liff.line.me/<LIFF_ID>` · ตั้งค่า = `...?page=settings` · สรุปวันนี้ = ข้อความ `สรุปวันนี้`
+
+⚠️ ห้ามอัปไฟล์ .json ของ Firebase หรือรหัสใดๆ ขึ้น GitHub (repo นี้เปิดสาธารณะ)
+
+## 💸 ทำไมฟรี
+- บอทใช้ reply อย่างเดียว (ฟรีไม่จำกัด) ไม่ใช้ push
+- ไม่ใช้ AI — แยกคำด้วยพจนานุกรม + กฎ
+- Vercel Hobby + Firestore Spark (ฟรี 50,000 อ่าน / 20,000 เขียน ต่อวัน)
