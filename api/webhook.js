@@ -67,13 +67,14 @@ async function onText(uid, ev) {
   // รอชื่อหมวดใหม่ (หลังกด "➕ หมวดใหม่")
   if (!hasDigit && pending && pending.awaitCat != null && msg.length <= 30) {
     const it = pending.items[pending.awaitCat];
+    const word = it.word || it.guess;
     const cat = { id: 'c_' + Date.now().toString(36), name: msg, type: it.type, icon: '🏷️' };
-    await learn(uid, profile, it.word, cat.id, [...profile.customCategories, cat]);
-    applyWord(pending, it.word, cat, pending.awaitCat);
+    await learn(uid, profile, word, cat.id, [...profile.customCategories, cat]);
+    applyWord(pending, word, cat, pending.awaitCat);
     delete pending.awaitCat;
     await setPending(uid, pending);
     byId[cat.id] = cat;
-    return reply(ev.replyToken, [text(`สร้างหมวด 🏷️ ${cat.name} แล้ว ✅${it.word ? `\nจำแล้ว: "${it.word}" = ${cat.name}` : ''}`), ...nextStep(pending, byId, profile.categories.concat(cat))]);
+    return reply(ev.replyToken, [text(`สร้างหมวด 🏷️ ${cat.name} แล้ว ✅${word ? `\nจำแล้ว: "${word}" = ${cat.name}` : ''}`), ...nextStep(pending, byId, profile.categories.concat(cat))]);
   }
 
   // สอนคำในแชท: "แซนวิช = ค่ากิน" หรือ "นมลูก คือ ครอบครัว"
@@ -140,8 +141,8 @@ async function learn(uid, profile, word, categoryId, categories) {
 function applyWord(pending, word, cat, index) {
   let changed = false;
   pending.items.forEach((it, i) => {
-    if (i === index || (word && !it.sure && it.word === word)) {
-      it.category = cat.id; it.type = cat.type; it.sure = true; changed = true;
+    if (i === index || (word && ((!it.sure && it.word === word) || it.guess === word))) {
+      it.category = cat.id; it.type = cat.type; it.sure = true; it.asked = true; changed = true;
     }
   });
   return changed;
@@ -149,7 +150,8 @@ function applyWord(pending, word, cat, index) {
 
 // ถามคำถัดไปที่ไม่รู้จัก หรือถ้าตอบครบแล้ว ส่งการ์ดยืนยันใหม่
 function nextStep(pending, byId, categories, first) {
-  const i = pending.items.findIndex(it => !it.sure && it.word && !it.skipAsk);
+  let i = pending.items.findIndex(it => !it.sure && it.word && !it.skipAsk);
+  if (i < 0) i = pending.items.findIndex(it => it.sure && it.guess && !it.skipAsk && !it.asked);
   if (i >= 0) return [askMessage(pending.items[i], i, pending.id, categories)];
   return first ? [] : [confirmMessage(pending.items, pending.date, pending.id, byId)];
 }
@@ -175,7 +177,7 @@ async function onPostback(uid, ev) {
       `ยอดวันนี้: ${net >= 0 ? 'กำไร' : 'ขาดทุน'} ${baht(Math.abs(net))} บาท`));
   }
 
-  if (['learn', 'newcat', 'flip', 'skip'].includes(a)) {
+  if (['learn', 'newcat', 'flip', 'skip', 'skipall'].includes(a)) {
     const pending = await getPending(uid);
     const i = Number(p.get('i'));
     const it = pending?.items?.[i];
@@ -193,17 +195,18 @@ async function onPostback(uid, ev) {
       await setPending(uid, pending);
       return reply(ev.replyToken, nextStep(pending, byId, profile.categories, true));
     }
-    if (a === 'skip') {
-      it.skipAsk = true;
+    if (a === 'skip' || a === 'skipall') {
+      (a === 'skipall' ? pending.items : [it]).forEach(x => { x.skipAsk = true; });
       await setPending(uid, pending);
       return reply(ev.replyToken, nextStep(pending, byId, profile.categories));
     }
     const cat = byId[p.get('c')];
     if (!cat) return reply(ev.replyToken, text('ไม่พบหมวดนี้แล้ว'));
-    await learn(uid, profile, it.word, cat.id);
-    applyWord(pending, it.word, cat, i);
+    const word = it.word || it.guess;
+    await learn(uid, profile, word, cat.id);
+    applyWord(pending, word, cat, i);
     await setPending(uid, pending);
-    return reply(ev.replyToken, [text(`จำแล้ว ✅ "${it.word}" = ${cat.icon} ${cat.name}`), ...nextStep(pending, byId, profile.categories)]);
+    return reply(ev.replyToken, [text(`จำแล้ว ✅ "${word}" = ${cat.icon} ${cat.name}`), ...nextStep(pending, byId, profile.categories)]);
   }
 
   if (a === 'del') {

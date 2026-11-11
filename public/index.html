@@ -3,20 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#FFF4F8">
+  <meta name="theme-color" content="#FFF0F6">
   <title>สมุดรายรับรายจ่าย</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📒</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎀</text></svg>">
   <link rel="preconnect" href="https://api.line.me">
   <link rel="preload" as="script" href="https://static.line-scdn.net/liff/edge/2/sdk.js">
   <script>
     // ใส่ธีมก่อนหน้าเว็บขึ้น กันจอกะพริบ
     try { var t = JSON.parse(localStorage.getItem('ie:theme')); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
   </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mali:wght@500;700&display=swap">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <div class="loader" id="loader">
-    <div class="load-ava"><span id="loadEmoji">📒</span><img id="loadImg" alt="" hidden><i class="ring"></i></div>
+    <div class="load-ava"><span id="loadEmoji">🎀</span><img id="loadImg" alt="" hidden><i class="ring"></i></div>
     <div class="load-text">กำลังโหลด…</div>
   </div>
   <script>
@@ -26,7 +29,7 @@
 
   <div id="app" class="app">
     <aside class="nav" id="nav">
-      <div class="brand"><span class="brand-logo">📒</span><span class="brand-name">รายรับรายจ่าย</span></div>
+      <div class="brand"><span class="brand-logo">🎀</span><span class="brand-name">รายรับรายจ่าย</span></div>
       <button class="nav-item" data-page="home"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>ภาพรวม</span></button>
       <button class="nav-item" data-page="list"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg><span>รายการ</span></button>
       <button class="nav-add" id="addBtn" aria-label="เพิ่มรายการ"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>เพิ่มรายการ</span></button>

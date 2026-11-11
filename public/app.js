@@ -84,7 +84,7 @@ const isDark = () => {
 function applyTheme(t) {
   const root = document.documentElement;
   if (t === 'light' || t === 'dark') root.dataset.theme = t; else root.removeAttribute('data-theme');
-  $('meta[name="theme-color"]').content = isDark() ? '#150B11' : '#FFF4F8';
+  $('meta[name="theme-color"]').content = isDark() ? '#1A0D16' : '#FFF0F6';
   $('#themeBtn').innerHTML = isDark() ? ICON_SUN : ICON_MOON;
 }
 function setTheme(t) { store.set('theme', t); applyTheme(t); }
@@ -600,7 +600,7 @@ function applyProfile(p) {
 }
 function setUser(u) {
   if (!u) return;
-  $('#hello').textContent = `สวัสดี ${u.name || ''}`;
+  $('#hello').textContent = `สวัสดี ${u.name || ''} 🎀`;
   if (u.pic) { $('#avatar').src = u.pic; $('#avatar').hidden = false; }
 }
 const hideLoader = () => $('#loader').classList.add('hide');
@@ -676,7 +676,7 @@ function demoApi(method, action, body) {
     const cats = [
       ['job', 'income', '🛵', 'รายได้จากการวิ่งงาน'], ['tip', 'income', '💝', 'ทิป'], ['bonus', 'income', '🎁', 'โบนัส'], ['inc_other', 'income', '💰', 'รายรับอื่นๆ'],
       ['fuel', 'expense', '⛽', 'ค่าน้ำมัน'], ['food', 'expense', '🍚', 'ค่ากิน'], ['travel', 'expense', '🚌', 'ค่าเดินทาง'], ['phone', 'expense', '📱', 'ค่าเน็ต/ค่าโทร'], ['repair', 'expense', '🔧', 'ค่าซ่อมรถ'],
-      ['loan', 'expense', '🏍️', 'ค่าผ่อนรถ'], ['rent', 'expense', '🏠', 'ค่าที่พัก'], ['family', 'expense', '👪', 'ครอบครัว/ลูก'], ['shopping', 'expense', '🛍️', 'ของใช้'], ['health', 'expense', '💊', 'ค่ารักษา'], ['exp_other', 'expense', '🧾', 'รายจ่ายอื่นๆ'],
+      ['loan', 'expense', '🏍️', 'ค่าผ่อนรถ'], ['rent', 'expense', '🏠', 'ค่าที่พัก'], ['family', 'expense', '👪', 'ครอบครัว/ลูก'], ['shopping', 'expense', '🛍️', 'ของใช้'], ['care', 'expense', '💇', 'ดูแลตัวเอง'], ['health', 'expense', '💊', 'ค่ารักษา'], ['exp_other', 'expense', '🧾', 'รายจ่ายอื่นๆ'],
     ].map(([id, type, icon, name]) => ({ id, type, icon, name }));
     const entries = [];
     const t = todayISO();
