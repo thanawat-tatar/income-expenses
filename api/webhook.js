@@ -60,11 +60,10 @@ async function onText(uid, ev) {
     return reply(ev.replyToken, undoMessage(last, byId));
   }
 
-  const { dayOffset, items } = parseMessage(msg, profile.categories, profile.keywords);
+  const { date, items } = parseMessage(msg, profile.categories, profile.keywords, bkkDate());
   if (!items.length) {
     return reply(ev.replyToken, text('ไม่พบจำนวนเงินในข้อความ 🤔\nลองพิมพ์ เช่น "น้ำมัน 60 ข้าว 50"\nหรือพิมพ์ "วิธีใช้"'));
   }
-  const date = bkkDate(dayOffset);
   const pid = Math.random().toString(36).slice(2, 10);
   await setPending(uid, { id: pid, items, date });
   return reply(ev.replyToken, confirmMessage(items, date, pid, byId));
