@@ -63,7 +63,7 @@ async function handle(ev) {
   const a = ev.type === 'postback' ? new URLSearchParams(ev.postback.data).get('a') : '';
   const t = ev.replyToken;
   if (tooMany('w:' + uid, 40)) return; // ส่งถี่ผิดปกติ (เกิน 40 ข้อความ/นาที) → ไม่ตอบ กันเปลืองโควต้า
-  loading.set(t, later(showLoading(uid))); // ขึ้น "…" ในแชททันที ระหว่างบอทคิด
+  loading.set(t, later(showLoading(uid, isImage ? 40 : 10))); // ขึ้น "…" ในแชททันที ระหว่างบอทคิด
 
   // ---- ด่านรับคน ---- (อ่านข้อมูลทั้งหมดที่ต้องใช้ในรอบเดียว)
   const g = await gate(uid, { all: true });

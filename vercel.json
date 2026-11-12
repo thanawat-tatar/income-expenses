@@ -1,7 +1,7 @@
 {
   "regions": ["sin1"],
   "crons": [{ "path": "/api/cron", "schedule": "17 20 * * *" }],
-  "functions": { "api/webhook.js": { "maxDuration": 30 } },
+  "functions": { "api/webhook.js": { "maxDuration": 60 } },
   "headers": [
     {
       "source": "/(.*)",
