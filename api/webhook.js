@@ -1,5 +1,5 @@
 // LINE ส่งข้อความของผู้ใช้มาที่นี่ (Webhook URL = https://<เว็บของคุณ>/api/webhook)
-import { verifySignature, reply } from '../lib/line.js';
+import { verifySignature, reply as lineReply } from '../lib/line.js';
 import { parseMessage, normalizeThai, hasNumber } from '../lib/parser.js';
 import { OTHER } from '../lib/categories.js';
 import { bkkDate, thaiDate } from '../lib/date.js';
@@ -7,7 +7,9 @@ import { extractDate } from '../lib/parser.js';
 import {
   confirmMessage, askMessage, summaryMessage, undoMessage, helpMessage, savedMessage, noteCard, text, baht,
   editListMessage, editEntryMessage, editCategoryMessage, withQuick, stuckMessage,
+  consentMessage, fullMessage, wipeAskMessage, legacyNoticeMessage,
 } from '../lib/messages.js';
+import { gate, joinWaitlist, setConsent, clearLegacyNotice, deleteUserData } from '../lib/access.js';
 import {
   getProfile, saveProfile, addEntries, updateEntry, recentEntries, getEntry, setEdit, getEdit, clearEdit,
   getMiss, setMiss, clearMiss, listEntries, lastBatch, deleteEntries,
@@ -29,19 +31,77 @@ export async function POST(request) {
   await Promise.all(events.map(ev => handle(ev).catch(err => {
     console.error(err);
     if (ev.replyToken) return reply(ev.replyToken, text('ขออภัย เกิดข้อผิดพลาด ลองใหม่อีกครั้งนะครับ 🙏'));
-  })));
+  }).finally(() => prefix.delete(ev.replyToken))));
   return new Response('ok');
 }
+
+// ข้อความที่ต้องส่งนำหน้าคำตอบ (เช่น "ถึงคิวแล้ว", "หายไปนานเลย") แนบไปกับ reply ครั้งเดียว
+const prefix = new Map();
+function reply(token, messages) {
+  const main = [].concat(messages);
+  const pre = (prefix.get(token) || []).slice(0, Math.max(0, 5 - main.length));
+  prefix.delete(token);
+  return lineReply(token, [...pre, ...main]);
+}
+
+const WIPE_RE = /^(ลบข้อมูล(ของ)?(ฉัน|ผม|หนู|เรา|ทั้งหมด|ของฉัน)?|ลบบัญชี|ลบข้อมูลทั้งหมดของฉัน)$/;
+const HELP_RE = /^(วิธีใช้|ช่วย|ช่วยด้วย|help|\?|เมนู|ใช้ยังไง|ทำยังไง)$/i;
 
 async function handle(ev) {
   const uid = ev.source?.userId;
   if (!uid || !ev.replyToken) return;
+  const isText = ev.type === 'message' && ev.message?.type === 'text';
+  if (!isText && !['follow', 'postback'].includes(ev.type)) return;
+  const msg = isText ? normalizeThai(ev.message.text.trim()) : '';
+  const a = ev.type === 'postback' ? new URLSearchParams(ev.postback.data).get('a') : '';
+  const t = ev.replyToken;
 
-  if (ev.type === 'follow') {
-    return reply(ev.replyToken, helpMessage('👋 ยินดีต้อนรับ 🎀'));
+  // ---- ด่านรับคน ----
+  const g = await gate(uid);
+  if (g.status === 'full') {
+    if (a === 'wait') return reply(t, fullMessage(await joinWaitlist(uid)));
+    return reply(t, fullMessage(g.queue));
   }
+  const pre = [];
+  if (g.fromQueue) pre.push(noteCard('🎉', 'ถึงคิวคุณแล้ว!', 'ยินดีต้อนรับนะ 🐷'));
+  if (g.back) pre.push(noteCard('🥺', 'หายไปนานเลย คิดถึงนะ', 'ถ้าไม่ใช้ 30 วัน ข้อมูลจะถูกลบ'));
+  if (g.user.legacyNotice) { pre.push(legacyNoticeMessage()); await clearLegacyNotice(uid); }
+  prefix.set(t, pre);
+
+  // ---- ลบข้อมูลของฉัน (ถาม 2 ขั้น) ----
+  if (WIPE_RE.test(msg)) return reply(t, wipeAskMessage(false));
+  if (a === 'wipe1') return reply(t, wipeAskMessage(true));
+  if (a === 'wipeno') return reply(t, noteCard('👍', 'ไม่ลบแล้ว', 'ข้อมูลยังอยู่ครบ'));
+  if (a === 'wipe2') {
+    const at = Number(new URLSearchParams(ev.postback.data).get('t'));
+    if (!(Date.now() - at < 10 * 60 * 1000)) return reply(t, noteCard('⌛', 'ปุ่มนี้หมดอายุแล้ว', 'พิมพ์ "ลบข้อมูลของฉัน" ใหม่'));
+    await deleteUserData(uid);
+    prefix.delete(t);
+    return reply(t, noteCard('🗑️', 'ลบข้อมูลทั้งหมดแล้ว', 'อยากใช้ใหม่ ทักมาได้ (ต้องกดยอมรับใหม่)'));
+  }
+
+  // ---- การยินยอม ----
+  if (a === 'agree') {
+    if (!g.user.consentAt) await setConsent(uid);
+    return reply(t, [noteCard('💖', 'ขอบคุณที่ไว้ใจนะ!', 'เริ่มจดได้เลย 🐷'), helpMessage()]);
+  }
+  if (a === 'deny') {
+    if (g.user.consentAt) return reply(t, noteCard('🤔', 'ยอมรับไว้แล้ว', 'ถ้าอยากลบ พิมพ์ "ลบข้อมูลของฉัน"'));
+    await deleteUserData(uid);
+    prefix.delete(t);
+    return reply(t, noteCard('👋', 'ไม่เป็นไรนะ', 'ยังไม่ได้เก็บข้อมูลอะไร · เปลี่ยนใจทักมาได้เสมอ'));
+  }
+  if (!g.user.consentAt) {
+    // ยังไม่ยอมรับ → ไม่บันทึกอะไร
+    return reply(t, [
+      ...(g.isNew || ev.type === 'follow' ? [] : [noteCard('🔒', 'ต้องกดยอมรับก่อนนะ', 'ถึงจะจดรายการให้ได้')]),
+      consentMessage(ev.type === 'follow' || g.isNew ? '👋 ยินดีต้อนรับ 🎀' : undefined),
+    ]);
+  }
+
+  if (ev.type === 'follow') return reply(t, helpMessage('👋 ยินดีต้อนรับ 🎀'));
   if (ev.type === 'postback') return onPostback(uid, ev);
-  if (ev.type === 'message' && ev.message.type === 'text') return onText(uid, ev);
+  return onText(uid, ev);
 }
 
 const catMap = cats => Object.fromEntries(cats.map(c => [c.id, c]));
@@ -55,7 +115,7 @@ async function onText(uid, ev) {
     const today = bkkDate();
     return reply(ev.replyToken, summaryMessage(await listEntries(uid, today, today), today, byId));
   }
-  if (/^(วิธีใช้|ช่วย|ช่วยด้วย|help|\?|เมนู|ใช้ยังไง|ทำยังไง)$/i.test(msg)) return reply(ev.replyToken, helpMessage());
+  if (HELP_RE.test(msg)) return reply(ev.replyToken, helpMessage());
   if (/^(ยกเลิก|cancel|ลบล่าสุด|ยกเลิกล่าสุด)$/i.test(msg)) {
     if (await getPending(uid)) {
       await clearPending(uid);

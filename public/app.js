@@ -834,6 +834,14 @@ async function boot() {
     await render(shown);
   } catch (e) {
     if (e.message === 'login') return;
+    if (e.message === 'not_member' || e.message === 'no_consent') { // ยังไม่ได้รับเข้า / ยังไม่กดยอมรับ / ลบข้อมูลไปแล้ว
+      try { Object.keys(localStorage).filter(k => k.startsWith('ie:') && k !== 'ie:theme').forEach(k => localStorage.removeItem(k)); } catch {}
+      $('#view').innerHTML = `<div class="card empty gate">${pig(e.message === 'no_consent' ? 'wink' : 'sleep')}
+        <b>${e.message === 'no_consent' ? 'กดยอมรับในแชทก่อนนะ 🔒' : 'ยังไม่ได้เริ่มใช้งาน 🐷'}</b><br>
+        ${e.message === 'no_consent' ? 'แตะ 💖 ยอมรับ ในแชท LINE แล้วกลับมาที่นี่' : 'ทักแชท LINE ก่อน บอทจะพาเริ่มใช้งาน'}<br>
+        <a class="btn" href="https://line.me/R/ti/p/@514ddese">💬 ไปที่แชท</a> <a class="btn ghost" href="/privacy.html">📄 นโยบายข้อมูล</a></div>`;
+      return;
+    }
     console.error(e);
     if (shown) toast('อัปเดตข้อมูลไม่สำเร็จ');
     else $('#view').innerHTML = `<div class="card empty">เริ่มระบบไม่สำเร็จ<br>${esc(e.message)}</div>`;

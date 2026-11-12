@@ -446,3 +446,9 @@ svg.pig { height: auto; fill: initial; stroke: none; stroke-width: 0; }
 /* หน้างอน: เครื่องหมายโกรธเต้นตุบๆ */
 .pig .anger { transform-box: fill-box; transform-origin: center; animation: anger 1s ease-in-out infinite; }
 @keyframes anger { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+
+/* ---------- ยังไม่ได้เข้าใช้ / ยังไม่ยอมรับ ---------- */
+.gate { padding: 22px 16px; line-height: 1.9; }
+.gate svg { width: 120px; height: auto; display: block; margin: 0 auto 6px; }
+.gate b { color: var(--text); font-size: 17px; }
+a.btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; margin: 12px 4px 0; }
