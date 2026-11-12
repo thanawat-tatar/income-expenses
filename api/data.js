@@ -1,5 +1,7 @@
 // API สำหรับเว็บแอป (ต้องล็อกอินด้วย LINE ผ่าน LIFF)
-import { authUser, makeSession } from '../lib/line.js';
+import { authUser, makeSession, getLineProfile, push } from '../lib/line.js';
+import { getCouple, coupleEntries, coupleYear, unpair } from '../lib/couple.js';
+import { unpairedMessage } from '../lib/messages.js';
 import { bkkDate } from '../lib/date.js';
 import {
   getProfile, saveProfile, addEntries, updateEntry, deleteEntries, listEntries, yearSummary, compactOld,
@@ -42,14 +44,29 @@ async function get(request) {
     if (action === 'boot') { // เปิดเว็บครั้งแรก: ดึงหมวด + รายการเดือนนี้ในครั้งเดียว
       const from = url.searchParams.get('from'), to = url.searchParams.get('to');
       if (!isDate(from) || !isDate(to)) return json({ error: 'bad date' }, 400);
-      const [profile, entries] = await Promise.all([getProfile(user.uid), listEntries(user.uid, from, to)]);
+      // 💑 มีคู่ไหม (คนโสดไม่มีการอ่านเพิ่ม) → ชื่อ+รูปแฟน ไว้โชว์ปุ่ม "ของเรา"
+      const couplePromise = getCouple(user.uid).then(async c => (c ? { name: c.partnerName, since: c.since, pic: (await getLineProfile(c.partner)).pic } : null));
+      const [profile, entries, couple] = await Promise.all([getProfile(user.uid), listEntries(user.uid, from, to), couplePromise]);
       later(compactOld(user.uid, bkkDate())); // รวมข้อมูลเก่า เดือนละครั้ง (ทำหลังตอบ)
-      return json({ profile: { ...profile, name: user.name }, entries, session: makeSession(user) });
+      return json({ profile: { ...profile, name: user.name }, entries, couple, session: makeSession(user) });
     }
     if (action === 'entries') {
       const from = url.searchParams.get('from'), to = url.searchParams.get('to');
       if (!isDate(from) || !isDate(to)) return json({ error: 'bad date' }, 400);
       return json({ entries: await listEntries(user.uid, from, to) });
+    }
+    // ---- 💑 ของเรา: เซิร์ฟเวอร์หาคู่จากบัญชีตัวเองเท่านั้น (ไม่รับ uid จากหน้าเว็บ) ----
+    if (action === 'coupleEntries' || action === 'coupleYear') {
+      const couple = await getCouple(user.uid);
+      if (!couple) return json({ error: 'no_couple' }, 409);
+      if (action === 'coupleYear') {
+        const y = Number(url.searchParams.get('year'));
+        if (!(y > 2000 && y < 3000)) return json({ error: 'bad year' }, 400);
+        return json(await coupleYear(user.uid, couple, y));
+      }
+      const from = url.searchParams.get('from'), to = url.searchParams.get('to');
+      if (!isDate(from) || !isDate(to) || Date.parse(to) - Date.parse(from) > 62 * 86400000) return json({ error: 'bad date' }, 400);
+      return json(await coupleEntries(user.uid, couple, from, to));
     }
     if (action === 'year') {
       const y = Number(url.searchParams.get('year'));
@@ -75,6 +92,11 @@ async function post(request) {
     if (action === 'add') return json({ entries: await addEntries(user.uid, [b.entry]) });
     if (action === 'update') return json({ entry: await updateEntry(user.uid, String(b.id), b.entry) });
     if (action === 'delete') return json({ deleted: await deleteEntries(user.uid, [String(b.id)]) });
+    if (action === 'unpair') {
+      const partner = await unpair(user.uid);
+      if (partner) await push(partner, unpairedMessage()).catch(e => console.error('unpair push', e.message));
+      return json({ ok: true });
+    }
     if (action === 'profile') {
       await saveProfile(user.uid, { categories: b.categories, keywords: b.keywords });
       return json(await getProfile(user.uid));

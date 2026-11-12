@@ -63,9 +63,9 @@ function pig(mood = 'happy', cls = '') {
 }
 
 // หมูโผล่จากหลังการ์ด เอากีบเกาะขอบไว้
-function pigPeek(mood, small) {
-  return `<button class="peek-body ${small ? 'small' : ''}" data-mood="${mood}" aria-label="น้องหมู">${pig(mood)}</button>
-    <div class="peek-paws ${small ? 'small' : ''}"><svg viewBox="0 0 200 40" aria-hidden="true">
+function pigPeek(mood, small, extra = '') {
+  return `<button class="peek-body ${small ? 'small' : ''} ${extra}" data-mood="${mood}" aria-label="น้องหมู">${pig(mood)}</button>
+    <div class="peek-paws ${small ? 'small' : ''} ${extra}"><svg viewBox="0 0 200 40" aria-hidden="true">
       <ellipse cx="70" cy="18" rx="17" ry="13" fill="url(#pgLeg)"/><ellipse cx="130" cy="18" rx="17" ry="13" fill="url(#pgLeg)"/>
       <path d="M70 8v12M130 8v12" stroke="#C94683" stroke-width="2.5" stroke-linecap="round"/>
       <ellipse cx="64" cy="12" rx="5" ry="3" fill="#fff" opacity=".5"/><ellipse cx="124" cy="12" rx="5" ry="3" fill="#fff" opacity=".5"/></svg></div>`;
@@ -156,7 +156,17 @@ const state = {
   monthCache: {}, yearCache: {},
   newCat: { type: 'expense', icon: '🏷️' },
   highlight: null, ready: false,
+  couple: null,   // 💑 { name, pic, since } ถ้าจับคู่แล้ว (คนโสด = null ไม่เห็นอะไรเพิ่ม)
+  scope: 'me',    // 'me' = ของฉัน · 'us' = ของเรา
+  usCats: {},     // หมวดที่แฟนสร้างเอง (ใช้แสดงผลอย่างเดียว)
 };
+const isUs = () => state.scope === 'us' && !!state.couple;
+// ตั้งสถานะคู่ (จำไว้ในเครื่องแค่ชื่อ+รูป ไว้โชว์ปุ่มทันที · ไม่จำรายการของแฟน)
+function setCouple(c) {
+  state.couple = c || null;
+  store.set('couple', state.couple);
+  if (!state.couple) state.scope = 'me';
+}
 let liffReady = Promise.resolve();
 
 // ---------- utils ----------
@@ -166,7 +176,7 @@ function todayISO() {
 }
 const fmt = n => Number(n).toLocaleString('th-TH', { maximumFractionDigits: 2 });
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const catById = id => state.categories.find(c => c.id === id) || { id, name: 'อื่นๆ', icon: '🏷️', type: 'expense' };
+const catById = id => state.categories.find(c => c.id === id) || state.usCats[id] || { id, name: 'อื่นๆ', icon: '🏷️', type: 'expense' };
 const ymOf = iso => iso.slice(0, 7);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const lastDay = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
@@ -257,7 +267,21 @@ function monthRange(ym) {
 function cacheMonth(ym, entries) {
   if (ym === ymOf(todayISO())) store.set('month', { ym, entries });
 }
+// 💑 ของเรา: ขอจากเซิร์ฟเวอร์ทุกครั้ง ไม่เก็บลงเครื่อง (เลิกคู่แล้วต้องไม่เหลือข้อมูลของอีกฝ่าย)
+function usFail(e) {
+  if (e.message === 'no_couple') { setCouple(null); clearCache(); toast('โหมดคู่รักถูกยกเลิกแล้ว'); render(); }
+}
+function addUsCats(list) { for (const c of list || []) state.usCats[c.id] = c; }
 function getMonth(ym) {
+  if (isUs()) {
+    const k = 'us:' + ym;
+    if (!state.monthCache[k]) {
+      const p = api('GET', 'coupleEntries', monthRange(ym)).then(r => { addUsCats(r.extraCats); return r.entries; });
+      p.catch(e => { if (state.monthCache[k] === p) delete state.monthCache[k]; usFail(e); });
+      state.monthCache[k] = p;
+    }
+    return state.monthCache[k];
+  }
   if (!state.monthCache[ym]) {
     const p = api('GET', 'entries', monthRange(ym)).then(r => { cacheMonth(ym, r.entries); return r.entries; });
     p.catch(() => { if (state.monthCache[ym] === p) delete state.monthCache[ym]; }); // พลาดแล้วให้โหลดใหม่ได้
@@ -267,6 +291,15 @@ function getMonth(ym) {
 }
 // รายปี: โชว์ที่จำไว้ในเครื่องทันที แล้วค่อยอัปเดต (ถ้าเปลี่ยน วาดใหม่เงียบๆ)
 function getYear(y) {
+  if (isUs()) {
+    const k = 'us:' + y;
+    if (!state.yearCache[k]) {
+      const p = api('GET', 'coupleYear', { year: y }).then(r => { addUsCats(r.extraCats); return r.months; });
+      p.catch(e => { if (state.yearCache[k] === p) delete state.yearCache[k]; usFail(e); });
+      state.yearCache[k] = p;
+    }
+    return state.yearCache[k];
+  }
   if (!state.yearCache[y]) {
     const saved = store.get('year:' + y);
     const p = api('GET', 'year', { year: y }).then(r => r.months);
@@ -367,6 +400,11 @@ async function render(quiet) {
   $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === state.page));
   $('#pageTitle').textContent = TITLES[state.page];
   $('#period').classList.toggle('hide', state.page === 'settings' || state.page === 'admin');
+  const sc = $('#scope');
+  sc.hidden = !state.couple || state.page === 'settings' || state.page === 'admin';
+  sc.dataset.scope = isUs() ? 'us' : 'me';
+  $$('#scope button').forEach(b => b.classList.toggle('active', b.dataset.scope === sc.dataset.scope));
+  document.body.classList.toggle('us', isUs() && !sc.hidden);
   const modes = ['day', 'month', 'year'];
   $$('.seg button').forEach(b => b.classList.toggle('active', b.dataset.mode === state.mode));
   $('.seg-pill').style.transform = `translateX(${modes.indexOf(state.mode) * 100}%)`;
@@ -383,7 +421,7 @@ async function render(quiet) {
   }
   if (state.page === 'admin') { if (!quiet) restartAnim(); return renderAdmin(view, quiet); }
 
-  const key = `${state.page}|${state.mode}|${state.date}`;
+  const key = `${state.page}|${state.mode}|${state.date}|${state.scope}`;
   render.key = key;
   let done = false;
   const sk = setTimeout(() => { // โชว์โครงรอเฉพาะตอนโหลดช้า
@@ -431,9 +469,14 @@ const emptyEntries = `<div class="empty">${pig('sleep', 'nap')}<div>ยังไ
 function homeHTML(d) {
   const net = d.ti - d.te, zero = !d.ti && !d.te, profit = net >= 0;
   const streak = state.mode === 'day' && state.date === todayISO() && state.streak > 1 ? `<span class="streak">🔥 ${state.streak} วัน</span>` : '';
-  const hero = `<div class="hero-wrap">${pigPeek(zero ? 'angry' : profit ? 'happy' : 'sad')}<div class="card hero tilt ${zero ? '' : profit ? 'profit' : 'loss'}">
+  const us = isUs();
+  // 💑 ของเรา: หมู 2 ตัวอยู่ด้วยกัน (ยอดเป็นบวก = ดีใจด้วยกัน มีหัวใจลอย) · ไม่มีการเทียบว่าใครใช้มากกว่า
+  const mood = zero ? (us ? 'wink' : 'angry') : profit ? 'happy' : 'sad';
+  const pigs = us ? `${pigPeek(mood, true, 'second')}${pigPeek(mood, true)}${!zero && profit ? '<i class="pig-heart">💕</i>' : ''}` : pigPeek(mood);
+  const label = us ? `${duoHTML()}<span>${esc(periodWord())}ของเรา</span>` : esc(periodWord());
+  const hero = `<div class="hero-wrap ${us ? 'us' : ''}">${pigs}<div class="card hero tilt ${us ? 'love' : ''} ${zero ? '' : profit ? 'profit' : 'loss'}">
     <i class="spark s1">✦</i><i class="spark s2">✦</i><i class="spark s3">✦</i>
-    <div class="hero-top"><span class="hero-label">${esc(periodWord())} ${streak}</span><span class="badge">${zero ? '—' : profit ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
+    <div class="hero-top"><span class="hero-label">${label} ${streak}</span><span class="badge">${zero ? '—' : profit ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${!zero && !profit ? '-' : ''}<span data-count="${Math.abs(net)}">0</span><small>บาท</small></div>
     <div class="split">
       <div class="pill"><span><i>💰</i>รายรับ</span><b>+${fmt(d.ti)}</b></div>
@@ -454,8 +497,9 @@ function homeHTML(d) {
   } else {
     const isDay = state.mode === 'day';
     const list = isDay ? d.entries : d.entries.slice(0, 5);
-    middle = `<div class="card"><h3>🧾 ${isDay ? 'รายการ' : 'ล่าสุด'} ${!isDay && d.entries.length > 5 ? '<button class="link" data-go="list">ดูทั้งหมด</button>' : ''}</h3>
-      ${list.length ? list.map(entryHTML).join('') : emptyEntries}</div>`;
+    middle = `<div class="card"><h3>🧾 ${isDay ? 'รายการ' : 'ล่าสุด'}${us ? 'ของเรา' : ''} ${!isDay && d.entries.length > 5 ? '<button class="link" data-go="list">ดูทั้งหมด</button>' : ''}</h3>
+      ${list.length ? list.map(entryHTML).join('') : emptyEntries}
+      ${us ? '<p class="hint us-hint">ไม่รวมรายการ 🔒 ส่วนตัวของแต่ละคน</p>' : ''}</div>`;
   }
 
   return `<div class="grid home">
@@ -467,12 +511,19 @@ function homeHTML(d) {
   </div>`;
 }
 
+// รูปโปรไฟล์วงกลม (ไม่มีรูป → น้องหมู)
+const face = (pic, cls = '') => (pic ? `<img class="face ${cls}" src="${esc(pic)}" alt="" referrerpolicy="no-referrer">` : `<i class="face ${cls}">🐷</i>`);
+const myPic = () => store.get('user')?.pic || '';
+const duoHTML = () => `<span class="duo">${face(myPic())}${face(state.couple?.pic, 'p2')}</span>`;
+
 function entryHTML(e, i = 0) {
   const c = catById(e.category);
   const showNote = e.note && e.note !== c.name;
-  return `<button class="entry" style="--i:${Math.min(i, 12)}" data-id="${esc(e.id)}" data-ym="${esc(ymOf(e.date))}">
+  const who = e.owner ? `<span class="who ${e.owner}">${face(e.owner === 'me' ? myPic() : state.couple?.pic)}${e.owner === 'me' ? 'ฉัน' : esc(state.couple?.name || 'แฟน')}</span>` : '';
+  const lock = e.private && state.couple ? ' <span class="lock" title="ส่วนตัว แฟนไม่เห็น">🔒</span>' : '';
+  return `<button class="entry" style="--i:${Math.min(i, 12)}" data-id="${esc(e.id)}" data-ym="${esc(ymOf(e.date))}" ${e.owner === 'partner' ? 'data-partner' : ''}>
     <div class="cat-ico">${esc(c.icon)}</div>
-    <div><div class="entry-name">${esc(c.name)}</div>${showNote ? `<div class="entry-note">${esc(e.note)}</div>` : ''}</div>
+    <div><div class="entry-name">${esc(c.name)}${lock}</div>${who || showNote ? `<div class="entry-note">${who}${showNote ? esc(e.note) : ''}</div>` : ''}</div>
     <div class="${e.type === 'income' ? 'amt-in' : 'amt-out'}">${e.type === 'income' ? '+' : '-'}${fmt(e.amount)}</div>
   </button>`;
 }
@@ -491,8 +542,9 @@ function listHTML(d) {
   if (d.archived) return homeHTML(d);
   if (!d.entries.length) return `<div class="card">${emptyEntries}</div>`;
   const net = d.ti - d.te;
-  const top = `<div class="hero-wrap small">${pigPeek(net >= 0 ? 'happy' : 'sad', true)}<div class="card hero mini tilt ${net >= 0 ? 'profit' : 'loss'}">
-    <div class="hero-top"><span class="hero-label">${esc(periodWord())} · ${d.entries.length} รายการ</span><span class="badge">${net >= 0 ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
+  const us = isUs(), lm = net >= 0 ? 'happy' : 'sad';
+  const top = `<div class="hero-wrap small ${us ? 'us' : ''}">${us ? pigPeek(lm, true, 'second') : ''}${pigPeek(lm, true)}<div class="card hero mini tilt ${us ? 'love' : ''} ${net >= 0 ? 'profit' : 'loss'}">
+    <div class="hero-top"><span class="hero-label">${us ? duoHTML() : ''}${esc(periodWord())}${us ? 'ของเรา' : ''} · ${d.entries.length} รายการ</span><span class="badge">${net >= 0 ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${net < 0 ? '-' : ''}${fmt(Math.abs(net))}<small>บาท</small></div>
     <div class="split"><div class="pill"><span><i>💰</i>รายรับ</span><b>+${fmt(d.ti)}</b></div><div class="pill"><span><i>💸</i>รายจ่าย</span><b>-${fmt(d.te)}</b></div></div></div></div>`;
   const groups = {};
@@ -521,6 +573,7 @@ function bindView() {
   bindTilt(view);
   bindPig(view);
   $$('.entry', view).forEach(b => b.onclick = async () => {
+    if (b.hasAttribute('data-partner')) return toast('รายการของแฟน แก้ได้เฉพาะเจ้าของนะ 💕');
     const list = await getMonth(b.dataset.ym);
     const e = list.find(x => x.id === b.dataset.id);
     if (e) openEntry(e);
@@ -768,6 +821,17 @@ function settingsHTML() {
       </div>
     </div>
 
+    <div class="card span couple-card">
+      <h2 class="section-title">💑 โหมดคู่รัก</h2>
+      ${state.couple ? `
+        <div class="couple-row">${duoHTML()}<div class="grow"><b>คุณ กับ ${esc(state.couple.name)}</b><small>จับคู่เมื่อ ${thaiDay(new Date(state.couple.since + 7 * 3600e3).toISOString().slice(0, 10))}</small></div></div>
+        <p class="hint">แฟนเห็นยอดรวมของเราและรายการที่ไม่ได้ 🔒 · ตั้ง 🔒 ได้ตอนเพิ่ม/แก้รายการ</p>
+        <div class="form-row"><button class="btn" id="cOpen">💑 ดูของเรา</button><button class="btn ghost danger-text" id="cUnpair">เลิกคู่</button></div>`
+      : `<div class="couple-row"><span class="duo">${face(myPic())}<i class="face p2">💌</i></span><div class="grow"><b>ชวนแฟนมาจดด้วยกัน</b><small>ดูยอดรวมของเราสองคน · เก็บรายการส่วนตัวได้ · เลิกได้ทุกเมื่อ</small></div></div>
+        <a class="btn" href="https://line.me/R/oaMessage/%40514ddese/?${encodeURIComponent('จับคู่')}">💌 ชวนแฟน (ไปที่แชท)</a>
+        <p class="hint">ไม่ใช้ก็ไม่เป็นไร ทุกอย่างเหมือนเดิม</p>`}
+    </div>
+
     <div class="card span">
       <h2 class="section-title">🎨 หน้าตา</h2>
       <div class="seg" style="max-width:none;margin-top:10px">
@@ -828,6 +892,12 @@ function bindSettings() {
     saveProfile({ keywords }, 'ลบคำแล้ว');
   }, 'ลบ?'));
 
+  $('#cOpen') && ($('#cOpen').onclick = () => { state.scope = 'us'; go('home'); });
+  $('#cUnpair') && armDelete($('#cUnpair'), async () => {
+    try { await api('POST', 'unpair', {}); setCouple(null); clearCache(); toast('เลิกโหมดคู่รักแล้ว'); render(true); }
+    catch (e) { toast(e.message); render(true); }
+  }, 'แตะอีกครั้งเพื่อเลิกคู่');
+
   $$('[data-themeopt]').forEach(b => b.onclick = () => { setTheme(b.dataset.themeopt === 'auto' ? null : b.dataset.themeopt); render(true); });
 }
 
@@ -855,6 +925,8 @@ function openEntry(entry) {
       <input class="input" id="fNote" maxlength="60" placeholder="ไม่บังคับ" value="${esc(e.note)}">
       <span class="label">วันที่</span>
       <input class="input" id="fDate" type="date" value="${esc(e.date)}">
+      ${state.couple ? `<button class="priv ${e.private ? 'on' : ''}" id="fPriv" type="button" aria-pressed="${!!e.private}">
+        <span>${e.private ? '🔒' : '🔓'}</span><div><b>${e.private ? 'ส่วนตัว' : 'แฟนเห็นได้'}</b><small>${e.private ? 'แฟนไม่เห็น ไม่นับในยอดของเรา' : 'แตะเพื่อเก็บเป็นส่วนตัว (เช่น ของขวัญเซอร์ไพรส์)'}</small></div><i></i></button>` : ''}
       <div class="actions">
         ${isEdit ? `<button class="btn danger" id="fDel">ลบ</button>` : '<button class="btn ghost" id="fCancel">ยกเลิก</button>'}
         <button class="btn" id="fSave">บันทึก</button>
@@ -865,6 +937,7 @@ function openEntry(entry) {
       e.category = b.dataset.cat;
       $$('[data-cat]', sheet).forEach(x => x.classList.toggle('on', x === b));
     });
+    $('#fPriv') && ($('#fPriv').onclick = () => { keep(); e.private = !e.private; draw(); });
     $('#fCancel') && ($('#fCancel').onclick = closeSheet);
     $('#fDel') && armDelete($('#fDel'), async () => {
       try { await api('POST', 'delete', { id: e.id }); closeSheet(); clearCache(); toast('ลบแล้ว 🗑️'); render(); }
@@ -874,7 +947,7 @@ function openEntry(entry) {
       keep();
       if (!(Number(e.amount) > 0)) { $('#fAmount').focus(); return toast('กรุณาใส่จำนวนเงิน'); }
       if (!e.date) return toast('กรุณาเลือกวันที่');
-      const data = { type: e.type, category: e.category, amount: Number(e.amount), note: e.note, date: e.date };
+      const data = { type: e.type, category: e.category, amount: Number(e.amount), note: e.note, date: e.date, ...(state.couple ? { private: !!e.private } : {}) };
       $('#fSave').disabled = true; $('#fSave').textContent = 'กำลังบันทึก…';
       try {
         let id = e.id;
@@ -916,6 +989,11 @@ function go(page) {
 function bindChrome() {
   $$('.nav-item').forEach(b => b.onclick = () => go(b.dataset.page));
   $$('.seg button[data-mode]').forEach(b => b.onclick = () => { state.mode = b.dataset.mode; state.date = todayISO(); render(); });
+  $$('#scope button').forEach(b => b.onclick = () => {
+    if (state.scope === b.dataset.scope) return;
+    state.anim = b.dataset.scope === 'us' ? 'l' : 'r'; state.scope = b.dataset.scope; render();
+    if (b.dataset.scope === 'us') { const r = b.getBoundingClientRect(); burst(r.left + r.width / 2, r.top, ['💕', '💖', '🐷', '✨']); }
+  });
   $('#prev').onclick = () => { state.anim = 'r'; state.date = shiftDate(state.date, state.mode, -1); render(); };
   $('#next').onclick = () => { state.anim = 'l'; state.date = shiftDate(state.date, state.mode, 1); render(); };
   $('#periodLabel').onclick = openPicker;
@@ -971,6 +1049,8 @@ async function boot() {
   // 1) มีข้อมูลที่จำไว้ → โชว์ทันที แล้วค่อยอัปเดตทีหลัง
   if (!DEMO) {
     setUser(store.get('user'));
+    state.couple = store.get('couple') || null;
+    if (params.get('scope') === 'us' && state.couple) state.scope = 'us';
     const p = store.get('profile'), m = store.get('month');
     if (p && m && m.ym === ym) {
       applyProfile(p); state.monthCache[ym] = Promise.resolve(m.entries);
@@ -1001,8 +1081,11 @@ async function boot() {
     // 2) ดึงหมวด + รายการเดือนนี้ในครั้งเดียว
     const r = await (early || api('GET', 'boot', monthRange(ym))).catch(e => (e.message === 'unauthorized' ? api('GET', 'boot', monthRange(ym)) : Promise.reject(e)));
     applyProfile(r.profile); store.set('profile', r.profile);
+    const wasUs = isUs();
+    setCouple(r.couple);
+    if (params.get('scope') === 'us' && state.couple) state.scope = 'us';
     state.monthCache[ym] = Promise.resolve(r.entries); cacheMonth(ym, r.entries);
-    await render(shown);
+    await render(shown && wasUs === isUs());
     prefetchMore();
     if (params.has('add')) openEntry(); // เปิดจากปุ่ม "🔢 กดตัวเลข" ในแชท → เปิดหน้าเพิ่มรายการเลย
   } catch (e) {
@@ -1051,7 +1134,17 @@ function demoApi(method, action, body) {
   const inRange = b => db.entries.filter(e => e.date >= b.from && e.date <= b.to).sort((a, c) => c.date.localeCompare(a.date) || c.ts - a.ts);
   const wait = v => new Promise(r => setTimeout(() => r(structuredClone(v)), 250));
   if (method === 'GET') {
-    if (action === 'boot') return wait({ profile: profile(), entries: inRange(body) });
+    // โหมดทดลองคู่รัก: /?demo=1&couple=1
+    const partner = () => db.entries.filter((e, i) => i % 3 === 0).map((e, i) => ({ ...e, id: '~' + i, owner: 'partner', amount: Math.round(e.amount * 0.8), note: e.type === 'income' ? 'ขายของ' : e.note, category: e.type === 'income' ? '~income|ขายของออนไลน์' : e.category }));
+    const usList = b => [...inRange(b).filter(e => !e.private).map(e => ({ ...e, owner: 'me' })), ...partner().filter(e => e.date >= b.from && e.date <= b.to)].sort((a, c) => c.date.localeCompare(a.date) || c.ts - a.ts);
+    const extraCats = [{ id: '~income|ขายของออนไลน์', name: 'ขายของออนไลน์', icon: '🛒', type: 'income' }];
+    if (action === 'boot') return wait({ profile: profile(), entries: inRange(body), couple: params.has('couple') && !db.unpaired ? { name: 'มิ้นท์ 🌸', pic: '', since: Date.now() - 12 * 86400e3 } : null });
+    if (action === 'coupleEntries') return wait({ entries: usList(body), extraCats });
+    if (action === 'coupleYear') return wait({ extraCats, months: Array.from({ length: 12 }, (_, m) => {
+      const ym = `${body.year}-${String(m + 1).padStart(2, '0')}`, inc = {}, exp = {};
+      [...db.entries.filter(e => !e.private), ...partner()].filter(e => e.date.startsWith(ym)).forEach(e => { const t = e.type === 'income' ? inc : exp; t[e.category] = (t[e.category] || 0) + e.amount; });
+      return { inc, exp };
+    }) });
     if (action === 'profile') return wait(profile());
     if (action === 'entries') return wait({ entries: inRange(body) });
     if (action === 'year') return wait({ months: Array.from({ length: 12 }, (_, m) => {
@@ -1063,6 +1156,7 @@ function demoApi(method, action, body) {
   if (action === 'add') { const n = { ...body.entry, id: 'n' + Date.now(), ts: Date.now() }; db.entries.push(n); return wait({ entries: [n] }); }
   if (action === 'update') Object.assign(db.entries.find(e => e.id === body.id), body.entry);
   if (action === 'delete') db.entries = db.entries.filter(e => e.id !== body.id);
+  if (action === 'unpair') db.unpaired = true;
   if (action === 'profile') { if (body.categories) db.custom = body.categories; if (body.keywords) db.keywords = body.keywords; return wait(profile()); }
   return wait({ ok: true });
 }

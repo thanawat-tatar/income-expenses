@@ -466,3 +466,63 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .a-badge.warn { background: #FFF1D6; color: #B36B00; } .a-badge.danger { background: var(--expense-soft); color: var(--expense); } .a-badge.ok { background: var(--income-soft); color: var(--income); }
 .a-links { display: flex; gap: 8px; flex-wrap: wrap; } .a-links .btn { flex: 1; margin: 10px 0 0; height: 40px; font-size: 13px; padding: 0 8px; }
 .a-user .grow { line-height: 1.7; }
+
+/* ---------- 💑 โหมดคู่รัก (ของเรา) ---------- */
+.scope { position: relative; display: grid; grid-template-columns: 1fr 1fr; background: var(--surface-2); border-radius: 14px; padding: 4px; margin-bottom: 12px; box-shadow: inset 0 2px 3px rgba(0, 0, 0, .05); }
+.scope[hidden] { display: none; }
+.scope button { position: relative; z-index: 1; padding: 9px 0; font-size: 15px; font-weight: 600; color: var(--muted); transition: color .25s; }
+.scope button.active { color: var(--accent); }
+.scope[data-scope="us"] button.active { color: #fff; }
+.scope-pill { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 2); border-radius: 11px; background: var(--surface); box-shadow: 0 3px 0 var(--card-edge), 0 4px 10px rgba(255, 79, 154, .15); transition: transform .4s var(--ease), background .4s; }
+.scope[data-scope="us"] .scope-pill { transform: translateX(100%); background: linear-gradient(135deg, #FF4F9A, #B58CFF); box-shadow: 0 3px 0 #8E5FD6, 0 6px 14px rgba(181, 140, 255, .35); }
+
+/* พื้นหลังเปลี่ยนเป็นชมพูอมม่วงเมื่ออยู่ในโหมดของเรา */
+body.us { background-image: radial-gradient(circle at 12% 0%, rgba(181, 140, 255, .22), transparent 45%), radial-gradient(circle at 92% 12%, rgba(255, 79, 154, .16), transparent 42%); background-attachment: fixed; }
+
+.hero.love, .hero.love.profit { background: linear-gradient(150deg, #FF8CC3 0%, #FF4F9A 42%, #B58CFF 100%); box-shadow: 0 12px 30px rgba(181, 140, 255, .4); }
+.hero.love.loss { background: linear-gradient(150deg, #D9468F 0%, #A8286E 45%, #6B45B8 100%); }
+.hero-wrap.us { margin-top: 70px; }
+.hero-wrap.us .hero-top, .hero-wrap.us .hero.mini .hero-top { padding-right: 0; margin-top: 16px; }
+.hero-wrap.us .hero-label { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; opacity: 1; }
+.peek-body.second, .peek-paws.second { right: 96px; }
+.peek-body.second .pig, .peek-paws.second svg { filter: hue-rotate(-48deg) saturate(1.05); }
+.peek-body.second .pig { animation-delay: 1.4s; transform: scaleX(-1); }
+.pig-heart { position: absolute; right: 92px; top: -92px; z-index: 3; font-style: normal; font-size: 22px; pointer-events: none; animation: heartUp 2.6s ease-in-out infinite; }
+@keyframes heartUp { 0% { transform: translateY(8px) scale(.6); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-26px) scale(1.15); opacity: 0; } }
+
+/* รูปโปรไฟล์วงกลม */
+.face { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; display: inline-grid; place-items: center; font-style: normal; font-size: 14px; background: #FFE6F1; box-shadow: 0 0 0 2px #fff; flex: none; vertical-align: middle; }
+.face.p2 { background: #EBDDFF; }
+.duo { display: inline-flex; align-items: center; }
+.duo .face + .face { margin-left: -8px; }
+.who { display: inline-flex; align-items: center; gap: 4px; margin-right: 6px; padding: 1px 7px 1px 2px; border-radius: 999px; background: var(--surface-2); font-size: 11px; font-weight: 600; color: var(--accent); }
+.who.partner { color: #8E5FD6; }
+.who .face { width: 16px; height: 16px; font-size: 10px; box-shadow: none; }
+.lock { font-size: 12px; }
+.entry[data-partner] { cursor: default; }
+.us-hint { text-align: center; margin-top: 10px; font-size: 12px; }
+
+/* สวิตช์ 🔒 ส่วนตัว ในหน้าเพิ่ม/แก้รายการ */
+.priv { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 14px; padding: 10px 12px; border-radius: 14px; background: var(--surface-2); text-align: left; transition: background .25s; }
+.priv > span { font-size: 22px; }
+.priv > div { flex: 1; min-width: 0; }
+.priv b { display: block; font-size: 14px; }
+.priv small { display: block; font-size: 12px; color: var(--muted); }
+.priv > i { width: 44px; height: 26px; border-radius: 999px; background: var(--line); position: relative; flex: none; transition: background .25s; }
+.priv > i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); transition: transform .3s var(--ease); }
+.priv.on { background: color-mix(in srgb, #B58CFF 22%, var(--surface-2)); }
+.priv.on > i { background: linear-gradient(135deg, #FF4F9A, #B58CFF); }
+.priv.on > i::after { transform: translateX(18px); }
+
+/* การ์ดคู่ของฉันในหน้าตั้งค่า */
+.couple-card { background-image: linear-gradient(135deg, rgba(255, 79, 154, .08), rgba(181, 140, 255, .14)); }
+.couple-row { display: flex; align-items: center; gap: 14px; margin: 12px 0; }
+.couple-row .face { width: 44px; height: 44px; font-size: 22px; }
+.couple-row .duo .face + .face { margin-left: -12px; }
+.couple-row .grow { flex: 1; min-width: 0; }
+.couple-row small { display: block; color: var(--muted); font-size: 12px; }
+.couple-card .form-row { margin-top: 12px; }
+.couple-card .form-row .btn { flex: 1; }
+.couple-card a.btn { display: block; text-align: center; margin-bottom: 8px; }
+.btn.danger-text { color: var(--expense); }
+.btn.danger-text.armed { background: var(--expense); color: #fff; }

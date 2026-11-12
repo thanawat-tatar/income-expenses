@@ -9,11 +9,11 @@ import {
   confirmMessage, askMessage, summaryMessage, undoMessage, helpMessage, savedMessage, noteCard, text, baht,
   editListMessage, editEntryMessage, editCategoryMessage, withQuick, stuckMessage,
   consentMessage, fullMessage, wipeAskMessage, legacyNoticeMessage, adminLinkMessage, slipMessage, slipFallbackMessage, todayNet,
-  pairIntroMessage, pairCodeMessage, pairAskJoinMessage, pairAskOwnerMessage, pairDoneMessage, coupleStatusMessage,
+  pairIntroMessage, pairCodeMessage, pairAskJoinMessage, pairNotifyOwnerMessage, pairDoneMessage, coupleStatusMessage,
   unpairAskMessage, unpairedMessage, coupleSummaryMessage,
 } from '../lib/messages.js';
 import {
-  createInvite, cancelInvites, codeTurn, findInvite, requestPair, getPairReq, acceptPair, rejectPair, getCouple, unpair,
+  createInvite, cancelInvites, codeTurn, findInvite, joinPair, inviteLeft, rememberCode, forgetCode, getCouple, unpair,
   coupleDay, validCode, showCode, codeHash, CODE_MINUTES,
 } from '../lib/couple.js';
 import { gate, joinWaitlist, setConsent, clearLegacyNotice, deleteUserData, isAdmin, POLICY_VERSION } from '../lib/access.js';
@@ -113,6 +113,16 @@ async function handle(ev) {
   const current = consented && (g.user.consentVersion || 1) >= POLICY_VERSION;
   if (a === 'agree') {
     if (!current) await setConsent(uid);
+    // ส่งรหัสคู่มาก่อนกดยอมรับ → ทำต่อให้เลย ไม่ต้องส่งรหัสใหม่
+    if (g.user.pairHash) {
+      later(forgetCode(uid));
+      const inv = await findInvite(g.user.pairHash);
+      if (inv && inv.from !== uid) {
+        const pr = await getLineProfile(inv.from);
+        return reply(t, [noteCard('💖', 'ขอบคุณที่ไว้ใจนะ!', 'อีกขั้นเดียว แตะ 💑 ยืนยัน ด้านล่าง'), pairAskJoinMessage(pr.name, pr.pic, g.user.pairHash)]);
+      }
+      return reply(t, [noteCard('💖', 'ขอบคุณที่ไว้ใจนะ!', 'รหัสเชิญหมดอายุแล้ว ให้แฟนพิมพ์ "จับคู่" ส่งมาใหม่นะ'), helpMessage()]);
+    }
     if (consented && !current) return reply(t, noteCard('💖', 'ขอบคุณที่ยอมรับฉบับใหม่!', 'ลองส่งรูปสลิปมาได้เลย 📸'));
     return reply(t, [noteCard('💖', 'ขอบคุณที่ไว้ใจนะ!', 'เริ่มจดได้เลย 🐷'), helpMessage()]);
   }
@@ -126,6 +136,11 @@ async function handle(ev) {
   if (!current) {
     // ยังไม่ยอมรับ / ยังไม่ยอมรับฉบับใหม่ → ไม่บันทึกอะไร
     const welcome = ev.type === 'follow' || g.isNew;
+    const pc = isText ? pairCode(msg) : null;
+    if (pc && validCode(pc)) { // จำรหัสคู่ไว้ (เก็บแค่ค่าแฮช) กดยอมรับแล้วไปต่อได้เลย
+      await rememberCode(uid, codeHash(pc));
+      return reply(t, [noteCard('💌', 'ได้รับคำเชิญจากแฟนแล้ว!', 'กด 💖 ยอมรับทั้งหมด ก่อนนะ แล้วจับคู่ต่อได้เลย'), consentMessage('👋 ยินดีต้อนรับ 🎀')]);
+    }
     return reply(t, [
       ...(welcome ? [] : consented
         ? [noteCard('📄', 'นโยบายข้อมูลอัปเดตแล้ว', 'เพิ่มเรื่องอ่านสลิปด้วย AI · อ่านแล้วกดยอมรับนะ')]
@@ -158,10 +173,12 @@ async function onText(uid, ev) {
   if (isPair(msg)) {
     const couple = await getCouple(uid, me);
     if (couple) return reply(ev.replyToken, coupleStatusMessage(couple.partnerName, bkkIso(couple.since)));
-    const req = await getPairReq(uid); // มีคนตอบรับคำเชิญค้างอยู่ → ให้ยืนยันก่อน
-    if (req) {
-      const p = await getLineProfile(req.from);
-      return reply(ev.replyToken, pairAskOwnerMessage(p.name || req.fromName, p.pic, req.nonce));
+    const left = await inviteLeft(uid); // ส่งคำเชิญไปแล้ว ยังรอแฟน → บอกสถานะให้ชัด
+    if (left) {
+      return reply(ev.replyToken, withQuick(noteCard('💌', 'ส่งคำเชิญแล้ว รอแฟนอยู่', `แฟนต้อง: แตะลิงก์ → กดส่ง → แตะ 💑 ยืนยัน\nรหัสใช้ได้อีก ${left} นาที · เสร็จแล้วบอทจะบอกคุณ`), [
+        ['💌 สร้างรหัสใหม่', 'a=pair1', 'สร้างรหัสใหม่'],
+        ['✖️ ยกเลิกรหัส', 'a=paircancel', 'ยกเลิกรหัส'],
+      ]));
     }
     return reply(ev.replyToken, pairIntroMessage());
   }
@@ -554,24 +571,24 @@ async function onPairPostback(uid, ev, a, p) {
     const code = await createInvite(uid);
     return reply(t, pairCodeMessage(code, showCode(code), CODE_MINUTES));
   }
-  if (a === 'pairok') { // B ยืนยัน → รอ A ยืนยันอีกครั้ง
-    const me = await getLineProfile(uid);
-    const r = await requestPair(uid, String(p.get('h') || '').slice(0, 40) || 'x', me.name || (await getUser(uid))?.displayName);
-    if (r.error) return reply(t, noteCard(...PAIR_ERR[r.error]));
-    await push(r.to, pairAskOwnerMessage(me.name, me.pic, r.nonce)).catch(e => console.error('pair push', e.message));
-    return reply(t, noteCard('💌', 'ส่งคำตอบให้แฟนแล้ว', 'รอแฟนกดยืนยันอีกครั้ง · ถ้าแฟนไม่เห็น ให้แฟนพิมพ์ "จับคู่"'));
+  if (a === 'paircancel') {
+    const n = await cancelInvites(uid);
+    return reply(t, n ? noteCard('✖️', 'ยกเลิกรหัสเชิญแล้ว', 'สร้างใหม่ พิมพ์ "จับคู่"') : noteCard('🤔', 'ไม่มีรหัสเชิญที่ค้างอยู่'));
   }
-  if (a === 'pairA' || a === 'pairAno') { // A ยืนยัน/ปฏิเสธ
-    const nonce = String(p.get('n') || '');
-    if (a === 'pairAno') {
-      const ok = await rejectPair(uid, nonce);
-      return reply(t, ok ? noteCard('🛡️', 'ปฏิเสธแล้ว ไม่ได้จับคู่', 'ไม่มีใครเห็นข้อมูลของคุณ · เริ่มใหม่ พิมพ์ "จับคู่"') : noteCard(...PAIR_ERR.gone));
-    }
-    const r = await acceptPair(uid, nonce);
+  if (a === 'pairok') { // B แตะยืนยัน → จับคู่เสร็จทันที แล้วบอก A (ชื่อ+รูป + ปุ่ม "ไม่ใช่แฟน")
+    const me = await getLineProfile(uid);
+    const r = await joinPair(uid, String(p.get('h') || '').slice(0, 40) || 'x', me.name);
     if (r.error) return reply(t, noteCard(...PAIR_ERR[r.error]));
-    const mine = (await getUser(uid))?.displayName || (await getLineProfile(uid)).name || 'แฟน';
-    await push(r.partner, pairDoneMessage(mine)).catch(e => console.error('pair push', e.message));
+    await push(r.partner, pairNotifyOwnerMessage(me.name || r.myName, me.pic, r.coupleId)).catch(e => console.error('pair push', e.message));
     return reply(t, pairDoneMessage(r.partnerName || 'แฟน'));
+  }
+  if (a === 'pairundo') { // A: "ไม่ใช่แฟน" → ยกเลิกทันที (เฉพาะคู่นั้น และภายใน 24 ชม.)
+    const me = await getUser(uid);
+    if (!me?.coupleId || me.coupleId !== p.get('c')) return reply(t, noteCard('🤔', 'การจับคู่นี้ถูกยกเลิกไปแล้ว'));
+    if (!(Date.now() - Number(p.get('t')) < 24 * 3600 * 1000)) return reply(t, noteCard('⌛', 'ปุ่มนี้หมดอายุแล้ว', 'ถ้าจะเลิก พิมพ์ "เลิกคู่"'));
+    const partner = await unpair(uid);
+    if (partner) await push(partner, unpairedMessage()).catch(e => console.error('unpair push', e.message));
+    return reply(t, noteCard('🛡️', 'ยกเลิกการจับคู่แล้ว', 'คนนั้นดูยอดของคุณไม่ได้แล้ว · เริ่มใหม่ พิมพ์ "จับคู่"'));
   }
   if (a === 'unpair2') {
     if (!(Date.now() - Number(p.get('t')) < 10 * 60 * 1000)) return reply(t, noteCard('⌛', 'ปุ่มนี้หมดอายุแล้ว', 'พิมพ์ "เลิกคู่" ใหม่'));
@@ -608,7 +625,7 @@ async function onPostback(uid, ev) {
     return reply(ev.replyToken, coupled ? withQuick(saved, [privQuick(batch)]) : saved);
   }
 
-  if (['pair1', 'pairx', 'pairok', 'pairA', 'pairAno', 'unpair2', 'unpairno'].includes(a)) return onPairPostback(uid, ev, a, p);
+  if (['pair1', 'pairx', 'pairok', 'pairundo', 'paircancel', 'unpair2', 'unpairno'].includes(a)) return onPairPostback(uid, ev, a, p);
 
   // 🔒 ตั้งรายการที่เพิ่งจด (ทั้งชุด) เป็นส่วนตัว
   if (a === 'privb') {
