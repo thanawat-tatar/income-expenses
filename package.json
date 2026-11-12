@@ -11,6 +11,6 @@
     "firebase-admin": "^12.7.0"
   },
   "scripts": {
-    "test": "node --test tests/parser.test.mjs"
+    "test": "node --test tests/parser.test.mjs tests/intents.test.mjs"
   }
 }

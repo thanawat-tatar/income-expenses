@@ -8,13 +8,16 @@ import { extractDate } from '../lib/parser.js';
 import {
   confirmMessage, askMessage, summaryMessage, undoMessage, helpMessage, savedMessage, noteCard, text, baht,
   editListMessage, editEntryMessage, editCategoryMessage, withQuick, stuckMessage,
-  consentMessage, fullMessage, wipeAskMessage, legacyNoticeMessage, adminLinkMessage,
+  consentMessage, fullMessage, wipeAskMessage, legacyNoticeMessage, adminLinkMessage, slipMessage, slipFallbackMessage,
 } from '../lib/messages.js';
-import { gate, joinWaitlist, setConsent, clearLegacyNotice, deleteUserData, isAdmin } from '../lib/access.js';
+import { gate, joinWaitlist, setConsent, clearLegacyNotice, deleteUserData, isAdmin, POLICY_VERSION } from '../lib/access.js';
+import { isUndo, isEdit, isWipe, isHelp, cleanTarget } from '../lib/intents.js';
+import { tooMany } from '../lib/guard.js';
+import { slipReady, slipTurn, geminiTurn, fetchImage, readSlip, slipKey } from '../lib/slip.js';
 import {
   getProfile, saveProfile, addEntries, updateEntry, recentEntries, getEntry, setEdit, getEdit, clearEdit,
   getMiss, setMiss, clearMiss, listEntries, lastBatch, deleteEntries,
-  setPending, getPending, clearPending,
+  setPending, getPending, clearPending, findSlip,
 } from '../lib/store.js';
 
 const PENDING_TTL = 24 * 3600 * 1000;
@@ -49,17 +52,17 @@ async function reply(token, messages) {
   return lineReply(token, [...pre, ...main]);
 }
 
-const WIPE_RE = /^(ลบข้อมูล(ของ)?(ฉัน|ผม|หนู|เรา|ทั้งหมด|ของฉัน)?|ลบบัญชี|ลบข้อมูลทั้งหมดของฉัน)$/;
-const HELP_RE = /^(วิธีใช้|ช่วย|ช่วยด้วย|help|\?|เมนู|ใช้ยังไง|ทำยังไง)$/i;
 
 async function handle(ev) {
   const uid = ev.source?.userId;
   if (!uid || !ev.replyToken) return;
   const isText = ev.type === 'message' && ev.message?.type === 'text';
-  if (!isText && !['follow', 'postback'].includes(ev.type)) return;
+  const isImage = ev.type === 'message' && ev.message?.type === 'image';
+  if (!isText && !isImage && !['follow', 'postback'].includes(ev.type)) return;
   const msg = isText ? normalizeThai(ev.message.text.trim()) : '';
   const a = ev.type === 'postback' ? new URLSearchParams(ev.postback.data).get('a') : '';
   const t = ev.replyToken;
+  if (tooMany('w:' + uid, 40)) return; // ส่งถี่ผิดปกติ (เกิน 40 ข้อความ/นาที) → ไม่ตอบ กันเปลืองโควต้า
   loading.set(t, later(showLoading(uid))); // ขึ้น "…" ในแชททันที ระหว่างบอทคิด
 
   // ---- ด่านรับคน ---- (อ่านข้อมูลทั้งหมดที่ต้องใช้ในรอบเดียว)
@@ -83,7 +86,7 @@ async function handle(ev) {
   }
 
   // ---- ลบข้อมูลของฉัน (ถาม 2 ขั้น) ----
-  if (WIPE_RE.test(msg)) return reply(t, wipeAskMessage(false));
+  if (isWipe(msg)) return reply(t, wipeAskMessage(false));
   if (a === 'wipe1') return reply(t, wipeAskMessage(true));
   if (a === 'wipeno') return reply(t, noteCard('👍', 'ไม่ลบแล้ว', 'ข้อมูลยังอยู่ครบ'));
   if (a === 'wipe2') {
@@ -94,27 +97,37 @@ async function handle(ev) {
     return reply(t, noteCard('🗑️', 'ลบข้อมูลทั้งหมดแล้ว', 'อยากใช้ใหม่ ทักมาได้ (ต้องกดยอมรับใหม่)'));
   }
 
-  // ---- การยินยอม ----
+  // ---- การยินยอม ---- (นโยบายเปลี่ยนเรื่องสำคัญ → ต้องกดยอมรับฉบับใหม่ก่อนใช้ต่อ)
+  const consented = !!g.user.consentAt;
+  const current = consented && (g.user.consentVersion || 1) >= POLICY_VERSION;
   if (a === 'agree') {
-    if (!g.user.consentAt) await setConsent(uid);
+    if (!current) await setConsent(uid);
+    if (consented && !current) return reply(t, noteCard('💖', 'ขอบคุณที่ยอมรับฉบับใหม่!', 'ลองส่งรูปสลิปมาได้เลย 📸'));
     return reply(t, [noteCard('💖', 'ขอบคุณที่ไว้ใจนะ!', 'เริ่มจดได้เลย 🐷'), helpMessage()]);
   }
   if (a === 'deny') {
-    if (g.user.consentAt) return reply(t, noteCard('🤔', 'ยอมรับไว้แล้ว', 'ถ้าอยากลบ พิมพ์ "ลบข้อมูลของฉัน"'));
+    if (current) return reply(t, noteCard('🤔', 'ยอมรับไว้แล้ว', 'ถ้าอยากลบ พิมพ์ "ลบข้อมูลของฉัน"'));
+    if (consented) return reply(t, noteCard('🙏', 'ต้องยอมรับฉบับใหม่ก่อน ถึงจะใช้ต่อได้', 'ข้อมูลเดิมยังอยู่ · ลบได้ พิมพ์ "ลบข้อมูลของฉัน"'));
     await deleteUserData(uid);
     prefix.delete(t);
     return reply(t, noteCard('👋', 'ไม่เป็นไรนะ', 'ยังไม่ได้เก็บข้อมูลอะไร · เปลี่ยนใจทักมาได้เสมอ'));
   }
-  if (!g.user.consentAt) {
-    // ยังไม่ยอมรับ → ไม่บันทึกอะไร
+  if (!current) {
+    // ยังไม่ยอมรับ / ยังไม่ยอมรับฉบับใหม่ → ไม่บันทึกอะไร
+    const welcome = ev.type === 'follow' || g.isNew;
     return reply(t, [
-      ...(g.isNew || ev.type === 'follow' ? [] : [noteCard('🔒', 'ต้องกดยอมรับก่อนนะ', 'ถึงจะจดรายการให้ได้')]),
-      consentMessage(ev.type === 'follow' || g.isNew ? '👋 ยินดีต้อนรับ 🎀' : undefined),
+      ...(welcome ? [] : consented
+        ? [noteCard('📄', 'นโยบายข้อมูลอัปเดตแล้ว', 'เพิ่มเรื่องอ่านสลิปด้วย AI · อ่านแล้วกดยอมรับนะ')]
+        : [noteCard('🔒', 'ต้องกดยอมรับก่อนนะ', 'ถึงจะจดรายการให้ได้')]),
+      consentMessage(welcome ? '👋 ยินดีต้อนรับ 🎀' : consented ? '📄 นโยบายฉบับใหม่' : undefined),
     ]);
   }
+  // ข้อความยาวผิดปกติ (กันคนส่งข้อความยักษ์มาถ่วงระบบ)
+  if (msg.length > 1500) return reply(t, noteCard('📏', 'ข้อความยาวเกินไป', 'แบ่งส่งทีละส่วนได้เลย (ครั้งละไม่เกิน 30 รายการ)'));
 
   if (ev.type === 'follow') return reply(t, helpMessage('👋 ยินดีต้อนรับ 🎀'));
   if (ev.type === 'postback') return onPostback(uid, ev);
+  if (isImage) return onImage(uid, ev);
   return onText(uid, ev);
 }
 
@@ -129,8 +142,8 @@ async function onText(uid, ev) {
     const today = bkkDate();
     return reply(ev.replyToken, summaryMessage(await listEntries(uid, today, today), today, byId));
   }
-  if (HELP_RE.test(msg)) return reply(ev.replyToken, helpMessage());
-  if (/^(ยกเลิก|cancel|ลบล่าสุด|ยกเลิกล่าสุด)$/i.test(msg)) {
+  if (isHelp(msg)) return reply(ev.replyToken, helpMessage());
+  if (isUndo(msg)) { // "ยกเลิก", "ยกเลิกเมื่อกี้", "ลบอันล่าสุด", "จดซ้ำ" ...
     if (await getPending(uid)) {
       await clearPending(uid);
       return reply(ev.replyToken, noteCard('✖️', 'ยกเลิกรายการที่รอยืนยันแล้ว'));
@@ -176,7 +189,7 @@ async function onText(uid, ev) {
   }
   // ---- แก้/ลบ แบบบอกว่าอันไหน: "แก้ค่ากินวันที่12", "แก้รายการวันที่11", "ลบค่ากินเมื่อวาน", "ลบ ข้าว 50" ----
   const target = msg.match(/^(?:ขอ)?(แก้(?!ว)(?:ไข)?|ลบ(?!คำ)|เอาออก)\s*(.*)$/);
-  if (target && target[2]) {
+  if (target && target[2] && cleanTarget(target[2])) { // "ขอแก้ราคาได้ไหม" ไม่ได้ระบุอันไหน → ไปเปิดรายการวันนี้ด้านล่าง
     const found = await findTargets(uid, target[2], profile, byId);
     if (found) {
       const del = !target[1].startsWith('แก้');
@@ -195,7 +208,7 @@ async function onText(uid, ev) {
   }
 
   // ---- อยากแก้/ลบ แต่ไม่ได้บอกว่าอันไหน: "ขอแก้ไข", "พิมพ์ผิด", "ลบอันเก่า", "ย้อนกลับ" ----
-  if (!hasDigit && msg.length <= 40 && EDIT_RE.test(msg) && !/^ลบคำ/.test(msg)) {
+  if (!hasDigit && isEdit(msg)) {
     if (pending && !pending.awaitCat) {
       return reply(ev.replyToken, withQuick(noteCard('📝', 'รายการล่าสุดยังไม่ได้บันทึก', 'ยกเลิกแล้วพิมพ์ใหม่ หรือแก้อันที่บันทึกแล้ว'), [
         ['✖️ ยกเลิกอันใหม่', `a=no&p=${pending.id}`, 'ยกเลิก'],
@@ -210,6 +223,7 @@ async function onText(uid, ev) {
     const it = pending.items[pending.awaitCat];
     const word = it.word || it.guess;
     const cat = { id: 'c_' + Date.now().toString(36), name: msg, type: it.type, icon: '🏷️' };
+    if (pending.slip) return saveSlip(uid, ev, pending, cat, profile, [...profile.customCategories, cat]);
     applyWord(pending, word, cat, pending.awaitCat);
     delete pending.awaitCat;
     await Promise.all([learn(uid, profile, word, cat.id, [...profile.customCategories, cat]), setPending(uid, pending)]); // บันทึกพร้อมกัน
@@ -297,12 +311,82 @@ async function onText(uid, ev) {
   return reply(ev.replyToken, out);
 }
 
-// ---------- แก้ไขรายการในแชท ----------
-const EDIT_RE = /แก้|เปลี่ยน|พิมพ์ผิด|พิมผิด|จดผิด|ใส่ผิด|บันทึกผิด|กดผิด|ลบ|เอาออก|ย้อนกลับ|ย้อน|undo|edit|ไม่ถูกต้อง|ผิดพลาด/i;
+// ---------- อ่านสลิป ----------
+async function onImage(uid, ev) {
+  const t = ev.replyToken;
+  if (!slipReady()) return reply(t, slipFallbackMessage('off'));
+  if (!(await slipTurn(uid))) return reply(t, noteCard('😅', 'บอทอ่านไม่ทัน ขอทีละสลิปน้า', 'รอแป๊บ แล้วส่งรูปถัดไปได้เลย'));
+  if (!(await geminiTurn())) return reply(t, slipFallbackMessage('busy'));
+  const profile = await getProfile(uid);
+  let s;
+  try {
+    const img = await fetchImage(ev.message.id);
+    s = await readSlip(img, profile.categories.filter(c => c.type === 'expense'));
+  } catch (e) {
+    if (e.code !== 'notslip') console.error('slip', e.message);
+    return reply(t, slipFallbackMessage(e.code || 'error'));
+  }
+  const key = slipKey(uid, s);
+  const dup = await findSlip(uid, key);
+  if (dup) return reply(t, noteCard('🧾', 'สลิปนี้จดไปแล้วนะ', `${baht(dup.amount)} บาท · ${thaiDate(dup.date)}`));
+  const byId = catMap(profile.categories);
+  const word = s.receiver;
+  const learned = word && profile.keywords.find(k => k.word === word);
+  const known = learned && byId[learned.category];
+  const guess = !known && s.category ? byId[s.category] : null;
+  const cat = known || guess;
+  const item = {
+    type: cat?.type || 'expense', category: cat?.id || OTHER.expense, amount: s.amount,
+    note: word, word, date: s.date, slip: key, sure: !!known,
+  };
+  const pid = Math.random().toString(36).slice(2, 10);
+  await setPending(uid, { id: pid, slip: true, items: [item], date: s.date });
+  return reply(t, slipMessage(item, pid, profile.categories, { known, guess }));
+}
 
-async function editList(uid, byId) {
-  const recent = await recentEntries(uid, 8);
-  return recent.length ? editListMessage(recent, byId) : noteCard('📝', 'ยังไม่มีรายการที่บันทึก');
+// บันทึกสลิป (แตะหมวดครั้งเดียวจบ) + จำร้านนี้กับหมวดนี้
+async function saveSlip(uid, ev, pending, cat, profile, extraCats) {
+  const it = { ...pending.items[0], category: cat.id, type: cat.type };
+  const batch = 'b' + pending.id, today = bkkDate();
+  const word = it.word;
+  const [, saved, before] = await Promise.all([
+    clearPending(uid),
+    addEntries(uid, [it], batch),
+    listEntries(uid, today, today),
+    word ? learn(uid, profile, word, cat.id, extraCats) : extraCats ? saveProfile(uid, { categories: extraCats }) : null,
+  ]);
+  const list = [...before.filter(e => e.batch !== batch), ...(it.date === today ? [it] : [])];
+  const net = list.reduce((sum, e) => sum + (e.type === 'income' ? e.amount : -e.amount), 0);
+  const msg = noteCard('✅', `จดแล้ว ${cat.icon} ${cat.name} ${it.type === 'income' ? '+' : '-'}${baht(it.amount)}`,
+    `${it.date === today ? 'วันนี้' : thaiDate(it.date)} · วันนี้ ${net >= 0 ? '▲ กำไร' : '▼ ขาดทุน'} ${baht(Math.abs(net))} ฿${word ? ` · จำ "${word}" แล้ว` : ''}`);
+  return reply(ev.replyToken, withQuick(msg, [
+    ['↩️ ยกเลิก', `a=del&b=${batch}`, 'ยกเลิกรายการนี้'],
+    ['✏️ แก้', `a=pick&id=${saved[0].id}`, 'แก้รายการนี้'],
+  ]));
+}
+
+// ---------- แก้ไขรายการในแชท ----------
+
+// รายการให้แตะแก้: เริ่มที่วันนี้ (ถ้าวันนี้ว่าง → เมื่อวาน) ทีละ 10 รายการ + ปุ่มสลับวัน/เลือกวัน
+const PAGE = 10;
+async function editList(uid, byId, { day, offset = 0, date } = {}) {
+  const today = bkkDate(), yest = bkkDate(-1);
+  let d = date || (day === 'y' ? yest : today);
+  let list = await listEntries(uid, d, d);
+  if (!list.length && !day && !date) { d = yest; list = await listEntries(uid, d, d); }
+  const label = d === today ? 'วันนี้' : d === yest ? 'เมื่อวาน' : thaiDate(d);
+  const quick = [
+    ...(d !== today ? [['📅 วันนี้', 'a=elist&d=t', 'แก้รายการวันนี้']] : []),
+    ...(d !== yest ? [['📅 เมื่อวาน', 'a=elist&d=y', 'แก้รายการเมื่อวาน']] : []),
+  ];
+  const picker = { type: 'action', action: { type: 'datetimepicker', label: '🗓️ เลือกวัน', data: 'a=elist&d=pick', mode: 'date', initial: d, max: today } };
+  const withButtons = (m, more) => ({ ...m, quickReply: { items: [...more, ...quick.map(([l, data, shown]) => ({ type: 'action', action: { type: 'postback', label: l, data, displayText: shown } })), picker] } });
+  if (!list.length) return withButtons(noteCard('📝', `${label}ยังไม่มีรายการ`, 'เลือกวันอื่นด้านล่างได้เลย'), []);
+  const page = list.slice(offset, offset + PAGE);
+  const next = offset + PAGE < list.length
+    ? [{ type: 'action', action: { type: 'postback', label: '▶️ ถัดไป', data: `a=elist&dt=${d}&o=${offset + PAGE}`, displayText: 'ดูรายการถัดไป' } }] : [];
+  const sub = `${label} · ${list.length} รายการ${list.length > PAGE ? ` (${offset + 1}–${offset + page.length})` : ''} · แตะเพื่อแก้ 👇`;
+  return withButtons(editListMessage(page, byId, sub), next);
 }
 
 // หารายการจากคำสั่ง เช่น "ค่ากินวันที่12" → ค่ากินของวันที่ 12, "ข้าว 50" → ชื่อมีข้าว เงิน 50
@@ -411,6 +495,32 @@ async function onPostback(uid, ev) {
     return reply(ev.replyToken, savedMessage(pending.items.length, new Set(pending.items.map(i => i.date || pending.date)).size > 1 ? 'หลายวัน' : thaiDate(pending.date), net));
   }
 
+  if (a === 'stype') return reply(ev.replyToken, noteCard('✍️', 'พิมพ์ได้เลย', 'เช่น ข้าว 50 หรือ น้ำมัน 100'));
+  if (['scat', 'snew', 'sflip', 'sno'].includes(a)) {
+    const pending = await getPending(uid);
+    if (!pending?.slip || pending.id !== p.get('p') || Date.now() - pending.createdAt > PENDING_TTL) {
+      return reply(ev.replyToken, noteCard('⌛', 'สลิปนี้หมดเวลาหรือจดไปแล้ว', 'ส่งรูปใหม่ได้เลย'));
+    }
+    const profile = await getProfile(uid);
+    const byId = catMap(profile.categories);
+    const it = pending.items[0];
+    if (a === 'sno') { later(clearPending(uid)); return reply(ev.replyToken, noteCard('👌', 'โอเค ไม่จดสลิปนี้')); }
+    if (a === 'snew') {
+      pending.awaitCat = 0;
+      await setPending(uid, pending);
+      return reply(ev.replyToken, noteCard('✍️', 'พิมพ์ชื่อหมวดใหม่ได้เลย', it.type === 'income' ? 'เช่น ขายของออนไลน์' : 'เช่น ค่าขนมลูก'));
+    }
+    if (a === 'sflip') {
+      it.type = it.type === 'income' ? 'expense' : 'income';
+      it.category = OTHER[it.type];
+      await setPending(uid, pending);
+      return reply(ev.replyToken, slipMessage(it, pending.id, profile.categories));
+    }
+    const cat = byId[p.get('c')];
+    if (!cat) return reply(ev.replyToken, noteCard('🤔', 'ไม่พบหมวดนี้แล้ว'));
+    return saveSlip(uid, ev, pending, cat, profile);
+  }
+
   if (['learn', 'newcat', 'flip', 'skip', 'skipall'].includes(a)) {
     const pending = await getPending(uid);
     const i = Number(p.get('i'));
@@ -447,7 +557,13 @@ async function onPostback(uid, ev) {
     const profile = await getProfile(uid);
     const byId = catMap(profile.categories);
     if (a === 'edone') { later(clearEdit(uid)); return reply(ev.replyToken, noteCard('✨', 'เรียบร้อย!', 'พิมพ์รายการใหม่ได้เลย')); }
-    if (a === 'elist') return reply(ev.replyToken, await editList(uid, byId));
+    if (a === 'elist') {
+      const dt = ev.postback.params?.date || p.get('dt') || '';
+      const day = p.get('d');
+      return reply(ev.replyToken, await editList(uid, byId, {
+        day: day === 'y' || day === 't' ? day : undefined, offset: Number(p.get('o')) || 0, date: /^\d{4}-\d{2}-\d{2}$/.test(dt) ? dt : undefined,
+      }));
+    }
     const e = await getEntry(uid, p.get('id'));
     if (!e) return reply(ev.replyToken, noteCard('🤔', 'ไม่เจอรายการนี้แล้ว', 'อาจถูกลบไปแล้ว'));
     if (a === 'pick') return reply(ev.replyToken, editEntryMessage(e, byId));

@@ -4,8 +4,9 @@ import { bkkDate } from '../lib/date.js';
 import {
   getProfile, saveProfile, addEntries, updateEntry, deleteEntries, listEntries, yearSummary, compactOld,
 } from '../lib/store.js';
-import { gate } from '../lib/access.js';
+import { gate, POLICY_VERSION } from '../lib/access.js';
 import { runCtx, later } from '../lib/ctx.js';
+import { tooMany, tooBig } from '../lib/guard.js';
 
 const json = (data, status = 200) => new Response(JSON.stringify(data), {
   status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
@@ -17,7 +18,7 @@ const auth = authUser;
 async function allowed(user) {
   const g = await gate(user.uid, { displayName: user.name, admit: false });
   if (g.status !== 'member') return 'not_member';
-  if (!g.user.consentAt) return 'no_consent';
+  if (!g.user.consentAt || (g.user.consentVersion || 1) < POLICY_VERSION) return 'no_consent';
   return '';
 }
 
@@ -33,6 +34,7 @@ async function get(request) {
 
   const user = await auth(request);
   if (!user) return json({ error: 'unauthorized' }, 401);
+  if (tooMany('d:' + user.uid)) return json({ error: 'ใช้งานถี่เกินไป รอสักครู่นะ' }, 429);
   try {
     const deny = await allowed(user);
     if (deny) return json({ error: deny }, 403);
@@ -62,8 +64,10 @@ async function get(request) {
 }
 
 async function post(request) {
+  if (tooBig(request)) return json({ error: 'ข้อมูลใหญ่เกินไป' }, 413);
   const user = await auth(request);
   if (!user) return json({ error: 'unauthorized' }, 401);
+  if (tooMany('d:' + user.uid)) return json({ error: 'ใช้งานถี่เกินไป รอสักครู่นะ' }, 429);
   try {
     const deny = await allowed(user);
     if (deny) return json({ error: deny }, 403);

@@ -1004,6 +1004,7 @@ async function boot() {
     state.monthCache[ym] = Promise.resolve(r.entries); cacheMonth(ym, r.entries);
     await render(shown);
     prefetchMore();
+    if (params.has('add')) openEntry(); // เปิดจากปุ่ม "🔢 กดตัวเลข" ในแชท → เปิดหน้าเพิ่มรายการเลย
   } catch (e) {
     if (e.message === 'login') return;
     if (e.message === 'not_member' || e.message === 'no_consent') { // ยังไม่ได้รับเข้า / ยังไม่กดยอมรับ / ลบข้อมูลไปแล้ว
