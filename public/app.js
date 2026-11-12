@@ -674,7 +674,7 @@ function adminHTML(d) {
       ${users.map(u => `<div class="item-row a-user">
         <div class="cat-ico">${u.id === d.me ? '👑' : u.consentAt ? '🐷' : '💌'}</div>
         <div class="grow">${esc(u.name || 'ไม่มีชื่อ')} ${badge(u)}
-          <small>เข้า ${dmy(u.joinedAt)} · ใช้ล่าสุด ${ago(u.lastActive, now)}${u.consentBy === 'owner' ? ' · ผู้ใช้เดิม' : ''}${u.words ? ` · สอนคำ ${u.words}` : ''}</small></div>
+          <small>เข้า ${dmy(u.joinedAt)} · ใช้ล่าสุด ${ago(u.lastActive, now)}${u.consentBy === 'owner' ? ' · ผู้ใช้เดิม' : ''}${u.words ? ` · สอนคำ ${u.words}` : ''}${u.couple ? ' · 💑 มีคู่' : ''}</small></div>
         ${u.id === d.me ? '' : `<button class="del-btn" data-auser="${esc(u.id)}" aria-label="ลบผู้ใช้">${ICON_TRASH}</button>`}
       </div>`).join('')}
     </div>

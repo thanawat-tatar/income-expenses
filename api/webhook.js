@@ -1,6 +1,6 @@
 // LINE ส่งข้อความของผู้ใช้มาที่นี่ (Webhook URL = https://<เว็บของคุณ>/api/webhook)
-import { verifySignature, reply as lineReply, showLoading } from '../lib/line.js';
-import { runCtx, later } from '../lib/ctx.js';
+import { verifySignature, reply as lineReply, showLoading, push, getLineProfile } from '../lib/line.js';
+import { runCtx, later, docGet, docSet } from '../lib/ctx.js';
 import { parseMessage, normalizeThai, hasNumber } from '../lib/parser.js';
 import { OTHER } from '../lib/categories.js';
 import { bkkDate, thaiDate } from '../lib/date.js';
@@ -8,16 +8,22 @@ import { extractDate } from '../lib/parser.js';
 import {
   confirmMessage, askMessage, summaryMessage, undoMessage, helpMessage, savedMessage, noteCard, text, baht,
   editListMessage, editEntryMessage, editCategoryMessage, withQuick, stuckMessage,
-  consentMessage, fullMessage, wipeAskMessage, legacyNoticeMessage, adminLinkMessage, slipMessage, slipFallbackMessage,
+  consentMessage, fullMessage, wipeAskMessage, legacyNoticeMessage, adminLinkMessage, slipMessage, slipFallbackMessage, todayNet,
+  pairIntroMessage, pairCodeMessage, pairAskJoinMessage, pairAskOwnerMessage, pairDoneMessage, coupleStatusMessage,
+  unpairAskMessage, unpairedMessage, coupleSummaryMessage,
 } from '../lib/messages.js';
+import {
+  createInvite, cancelInvites, codeTurn, findInvite, requestPair, getPairReq, acceptPair, rejectPair, getCouple, unpair,
+  coupleDay, validCode, showCode, codeHash, CODE_MINUTES,
+} from '../lib/couple.js';
 import { gate, joinWaitlist, setConsent, clearLegacyNotice, deleteUserData, isAdmin, POLICY_VERSION } from '../lib/access.js';
-import { isUndo, isEdit, isWipe, isHelp, cleanTarget } from '../lib/intents.js';
+import { isUndo, isEdit, isWipe, isHelp, cleanTarget, isPair, pairCode, isUnpair, isCancelCode, isOurs } from '../lib/intents.js';
 import { tooMany } from '../lib/guard.js';
 import { slipReady, slipTurn, geminiTurn, fetchImage, readSlip, slipKey, probeModels } from '../lib/slip.js';
 import {
   getProfile, saveProfile, addEntries, updateEntry, recentEntries, getEntry, setEdit, getEdit, clearEdit,
   getMiss, setMiss, clearMiss, listEntries, lastBatch, deleteEntries,
-  setPending, getPending, clearPending, findSlip,
+  setPending, getPending, clearPending, findSlip, getUser, setPrivate, batchEntries,
 } from '../lib/store.js';
 
 const PENDING_TTL = 24 * 3600 * 1000;
@@ -67,6 +73,7 @@ async function handle(ev) {
 
   // ---- ด่านรับคน ---- (อ่านข้อมูลทั้งหมดที่ต้องใช้ในรอบเดียว)
   const g = await gate(uid, { all: true });
+  docSet('@uid', uid); // คนที่กำลังคุยในคำขอนี้
   if (g.status === 'full') {
     if (a === 'wait') return reply(t, fullMessage(await joinWaitlist(uid)));
     return reply(t, fullMessage(g.queue));
@@ -142,9 +149,43 @@ async function onText(uid, ev) {
   const profile = await getProfile(uid);
   const byId = catMap(profile.categories);
 
+  const me = await getUser(uid);
+  const coupled = !!me?.coupleId;
+
+  // ---- 💑 โหมดคู่รัก (คนที่ไม่ใช้ จะไม่มีอะไรเปลี่ยน) ----
+  const code = pairCode(msg);
+  if (code !== null) return onPairCode(uid, ev, code, me);
+  if (isPair(msg)) {
+    const couple = await getCouple(uid, me);
+    if (couple) return reply(ev.replyToken, coupleStatusMessage(couple.partnerName, bkkIso(couple.since)));
+    const req = await getPairReq(uid); // มีคนตอบรับคำเชิญค้างอยู่ → ให้ยืนยันก่อน
+    if (req) {
+      const p = await getLineProfile(req.from);
+      return reply(ev.replyToken, pairAskOwnerMessage(p.name || req.fromName, p.pic, req.nonce));
+    }
+    return reply(ev.replyToken, pairIntroMessage());
+  }
+  if (isCancelCode(msg)) {
+    const n = await cancelInvites(uid);
+    return reply(ev.replyToken, n ? noteCard('✖️', 'ยกเลิกรหัสเชิญแล้ว', 'รหัสเดิมใช้ไม่ได้แล้ว · สร้างใหม่ พิมพ์ "จับคู่"') : noteCard('🤔', 'ไม่มีรหัสเชิญที่ค้างอยู่'));
+  }
+  if (isUnpair(msg)) {
+    const couple = await getCouple(uid, me);
+    if (!couple) return reply(ev.replyToken, noteCard('🤔', 'ตอนนี้ยังไม่ได้จับคู่กับใคร', 'อยากใช้ พิมพ์ "จับคู่"'));
+    return reply(ev.replyToken, unpairAskMessage(couple.partnerName));
+  }
+  if (isOurs(msg)) {
+    const couple = await getCouple(uid, me);
+    if (!couple) return reply(ev.replyToken, noteCard('💑', 'ยังไม่ได้จับคู่กับใคร', 'ชวนแฟนมาใช้ด้วยกัน พิมพ์ "จับคู่"'));
+    const today = bkkDate();
+    return reply(ev.replyToken, coupleSummaryMessage(await coupleDay(uid, couple, today), today, couple.partnerName));
+  }
+
   if (/^(สรุป|สรุปวันนี้|ยอดวันนี้)$/.test(msg)) {
     const today = bkkDate();
-    return reply(ev.replyToken, summaryMessage(await listEntries(uid, today, today), today, byId));
+    const couple = coupled ? await getCouple(uid, me) : null;
+    const [mine, ours] = await Promise.all([listEntries(uid, today, today), couple ? coupleDay(uid, couple, today) : null]);
+    return reply(ev.replyToken, [summaryMessage(mine, today, byId), ...(ours ? [coupleSummaryMessage(ours, today, couple.partnerName)] : [])]);
   }
   if (isHelp(msg)) return reply(ev.replyToken, helpMessage());
   if (isUndo(msg)) { // "ยกเลิก", "ยกเลิกเมื่อกี้", "ลบอันล่าสุด", "จดซ้ำ" ...
@@ -189,7 +230,7 @@ async function onText(uid, ev) {
     }
     const cat = findCategory(target, profile);
     if (cat) return saveEdit(uid, ev, e, { category: cat.id, type: cat.type }, byId, `${cat.icon} ${cat.name}`);
-    return reply(ev.replyToken, editEntryMessage(e, byId));
+    return reply(ev.replyToken, editEntryMessage(e, byId, coupled));
   }
   // ---- แก้/ลบ แบบบอกว่าอันไหน: "แก้ค่ากินวันที่12", "แก้รายการวันที่11", "ลบค่ากินเมื่อวาน", "ลบ ข้าว 50" ----
   const target = msg.match(/^(?:ขอ)?(แก้(?!ว)(?:ไข)?|ลบ(?!คำ)|เอาออก)\s*(.*)$/);
@@ -202,7 +243,7 @@ async function onText(uid, ev) {
         return reply(ev.replyToken, [noteCard('🔍', `ไม่เจอรายการ ${what}`, 'แตะเลือกจากรายการล่าสุดได้เลย'), await editList(uid, byId)]);
       }
       if (found.matches.length === 1) {
-        return reply(ev.replyToken, del ? deleteAsk(found.matches[0], byId) : editEntryMessage(found.matches[0], byId));
+        return reply(ev.replyToken, del ? deleteAsk(found.matches[0], byId) : editEntryMessage(found.matches[0], byId, coupled));
       }
       return reply(ev.replyToken, [
         noteCard('🔍', `เจอ ${found.matches.length} รายการ`, `${what} · แตะอันที่จะ${del ? 'ลบ' : 'แก้'}`),
@@ -310,7 +351,7 @@ async function onText(uid, ev) {
   const pid = Math.random().toString(36).slice(2, 10);
   const pend = { id: pid, items, date, orphans };
   await setPending(uid, pend);
-  const out = [confirmMessage(items, date, pid, byId, orphans), ...nextStep(pend, byId, profile.categories, true)];
+  const out = [confirmMessage(items, date, pid, byId, orphans, coupled), ...nextStep(pend, byId, profile.categories, true)];
   if (truncated) out.unshift(noteCard('⚠️', 'รับได้ครั้งละ 30 รายการ', 'ที่เหลือส่งข้อความใหม่ได้เลย'));
   return reply(ev.replyToken, out);
 }
@@ -361,11 +402,13 @@ async function saveSlip(uid, ev, pending, cat, profile, extraCats) {
   ]);
   const list = [...before.filter(e => e.batch !== batch), ...(it.date === today ? [it] : [])];
   const net = list.reduce((sum, e) => sum + (e.type === 'income' ? e.amount : -e.amount), 0);
+  // รายการไม่ใช่ของวันนี้ → ไม่โชว์ยอดวันนี้ (กันสับสน) บอกแค่ว่าจดลงวันไหน
   const msg = noteCard('✅', `จดแล้ว ${cat.icon} ${cat.name} ${it.type === 'income' ? '+' : '-'}${baht(it.amount)}`,
-    `${it.date === today ? 'วันนี้' : thaiDate(it.date)} · วันนี้ ${net >= 0 ? '▲ กำไร' : '▼ ขาดทุน'} ${baht(Math.abs(net))} ฿${word ? ` · จำ "${word}" แล้ว` : ''}`);
+    `${it.date === today ? todayNet(net) : `จดลงวันที่ ${thaiDate(it.date)}`}${word ? ` · จำ "${word}" แล้ว` : ''}`);
   return reply(ev.replyToken, withQuick(msg, [
     ['↩️ ยกเลิก', `a=del&b=${batch}`, 'ยกเลิกรายการนี้'],
     ['✏️ แก้', `a=pick&id=${saved[0].id}`, 'แก้รายการนี้'],
+    ...(hasCouple() ? [privQuick(batch)] : []),
   ]));
 }
 
@@ -429,7 +472,7 @@ function findEntry(list, query, byId) {
 async function saveEdit(uid, ev, e, change, byId, what) {
   const next = { ...e, ...change };
   await Promise.all([updateEntry(uid, e.id, next), clearEdit(uid)]);
-  return reply(ev.replyToken, [noteCard('✅', 'แก้แล้ว', what), editEntryMessage({ ...next, id: e.id }, byId)]);
+  return reply(ev.replyToken, [noteCard('✅', 'แก้แล้ว', what), editEntryMessage({ ...next, id: e.id }, byId, hasCouple())]);
 }
 
 function deleteAsk(e, byId) {
@@ -476,7 +519,67 @@ function openQuestion(pending) {
 function nextStep(pending, byId, categories, first) {
   const i = openQuestion(pending);
   if (i >= 0) return [askMessage(pending.items[i], i, pending.id, categories)];
-  return first ? [] : [confirmMessage(pending.items, pending.date, pending.id, byId, pending.orphans || [])];
+  return first ? [] : [confirmMessage(pending.items, pending.date, pending.id, byId, pending.orphans || [], hasCouple())];
+}
+// มีคู่ไหม (อ่านจากข้อมูลผู้ใช้ที่โหลดไว้แล้วในคำขอนี้ ไม่อ่านฐานข้อมูลเพิ่ม)
+const hasCouple = (uid = docGet('@uid')) => !!docGet(`users/${uid}`)?.coupleId;
+const bkkIso = ms => new Date(ms + 7 * 3600 * 1000).toISOString().slice(0, 10);
+const privQuick = batch => ['🔒 ส่วนตัว', `a=privb&b=${batch}`, 'ตั้งเป็นส่วนตัว'];
+
+// ---------- 💑 จับคู่ ----------
+// B ส่ง "จับคู่ <รหัส>"
+async function onPairCode(uid, ev, code, me) {
+  const t = ev.replyToken;
+  if (me?.coupleId) return reply(t, noteCard('💑', 'คุณมีคู่อยู่แล้ว', 'อยากเปลี่ยน ต้องพิมพ์ "เลิกคู่" ก่อน'));
+  if (!(await codeTurn(uid))) return reply(t, noteCard('⏳', 'ลองหลายครั้งเกินไป', 'รอ 1 ชั่วโมง แล้วให้แฟนสร้างรหัสใหม่นะ'));
+  const hash = validCode(code) ? codeHash(code) : '';
+  const inv = hash ? await findInvite(hash) : null;
+  if (!inv) return reply(t, noteCard('🤔', 'รหัสไม่ถูก หรือหมดอายุแล้ว', `รหัสใช้ได้ ${CODE_MINUTES} นาที · ให้แฟนพิมพ์ "จับคู่" สร้างรหัสใหม่`));
+  if (inv.from === uid) return reply(t, noteCard('💌', 'นี่คือรหัสของคุณเอง', 'ส่งให้แฟน แล้วให้แฟนเป็นคนกดนะ'));
+  const p = await getLineProfile(inv.from);
+  return reply(t, pairAskJoinMessage(p.name, p.pic, hash));
+}
+const PAIR_ERR = {
+  gone: ['⌛', 'คำเชิญนี้หมดอายุหรือใช้ไปแล้ว', 'พิมพ์ "จับคู่" เพื่อเริ่มใหม่'],
+  self: ['💌', 'นี่คือรหัสของคุณเอง', 'ส่งให้แฟน แล้วให้แฟนเป็นคนกดนะ'],
+  taken: ['🤔', 'คำเชิญนี้ใช้ไม่ได้แล้ว', 'ให้แฟนพิมพ์ "จับคู่" สร้างรหัสใหม่'],
+  mine: ['💑', 'คุณมีคู่อยู่แล้ว', 'อยากเปลี่ยน ต้องพิมพ์ "เลิกคู่" ก่อน'],
+};
+async function onPairPostback(uid, ev, a, p) {
+  const t = ev.replyToken;
+  if (a === 'pairx') return reply(t, noteCard('👌', 'โอเค ไม่จับคู่', 'เปลี่ยนใจ พิมพ์ "จับคู่" ได้เสมอ'));
+  if (a === 'unpairno') return reply(t, noteCard('💕', 'โอเค ยังอยู่ด้วยกันเหมือนเดิม'));
+  if (a === 'pair1') { // A สร้างรหัสเชิญ
+    if (hasCouple(uid)) return reply(t, noteCard(...PAIR_ERR.mine));
+    const code = await createInvite(uid);
+    return reply(t, pairCodeMessage(code, showCode(code), CODE_MINUTES));
+  }
+  if (a === 'pairok') { // B ยืนยัน → รอ A ยืนยันอีกครั้ง
+    const me = await getLineProfile(uid);
+    const r = await requestPair(uid, String(p.get('h') || '').slice(0, 40) || 'x', me.name || (await getUser(uid))?.displayName);
+    if (r.error) return reply(t, noteCard(...PAIR_ERR[r.error]));
+    await push(r.to, pairAskOwnerMessage(me.name, me.pic, r.nonce)).catch(e => console.error('pair push', e.message));
+    return reply(t, noteCard('💌', 'ส่งคำตอบให้แฟนแล้ว', 'รอแฟนกดยืนยันอีกครั้ง · ถ้าแฟนไม่เห็น ให้แฟนพิมพ์ "จับคู่"'));
+  }
+  if (a === 'pairA' || a === 'pairAno') { // A ยืนยัน/ปฏิเสธ
+    const nonce = String(p.get('n') || '');
+    if (a === 'pairAno') {
+      const ok = await rejectPair(uid, nonce);
+      return reply(t, ok ? noteCard('🛡️', 'ปฏิเสธแล้ว ไม่ได้จับคู่', 'ไม่มีใครเห็นข้อมูลของคุณ · เริ่มใหม่ พิมพ์ "จับคู่"') : noteCard(...PAIR_ERR.gone));
+    }
+    const r = await acceptPair(uid, nonce);
+    if (r.error) return reply(t, noteCard(...PAIR_ERR[r.error]));
+    const mine = (await getUser(uid))?.displayName || (await getLineProfile(uid)).name || 'แฟน';
+    await push(r.partner, pairDoneMessage(mine)).catch(e => console.error('pair push', e.message));
+    return reply(t, pairDoneMessage(r.partnerName || 'แฟน'));
+  }
+  if (a === 'unpair2') {
+    if (!(Date.now() - Number(p.get('t')) < 10 * 60 * 1000)) return reply(t, noteCard('⌛', 'ปุ่มนี้หมดอายุแล้ว', 'พิมพ์ "เลิกคู่" ใหม่'));
+    const partner = await unpair(uid);
+    if (!partner) return reply(t, noteCard('🤔', 'ตอนนี้ไม่ได้จับคู่กับใครแล้ว'));
+    await push(partner, unpairedMessage()).catch(e => console.error('unpair push', e.message));
+    return reply(t, noteCard('👋', 'เลิกโหมดคู่รักแล้ว', 'รายการของคุณยังอยู่ครบ · จดต่อได้ตามปกติ'));
+  }
 }
 
 async function onPostback(uid, ev) {
@@ -492,11 +595,28 @@ async function onPostback(uid, ev) {
 
     // บันทึก + อ่านยอดวันนี้ พร้อมกัน (ไม่ต้องรอทีละอย่าง)
     const batch = 'b' + pending.id, today = bkkDate();
-    const items = pending.items.map(i => ({ ...i, date: i.date || pending.date }));
+    const coupled = hasCouple();
+    const priv = coupled && p.get('pv') === '1'; // 🔒 ยืนยันแบบส่วนตัว (เฉพาะคนมีคู่)
+    const items = pending.items.map(i => ({ ...i, date: i.date || pending.date, ...(priv ? { private: true } : {}) }));
     const [, , before] = await Promise.all([clearPending(uid), addEntries(uid, items, batch), listEntries(uid, today, today)]);
-    const list = [...before.filter(e => e.batch !== batch), ...items.filter(i => i.date === today)];
+    const mine = items.filter(i => i.date === today);
+    const list = [...before.filter(e => e.batch !== batch), ...mine];
     const net = list.reduce((s, e) => s + (e.type === 'income' ? e.amount : -e.amount), 0);
-    return reply(ev.replyToken, savedMessage(pending.items.length, new Set(pending.items.map(i => i.date || pending.date)).size > 1 ? 'หลายวัน' : thaiDate(pending.date), net));
+    const days = [...new Set(items.map(i => i.date))];
+    const saved = savedMessage(items.length, days.length > 1 ? 'หลายวัน' : thaiDate(days[0]), mine.length ? net : null);
+    if (priv) return reply(ev.replyToken, [saved, noteCard('🔒', 'ตั้งเป็นส่วนตัวแล้ว', 'แฟนไม่เห็น และไม่นับในยอดของเรา')]);
+    return reply(ev.replyToken, coupled ? withQuick(saved, [privQuick(batch)]) : saved);
+  }
+
+  if (['pair1', 'pairx', 'pairok', 'pairA', 'pairAno', 'unpair2', 'unpairno'].includes(a)) return onPairPostback(uid, ev, a, p);
+
+  // 🔒 ตั้งรายการที่เพิ่งจด (ทั้งชุด) เป็นส่วนตัว
+  if (a === 'privb') {
+    if (!hasCouple()) return reply(ev.replyToken, noteCard('🤔', 'ใช้ได้เมื่อจับคู่แล้ว', 'พิมพ์ "จับคู่" เพื่อเริ่ม'));
+    const list = await batchEntries(uid, String(p.get('b') || ''));
+    if (!list.length) return reply(ev.replyToken, noteCard('🤔', 'ไม่เจอรายการนี้แล้ว', 'อาจถูกลบไปแล้ว'));
+    await setPrivate(uid, list.map(e => e.id), true);
+    return reply(ev.replyToken, noteCard('🔒', `ตั้งเป็นส่วนตัวแล้ว ${list.length} รายการ`, 'แฟนไม่เห็น และไม่นับในยอดของเรา · เปลี่ยนได้ที่ "แก้ไข"'));
   }
 
   if (a === 'stype') return reply(ev.replyToken, noteCard('✍️', 'พิมพ์ได้เลย', 'เช่น ข้าว 50 หรือ น้ำมัน 100'));
@@ -557,7 +677,7 @@ async function onPostback(uid, ev) {
   }
 
   // ---- แก้ไขรายการ ----
-  if (['elist', 'pick', 'eamt', 'ecat', 'ecat2', 'eflip', 'edate', 'enote', 'edel', 'edel2', 'edone'].includes(a)) {
+  if (['elist', 'pick', 'eamt', 'ecat', 'ecat2', 'eflip', 'edate', 'enote', 'edel', 'edel2', 'edone', 'epriv'].includes(a)) {
     const profile = await getProfile(uid);
     const byId = catMap(profile.categories);
     if (a === 'edone') { later(clearEdit(uid)); return reply(ev.replyToken, noteCard('✨', 'เรียบร้อย!', 'พิมพ์รายการใหม่ได้เลย')); }
@@ -570,7 +690,16 @@ async function onPostback(uid, ev) {
     }
     const e = await getEntry(uid, p.get('id'));
     if (!e) return reply(ev.replyToken, noteCard('🤔', 'ไม่เจอรายการนี้แล้ว', 'อาจถูกลบไปแล้ว'));
-    if (a === 'pick') return reply(ev.replyToken, editEntryMessage(e, byId));
+    if (a === 'pick') return reply(ev.replyToken, editEntryMessage(e, byId, hasCouple()));
+    if (a === 'epriv') {
+      const flag = p.get('v') === '1';
+      if (!hasCouple()) return reply(ev.replyToken, editEntryMessage(e, byId));
+      await setPrivate(uid, [e.id], flag);
+      return reply(ev.replyToken, [
+        noteCard(flag ? '🔒' : '🔓', flag ? 'ตั้งเป็นส่วนตัวแล้ว' : 'ให้แฟนเห็นแล้ว', flag ? 'แฟนไม่เห็น และไม่นับในยอดของเรา' : 'นับในยอดของเราแล้ว'),
+        editEntryMessage({ ...e, private: flag }, byId, true),
+      ]);
+    }
     if (a === 'eamt') { await setEdit(uid, { id: e.id, await: 'amount' }); return reply(ev.replyToken, noteCard('💰', 'พิมพ์จำนวนเงินใหม่', `ตอนนี้ ${baht(e.amount)} บาท · เช่น 60 หรือ 30+20`)); }
     if (a === 'enote') { await setEdit(uid, { id: e.id, await: 'note' }); return reply(ev.replyToken, noteCard('📝', 'พิมพ์ชื่อรายการใหม่', 'เช่น ข้าวมันไก่')); }
     if (a === 'ecat') return reply(ev.replyToken, editCategoryMessage(e, profile.categories));
