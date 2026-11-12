@@ -4,7 +4,7 @@ const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 const MONTHS_FULL = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
 const DOW = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
-const TITLES = { home: 'ภาพรวม', list: 'รายการ', settings: 'ตั้งค่า' };
+const TITLES = { home: 'ภาพรวม', list: 'รายการ', settings: 'ตั้งค่า', admin: 'หลังบ้าน 👑' };
 const EMOJIS = '🏷️ 🍼 👶 🎓 📚 🏥 💊 🐶 🐱 🎮 🎬 🎁 💄 👕 👟 🛒 🧴 🧺 🚌 🚕 🅿️ 🛵 ⛽ 🔧 📱 💡 💧 🏠 💳 🏦 💸 💼 🛍️ ☕ 🍜 🍺 🚬 🙏 🎉 ✈️ 🏋️ 💇 🧾 💰'.split(' ');
 const LIFF_SDK = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
 const ICON_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
@@ -149,7 +149,7 @@ const store = {
 };
 
 const state = {
-  page: ['home', 'list', 'settings'].includes(params.get('page')) ? params.get('page') : 'home',
+  page: ['home', 'list', 'settings', 'admin'].includes(params.get('page')) ? params.get('page') : 'home',
   mode: 'day',
   date: todayISO(),
   categories: [], custom: [], keywords: [],
@@ -334,7 +334,7 @@ function periodWord() {
 async function render(quiet) {
   $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === state.page));
   $('#pageTitle').textContent = TITLES[state.page];
-  $('#period').classList.toggle('hide', state.page === 'settings');
+  $('#period').classList.toggle('hide', state.page === 'settings' || state.page === 'admin');
   const modes = ['day', 'month', 'year'];
   $$('.seg button').forEach(b => b.classList.toggle('active', b.dataset.mode === state.mode));
   $('.seg-pill').style.transform = `translateX(${modes.indexOf(state.mode) * 100}%)`;
@@ -349,6 +349,7 @@ async function render(quiet) {
     if (!quiet) restartAnim();
     view.innerHTML = settingsHTML(); bindSettings(); return;
   }
+  if (state.page === 'admin') { if (!quiet) restartAnim(); return renderAdmin(view, quiet); }
 
   const key = `${state.page}|${state.mode}|${state.date}`;
   render.key = key;
@@ -551,6 +552,144 @@ function openPicker() {
   };
   draw();
   openSheetEl();
+}
+
+// ---------- หลังบ้าน (เจ้าของระบบ) ----------
+async function adminApi(method, body) {
+  if (DEMO) return demoAdmin(method, body);
+  await liffReady;
+  const res = await fetch('/api/admin', {
+    method,
+    headers: { Authorization: `Bearer ${window.liff.getIDToken()}`, ...(method === 'GET' ? {} : { 'Content-Type': 'application/json' }) },
+    body: method === 'GET' ? undefined : JSON.stringify(body),
+  });
+  const j = await res.json();
+  if (!res.ok) throw new Error(j.error || 'error');
+  return j;
+}
+function demoAdmin(method, body) {
+  const now = Date.now(), D = 86400e3;
+  demoAdmin.d ||= {
+    limit: 50, me: 'u0', now, rules: { warnDays: 14, deleteDays: 30, acceptDays: 3 },
+    users: [
+      { id: 'u0', name: 'เจ้าของ', joinedAt: now - 40 * D, lastActive: now - 3600e3, consentAt: now - 40 * D, consentBy: 'owner', words: 12, cats: 2 },
+      { id: 'u1', name: 'มิ้นท์ 🌸', joinedAt: now - 9 * D, lastActive: now - 2 * 3600e3, consentAt: now - 9 * D, words: 4, cats: 1 },
+      { id: 'u2', name: 'ไรเดอร์บอย', joinedAt: now - 20 * D, lastActive: now - 3 * D, consentAt: now - 20 * D, words: 7, cats: 0 },
+      { id: 'u3', name: 'ฝน', joinedAt: now - 28 * D, lastActive: now - 25 * D, consentAt: now - 28 * D, words: 0, cats: 0 },
+      { id: 'u4', name: 'เจเจ', joinedAt: now - D, lastActive: now - D, consentAt: 0, pendingSince: now - D, invitedAt: now - D, words: 0, cats: 0 },
+    ],
+    waitlist: [{ at: now - 5 * D }, { at: now - 2 * D }],
+  };
+  const d = demoAdmin.d;
+  if (method === 'POST' && body.action === 'limit') d.limit = body.limit;
+  if (method === 'POST' && body.action === 'delete') d.users = d.users.filter(u => u.id !== body.id);
+  if (method === 'POST' && body.action === 'cleanup') return Promise.resolve({ removed: 0 });
+  return Promise.resolve({ ...d, count: d.users.length });
+}
+
+const ago = (ms, now) => {
+  const m = Math.max(0, now - ms) / 60000;
+  return m < 60 ? 'เมื่อกี้' : m < 1440 ? `${Math.floor(m / 60)} ชม.ก่อน` : `${Math.floor(m / 1440)} วันก่อน`;
+};
+const dmy = ms => { const d = new Date(ms + 7 * 3600e3); return `${d.getUTCDate()} ${['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'][d.getUTCMonth()]}`; };
+
+async function renderAdmin(view, quiet) {
+  if (!quiet) view.innerHTML = `<div class="card"><div class="skeleton" style="width:40%"></div><div class="skeleton" style="height:42px;margin:12px 0;width:70%"></div><div class="skeleton"></div></div>`;
+  let d;
+  try { d = await adminApi('GET'); } catch (e) {
+    const why = { not_admin: 'บัญชีนี้ไม่ใช่เจ้าของระบบ', no_admin_uid: 'ยังไม่ได้ใส่ ADMIN_UID ใน Vercel<br>พิมพ์ "ไอดีของฉัน" ในแชท แล้วนำไปใส่' }[e.message] || esc(e.message);
+    view.innerHTML = `<div class="card empty gate">${pig('angry')}<b>เข้าหลังบ้านไม่ได้ 🔒</b><br>${why}</div>`;
+    return;
+  }
+  if (state.page !== 'admin') return;
+  view.innerHTML = adminHTML(d);
+  bindAdmin(d);
+}
+
+function adminHTML(d) {
+  const D = 86400e3, now = d.now, r = d.rules;
+  const act = days => d.users.filter(u => now - u.lastActive < days * D).length;
+  const pending = d.users.filter(u => !u.consentAt);
+  const nearDel = d.users.filter(u => u.consentAt && now - u.lastActive >= r.warnDays * D);
+  const pct = Math.min(100, Math.round((d.count / d.limit) * 100));
+  const tile = (ico, n, label, tone = '') => `<div class="a-tile ${tone}"><div class="a-ico">${ico}</div><b>${n}</b><small>${label}</small></div>`;
+  const users = [...d.users].sort((a, b) => b.lastActive - a.lastActive);
+  const badge = u => {
+    if (!u.consentAt) return `<span class="a-badge warn">💌 รอกดยอมรับ · เหลือ ${Math.max(0, Math.ceil((u.pendingSince + r.acceptDays * D - now) / D))} วัน</span>`;
+    if (now - u.lastActive >= r.warnDays * D) return `<span class="a-badge danger">⏳ ลบใน ${Math.max(0, Math.ceil((u.lastActive + r.deleteDays * D - now) / D))} วัน</span>`;
+    if (now - u.lastActive < D) return '<span class="a-badge ok">🔥 ใช้วันนี้</span>';
+    return '';
+  };
+  return `<div class="grid two">
+    <div class="hero-wrap">${pigPeek(pct >= 90 ? 'wow' : 'happy')}<div class="card hero profit">
+      <div class="hero-top"><span class="hero-label">👥 ผู้ใช้ทั้งหมด</span><span class="hero-label">📋 รอคิว ${d.waitlist.length}</span></div>
+      <div class="hero-amount">${d.count}<small style="font-size:.45em;opacity:.85"> / ${d.limit} คน</small></div>
+      <div class="a-bar"><i style="width:${pct}%"></i></div>
+      <div class="hero-label" style="margin-top:8px">${pct >= 100 ? '🚫 เต็มแล้ว คนใหม่ต้องรอคิว' : `ว่างอีก ${d.limit - d.count} ที่`}</div>
+    </div></div>
+
+    <div class="a-tiles">
+      ${tile('🔥', act(1), 'ใช้วันนี้')}${tile('📅', act(7), 'ใช้ใน 7 วัน')}
+      ${tile('🆕', d.users.filter(u => now - u.joinedAt < 7 * D).length, 'คนใหม่ 7 วัน')}${tile('💌', pending.length, 'รอกดยอมรับ', pending.length ? 'warn' : '')}
+      ${tile('⏳', nearDel.length, `หายเกิน ${r.warnDays} วัน`, nearDel.length ? 'danger' : '')}${tile('📋', d.waitlist.length, 'รอคิว')}
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">🎚️ จำนวนคนที่รับได้</h2>
+      <div class="form-row"><input class="input" id="aLimit" type="number" min="1" max="1000" inputmode="numeric" value="${d.limit}"><button class="btn" id="aSave">บันทึก</button></div>
+      <p class="hint">เพิ่มเลข → คนรอคิวได้เข้าทันที บอททักไปบอกเอง · ⚠️ ดูโควต้าก่อนเพิ่ม</p>
+      <div class="a-links">
+        <a class="btn ghost" href="https://console.firebase.google.com/project/income-expenses-da85e/firestore/usage" target="_blank">🔥 Firebase</a>
+        <a class="btn ghost" href="https://vercel.com/dashboard/usage" target="_blank">▲ Vercel</a>
+        <a class="btn ghost" href="https://manager.line.biz/" target="_blank">💬 LINE OA</a>
+      </div>
+    </div>
+
+    <div class="card span">
+      <h2 class="section-title">👥 ผู้ใช้ <small>${d.count} คน · ไม่แสดงยอดเงินของใคร</small></h2>
+      ${users.map(u => `<div class="item-row a-user">
+        <div class="cat-ico">${u.id === d.me ? '👑' : u.consentAt ? '🐷' : '💌'}</div>
+        <div class="grow">${esc(u.name || 'ไม่มีชื่อ')} ${badge(u)}
+          <small>เข้า ${dmy(u.joinedAt)} · ใช้ล่าสุด ${ago(u.lastActive, now)}${u.consentBy === 'owner' ? ' · ผู้ใช้เดิม' : ''}${u.words ? ` · สอนคำ ${u.words}` : ''}</small></div>
+        ${u.id === d.me ? '' : `<button class="del-btn" data-auser="${esc(u.id)}" aria-label="ลบผู้ใช้">${ICON_TRASH}</button>`}
+      </div>`).join('')}
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">📋 คิว</h2>
+      ${d.waitlist.length ? d.waitlist.map((w, i) => `<div class="item-row"><div class="cat-ico">${i + 1}</div><div class="grow">คิวที่ ${i + 1}<small>ลงชื่อ ${dmy(w.at)} (${ago(w.at, now)})</small></div></div>`).join('') : '<p class="hint">ไม่มีคนรอคิว 🎉</p>'}
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">⚙️ กติกาอัตโนมัติ</h2>
+      <div class="example">💌 ถึงคิว → บอททักไปเอง 1 ครั้ง<br>⏱️ ไม่กดยอมรับใน ${r.acceptDays} วัน → ยกที่ให้คิวถัดไป<br>🥺 หายไป ${r.warnDays} วัน → เตือนตอนกลับมา<br>🗑️ ไม่ใช้ ${r.deleteDays} วัน → ลบอัตโนมัติ (ตี 3 ทุกวัน)</div>
+      <button class="btn ghost" id="aClean" style="width:100%;margin-top:12px">🧹 เคลียร์คนหมดเวลาตอนนี้</button>
+    </div>
+  </div>`;
+}
+
+function bindAdmin(d) {
+  $('#aSave').onclick = async () => {
+    const n = Number($('#aLimit').value);
+    if (!(n >= 1)) return toast('ใส่ตัวเลขก่อนนะ');
+    $('#aSave').disabled = true;
+    try { await adminApi('POST', { action: 'limit', limit: n }); toast(`✅ รับได้ ${n} คนแล้ว`); render(true); } catch (e) { toast(e.message); $('#aSave').disabled = false; }
+  };
+  $('#aClean').onclick = async () => {
+    $('#aClean').disabled = true;
+    try { const r = await adminApi('POST', { action: 'cleanup' }); toast(r.removed ? `🧹 เคลียร์แล้ว ${r.removed} คน` : '✨ ไม่มีใครหมดเวลา'); render(true); } catch (e) { toast(e.message); }
+  };
+  $$('[data-auser]').forEach(b => {
+    b.onclick = async () => {
+      if (!b.classList.contains('armed')) { // แตะครั้งแรก = เตรียมลบ, แตะซ้ำ = ลบจริง
+        $$('[data-auser].armed').forEach(x => x.classList.remove('armed'));
+        b.classList.add('armed'); toast('แตะอีกครั้งเพื่อลบคนนี้ (ข้อมูลหายถาวร)');
+        setTimeout(() => b.classList.remove('armed'), 4000); return;
+      }
+      b.disabled = true;
+      try { await adminApi('POST', { action: 'delete', id: b.dataset.auser }); toast('🗑️ ลบแล้ว'); render(true); } catch (e) { toast(e.message); b.disabled = false; }
+    };
+  });
 }
 
 // ---------- ตั้งค่า ----------

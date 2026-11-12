@@ -7,9 +7,9 @@ import { extractDate } from '../lib/parser.js';
 import {
   confirmMessage, askMessage, summaryMessage, undoMessage, helpMessage, savedMessage, noteCard, text, baht,
   editListMessage, editEntryMessage, editCategoryMessage, withQuick, stuckMessage,
-  consentMessage, fullMessage, wipeAskMessage, legacyNoticeMessage,
+  consentMessage, fullMessage, wipeAskMessage, legacyNoticeMessage, adminLinkMessage,
 } from '../lib/messages.js';
-import { gate, joinWaitlist, setConsent, clearLegacyNotice, deleteUserData } from '../lib/access.js';
+import { gate, joinWaitlist, setConsent, clearLegacyNotice, deleteUserData, isAdmin } from '../lib/access.js';
 import {
   getProfile, saveProfile, addEntries, updateEntry, recentEntries, getEntry, setEdit, getEdit, clearEdit,
   getMiss, setMiss, clearMiss, listEntries, lastBatch, deleteEntries,
@@ -67,6 +67,14 @@ async function handle(ev) {
   if (g.back) pre.push(noteCard('🥺', 'หายไปนานเลย คิดถึงนะ', 'ถ้าไม่ใช้ 30 วัน ข้อมูลจะถูกลบ'));
   if (g.user.legacyNotice) { pre.push(legacyNoticeMessage()); await clearLegacyNotice(uid); }
   prefix.set(t, pre);
+
+  // ---- ไอดีของฉัน (เจ้าของระบบเอาไปใส่ ADMIN_UID ใน Vercel) / หลังบ้าน ----
+  if (/^(ไอดีของฉัน|ไอดี|id|my ?id|id ?ของฉัน)$/i.test(msg)) {
+    return reply(t, [noteCard('🪪', 'ไอดีของคุณ', isAdmin(uid) ? '👑 คุณคือเจ้าของระบบ' : 'กดค้างที่ข้อความถัดไปเพื่อคัดลอก'), text(uid)]);
+  }
+  if (/^(หลังบ้าน|แอดมิน|admin)$/i.test(msg) && isAdmin(uid)) {
+    return reply(t, adminLinkMessage());
+  }
 
   // ---- ลบข้อมูลของฉัน (ถาม 2 ขั้น) ----
   if (WIPE_RE.test(msg)) return reply(t, wipeAskMessage(false));

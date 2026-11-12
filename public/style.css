@@ -452,3 +452,17 @@ svg.pig { height: auto; fill: initial; stroke: none; stroke-width: 0; }
 .gate svg { width: 120px; height: auto; display: block; margin: 0 auto 6px; }
 .gate b { color: var(--text); font-size: 17px; }
 a.btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; margin: 12px 4px 0; }
+
+/* ---------- หลังบ้าน ---------- */
+.a-bar { height: 10px; border-radius: 6px; background: rgba(255, 255, 255, .28); overflow: hidden; }
+.a-bar i { display: block; height: 100%; border-radius: 6px; background: #fff; box-shadow: 0 0 10px rgba(255, 255, 255, .7); transition: width .8s var(--ease); }
+.a-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-content: start; }
+.a-tile { background: var(--surface); border-radius: 16px; padding: 12px 6px 10px; text-align: center; box-shadow: var(--shadow); line-height: 1.5; }
+.a-tile .a-ico { font-size: 22px; }
+.a-tile b { display: block; font-size: 24px; color: var(--accent); font-variant-numeric: tabular-nums; }
+.a-tile small { color: var(--muted); font-size: 11.5px; }
+.a-tile.warn b { color: #E08A00; } .a-tile.danger b { color: var(--expense); }
+.a-badge { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px; margin-left: 4px; vertical-align: 2px; background: var(--accent-soft); color: var(--accent-edge); white-space: nowrap; }
+.a-badge.warn { background: #FFF1D6; color: #B36B00; } .a-badge.danger { background: var(--expense-soft); color: var(--expense); } .a-badge.ok { background: var(--income-soft); color: var(--income); }
+.a-links { display: flex; gap: 8px; flex-wrap: wrap; } .a-links .btn { flex: 1; margin: 10px 0 0; height: 40px; font-size: 13px; padding: 0 8px; }
+.a-user .grow { line-height: 1.7; }

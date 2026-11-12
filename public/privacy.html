@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#FF4F9A">
-  <title>นโยบายข้อมูล</title>
+  <title>นโยบายข้อมูลและข้อตกลง</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎀</text></svg>">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mali:wght@500;700&display=swap">
   <style>
@@ -16,66 +16,188 @@
     main { max-width: 560px; margin: 0 auto; }
     .hero { background: linear-gradient(160deg, #FF8CC3, #FF4F9A 55%, #FF6F91); color: #fff; border-radius: 22px; padding: 22px 20px;
       box-shadow: 0 4px 0 #D93A80, 0 14px 30px rgba(255, 79, 154, .25); }
-    .hero h1 { margin: 0; font-size: 24px; line-height: 1.7; }
-    .hero p { margin: 4px 0 0; opacity: .92; font-size: 14px; }
-    section { background: var(--card); border-radius: 18px; padding: 14px 16px; margin-top: 14px; box-shadow: 0 3px 0 var(--edge); }
-    h2 { margin: 0 0 4px; font-size: 16px; color: var(--pink); line-height: 1.8; }
-    ul { margin: 0; padding-left: 20px; } li { margin: 2px 0; }
+    .hero h1 { margin: 0; font-size: 23px; line-height: 1.7; }
+    .hero p { margin: 4px 0 0; opacity: .92; font-size: 13.5px; }
+    .tldr { background: var(--card); border-radius: 18px; padding: 14px 16px; margin-top: 14px; box-shadow: 0 3px 0 var(--edge); }
+    .tldr h2 { margin: 0 0 6px; font-size: 16px; color: var(--pink); }
+    .tldr ul { margin: 0; padding: 0; list-style: none; } .tldr li { padding: 3px 0; }
+    .bar { display: flex; justify-content: space-between; align-items: center; margin: 18px 4px 6px; color: var(--muted); font-size: 13px; }
+    .bar button { font: inherit; font-weight: 700; color: var(--pink); background: var(--soft); border: 0; border-radius: 999px; padding: 4px 14px; cursor: pointer; }
+    details { background: var(--card); border-radius: 18px; margin-top: 10px; box-shadow: 0 3px 0 var(--edge); overflow: hidden; }
+    summary { list-style: none; cursor: pointer; padding: 12px 44px 12px 16px; position: relative; line-height: 1.6; }
+    summary::-webkit-details-marker { display: none; }
+    summary b { display: block; font-size: 15.5px; }
+    summary span { color: var(--muted); font-size: 13px; }
+    summary::after { content: "›"; position: absolute; right: 16px; top: 50%; transform: translateY(-50%) rotate(90deg); color: var(--pink); font-size: 24px; font-weight: 700; transition: transform .25s; }
+    details[open] summary::after { transform: translateY(-50%) rotate(-90deg); }
+    .body { padding: 0 16px 14px; border-top: 2px dashed var(--soft); animation: drop .3s ease; }
+    @keyframes drop { from { opacity: 0; transform: translateY(-6px); } }
+    ul { margin: 8px 0 0; padding-left: 20px; } li { margin: 3px 0; }
     code { white-space: nowrap; background: var(--soft); border-radius: 8px; padding: 1px 8px; font-family: inherit; font-weight: 700; }
-    .foot { color: var(--muted); font-size: 12px; text-align: center; margin-top: 18px; }
+    a { color: var(--pink); font-weight: 700; }
+    .foot { color: var(--muted); font-size: 12px; text-align: center; margin-top: 20px; line-height: 1.8; }
   </style>
 </head>
 <body>
 <main>
   <div class="hero">
-    <h1>🔒 นโยบายข้อมูล</h1>
-    <p>สมุดรายรับรายจ่าย 🎀 (LINE @514ddese) · ใช้ฟรี</p>
+    <h1>🔒 นโยบายข้อมูล<br>และข้อตกลงการใช้</h1>
+    <p>สมุดรายรับรายจ่าย 🎀 · LINE @514ddese · ใช้ฟรี</p>
   </div>
 
-  <section>
-    <h2>📦 เก็บข้อมูลอะไร</h2>
+  <div class="tldr">
+    <h2>⚡ สรุปใน 30 วินาที</h2>
     <ul>
-      <li>LINE user ID (รหัสประจำตัวในไลน์ ไม่ใช่เบอร์โทร)</li>
+      <li>📦 เก็บแค่ LINE ID, ชื่อในไลน์ และรายการเงินที่คุณพิมพ์</li>
+      <li>🎯 ใช้จดรายรับรายจ่ายให้คุณคนเดียว</li>
+      <li>🚫 ไม่ขาย ไม่แชร์ ไม่ทำโฆษณา</li>
+      <li>🗑️ ลบทั้งหมดได้ทุกเมื่อ พิมพ์ <code>ลบข้อมูลของฉัน</code></li>
+      <li>⏳ ไม่ใช้ 30 วัน ระบบลบให้อัตโนมัติ</li>
+    </ul>
+  </div>
+
+  <div class="bar"><span>แตะหัวข้อเพื่ออ่านรายละเอียด 👇</span><button id="all" type="button">เปิดทั้งหมด</button></div>
+
+  <details>
+    <summary><b>1. 👤 ใครดูแลข้อมูลของคุณ</b><span>เจ้าของระบบ ติดต่อผ่านแชท LINE</span></summary>
+    <div class="body"><ul>
+      <li>ผู้ควบคุมข้อมูลส่วนบุคคล คือ เจ้าของและผู้พัฒนาบริการ "สมุดรายรับรายจ่าย" (บุคคลธรรมดา ทำแจกฟรี ไม่แสวงหากำไร)</li>
+      <li>ติดต่อเรื่องข้อมูลส่วนบุคคล: ทักแชท LINE <b>@514ddese</b></li>
+    </ul></div>
+  </details>
+
+  <details>
+    <summary><b>2. 📦 ข้อมูลที่เก็บ</b><span>เก็บเท่าที่จำเป็นเท่านั้น</span></summary>
+    <div class="body"><ul>
+      <li>LINE user ID (รหัสประจำตัวที่ LINE ให้ ไม่ใช่เบอร์โทรหรืออีเมล)</li>
       <li>ชื่อที่แสดงในไลน์</li>
       <li>รายการรายรับรายจ่าย หมวด และคำที่คุณสอนบอท</li>
-      <li>เวลาที่ใช้งานล่าสุด และเวลาที่กดยอมรับ</li>
-    </ul>
-  </section>
+      <li>เวลาที่เข้าร่วม ใช้งานล่าสุด กดยอมรับ และเวลาลงชื่อรอคิว</li>
+      <li><b>ไม่เก็บ</b> เบอร์โทร อีเมล ที่อยู่ เลขบัตรประชาชน เลขบัญชี หรือรหัสผ่านใดๆ</li>
+      <li>กรุณาอย่าพิมพ์ข้อมูลอ่อนไหว (เช่น สุขภาพ ศาสนา เลขบัตร) ลงในรายการ</li>
+    </ul></div>
+  </details>
 
-  <section>
-    <h2>🎯 ใช้ทำอะไร</h2>
-    <ul><li>จดและสรุปรายรับรายจ่ายให้คุณคนเดียวเท่านั้น</li><li>ไม่ใช้โฆษณา ไม่ใช้ AI วิเคราะห์ข้อมูล</li></ul>
-  </section>
+  <details>
+    <summary><b>3. 🎯 ใช้ข้อมูลทำอะไร</b><span>จดและสรุปรายรับรายจ่ายให้คุณ</span></summary>
+    <div class="body"><ul>
+      <li>บันทึก จัดหมวด และสรุปรายรับรายจ่ายในแชทและหน้าเว็บ</li>
+      <li>จำคำที่คุณสอน เพื่อให้บอทเข้าใจคุณมากขึ้น (เฉพาะบัญชีคุณ)</li>
+      <li>จัดคิวและจำกัดจำนวนผู้ใช้ เพื่อให้ระบบฟรีทำงานได้</li>
+      <li>ไม่ใช้ทำโฆษณา ไม่ใช้ AI วิเคราะห์ ไม่ทำโปรไฟล์ทางการตลาด</li>
+    </ul></div>
+  </details>
 
-  <section>
-    <h2>👀 ใครเห็นได้</h2>
-    <ul><li>คุณ (ผ่านแชทและหน้าเว็บที่ล็อกอินด้วย LINE)</li><li>เจ้าของระบบ เพื่อดูแลและแก้ปัญหาระบบเท่านั้น</li></ul>
-  </section>
+  <details>
+    <summary><b>4. ⚖️ เหตุผลทางกฎหมายที่เก็บได้</b><span>คุณยินยอม และเพื่อให้บริการที่คุณขอ</span></summary>
+    <div class="body"><ul>
+      <li>อาศัยความยินยอมของคุณ ตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA)</li>
+      <li>และเพื่อให้บริการจดรายรับรายจ่ายตามที่คุณขอใช้</li>
+      <li>ถ้าไม่ยอมรับ ระบบจะไม่บันทึกข้อมูลของคุณ (แต่จะใช้บริการไม่ได้)</li>
+    </ul></div>
+  </details>
 
-  <section>
-    <h2>🚫 ไม่ขาย ไม่แชร์</h2>
-    <ul><li>ไม่ขายและไม่ส่งข้อมูลให้บุคคลที่สาม</li>
-      <li>ข้อมูลเก็บที่ Google Firebase และเว็บทำงานบน Vercel (ผู้ให้บริการระบบ)</li></ul>
-  </section>
+  <details>
+    <summary><b>5. 👀 ใครเห็นข้อมูลได้</b><span>คุณ และผู้ดูแลระบบเท่าที่จำเป็น</span></summary>
+    <div class="body"><ul>
+      <li>คุณ ผ่านแชท และหน้าเว็บที่ต้องล็อกอินด้วย LINE ของคุณเอง</li>
+      <li>ผู้ดูแลระบบ เข้าถึงเฉพาะเท่าที่จำเป็นเพื่อดูแลและแก้ปัญหา หน้าหลังบ้านแสดงแค่ชื่อและวันที่ใช้งาน ไม่แสดงยอดเงิน</li>
+      <li>ผู้ใช้คนอื่นมองไม่เห็นข้อมูลของคุณ (แยกตามบัญชีเด็ดขาด)</li>
+      <li>เปิดเผยต่อหน่วยงานรัฐเฉพาะเมื่อกฎหมายบังคับเท่านั้น</li>
+    </ul></div>
+  </details>
 
-  <section>
-    <h2>⏳ เก็บนานแค่ไหน</h2>
-    <ul>
-      <li>เก็บรายละเอียดเดือนนี้และเดือนก่อน เก่ากว่านั้นเหลือแค่ยอดรวมรายเดือน</li>
-      <li>ไม่ได้ใช้งานเกิน <b>30 วัน</b> ระบบลบข้อมูลทั้งหมดอัตโนมัติ เพื่อให้ที่คนอื่นได้ใช้</li>
-    </ul>
-  </section>
+  <details>
+    <summary><b>6. 🌏 ผู้ให้บริการระบบ และการส่งข้อมูลไปต่างประเทศ</b><span>Google Firebase · Vercel · LINE</span></summary>
+    <div class="body"><ul>
+      <li>ฐานข้อมูล: Google Firebase (Cloud Firestore)</li>
+      <li>เว็บและระบบตอบแชท: Vercel</li>
+      <li>แชท: LINE (บริษัท LY Corporation)</li>
+      <li>เซิร์ฟเวอร์ของผู้ให้บริการเหล่านี้อยู่ต่างประเทศ (เช่น สิงคโปร์) ซึ่งมีมาตรฐานความปลอดภัยระดับสากล</li>
+      <li>ผู้ให้บริการเหล่านี้ทำหน้าที่เก็บและประมวลผลตามคำสั่งระบบเท่านั้น ไม่ได้รับข้อมูลไปใช้เอง</li>
+    </ul></div>
+  </details>
 
-  <section>
-    <h2>🗑️ สิทธิ์ของคุณ</h2>
-    <ul>
-      <li>ลบข้อมูลทั้งหมดได้ทุกเมื่อ พิมพ์ <code>ลบข้อมูลของฉัน</code> ในแชท</li>
-      <li>ไม่ยอมรับ = ระบบไม่บันทึกอะไรของคุณ</li>
-      <li>สอบถามหรือขอข้อมูลของตัวเอง ทักในแชท LINE</li>
-    </ul>
-  </section>
+  <details>
+    <summary><b>7. ⏳ เก็บนานแค่ไหน</b><span>ไม่ใช้ 30 วัน ลบอัตโนมัติ</span></summary>
+    <div class="body"><ul>
+      <li>รายละเอียดรายการ: เก็บเดือนนี้และเดือนก่อน เก่ากว่านั้นเหลือแค่ยอดรวมรายเดือนตามหมวด</li>
+      <li>ไม่ได้ใช้งาน 14 วัน บอทจะเตือนตอนคุณกลับมา</li>
+      <li>ไม่ได้ใช้งาน <b>30 วัน</b> ระบบลบข้อมูลทั้งหมดอัตโนมัติ เพื่อให้ที่คนรอคิว</li>
+      <li>ได้ที่จากคิวแล้วไม่กดยอมรับภายใน <b>3 วัน</b> ระบบยกที่ให้คิวถัดไป (ยังไม่มีข้อมูลการเงินของคุณ)</li>
+      <li>ลบแล้วกู้คืนไม่ได้</li>
+    </ul></div>
+  </details>
 
-  <p class="foot">อัปเดต 12 พ.ย. 2569 · 🐷 น้องหมูดูแลข้อมูลคุณอย่างดี</p>
+  <details>
+    <summary><b>8. 🛡️ ดูแลความปลอดภัยยังไง</b><span>เข้ารหัส · ต้องล็อกอิน · แยกบัญชี</span></summary>
+    <div class="body"><ul>
+      <li>ส่งข้อมูลผ่านการเข้ารหัส (HTTPS) ทุกครั้ง</li>
+      <li>หน้าเว็บต้องยืนยันตัวตนด้วยบัญชี LINE ทุกครั้ง</li>
+      <li>ข้อมูลแต่ละคนแยกกันตามบัญชี ไม่ปนกัน</li>
+      <li>รหัสลับของระบบเก็บในระบบของผู้ให้บริการ ไม่เปิดเผยในโค้ด</li>
+      <li>หน้าเว็บจำข้อมูลบางส่วนไว้ในเครื่องคุณ (เพื่อเปิดเร็ว) และล้างให้เมื่อข้อมูลถูกลบ</li>
+    </ul></div>
+  </details>
+
+  <details>
+    <summary><b>9. 🗑️ สิทธิ์ของคุณ</b><span>ขอดู แก้ ลบ ถอนความยินยอม ร้องเรียน</span></summary>
+    <div class="body"><ul>
+      <li><b>ลบข้อมูลทั้งหมด / ถอนความยินยอม:</b> พิมพ์ <code>ลบข้อมูลของฉัน</code> ในแชท ทำได้ทันที</li>
+      <li><b>ดู / แก้ไข:</b> ดูและแก้รายการได้เองในแชทและหน้าเว็บ</li>
+      <li><b>ขอสำเนาข้อมูล / ขอโอนย้าย / คัดค้าน / ขอระงับการใช้:</b> ทักแชท LINE @514ddese จะดำเนินการภายใน 30 วัน</li>
+      <li><b>ร้องเรียน:</b> สำนักงานคณะกรรมการคุ้มครองข้อมูลส่วนบุคคล (สคส.) <a href="https://www.pdpc.or.th" target="_blank" rel="noopener">pdpc.or.th</a></li>
+      <li>ถอนความยินยอมไม่กระทบสิ่งที่ทำไปแล้วก่อนหน้านั้น</li>
+    </ul></div>
+  </details>
+
+  <details>
+    <summary><b>10. 🧒 ผู้ใช้อายุต่ำกว่า 20 ปี</b><span>ให้ผู้ปกครองรับทราบและยินยอมก่อน</span></summary>
+    <div class="body"><ul>
+      <li>ถ้าคุณอายุต่ำกว่า 20 ปี กรุณาให้ผู้ปกครองอ่านนโยบายนี้และยินยอมก่อนกดยอมรับ</li>
+      <li>อายุต่ำกว่า 10 ปี ต้องให้ผู้ปกครองเป็นผู้ยินยอมแทน</li>
+      <li>ผู้ปกครองขอให้ลบข้อมูลได้ทุกเมื่อ ทักแชท LINE @514ddese</li>
+    </ul></div>
+  </details>
+
+  <details>
+    <summary><b>11. 🚨 ถ้าข้อมูลรั่ว</b><span>แจ้ง สคส. และแจ้งคุณตามที่กฎหมายกำหนด</span></summary>
+    <div class="body"><ul>
+      <li>แจ้ง สคส. ภายใน 72 ชั่วโมงนับแต่ทราบเหตุ ตามที่กฎหมายกำหนด</li>
+      <li>ถ้ามีความเสี่ยงสูงต่อคุณ จะแจ้งคุณทางแชท LINE พร้อมวิธีป้องกัน</li>
+    </ul></div>
+  </details>
+
+  <details>
+    <summary><b>12. 📜 ข้อตกลงการใช้งาน</b><span>ใช้ฟรี ไม่ใช่คำแนะนำทางการเงิน</span></summary>
+    <div class="body"><ul>
+      <li>บริการนี้ให้ใช้ฟรี "ตามสภาพ" ไม่รับประกันว่าจะไม่มีข้อผิดพลาดหรือไม่มีวันหยุดทำงาน</li>
+      <li>ยอดและสรุปเป็นเครื่องมือช่วยจดเท่านั้น ไม่ใช่คำแนะนำทางการเงิน บัญชี หรือภาษี กรุณาตรวจตัวเลขสำคัญเอง</li>
+      <li>รับผู้ใช้จำนวนจำกัด เต็มแล้วต้องรอคิว ถึงคิวบอทจะทักไปบอก <b>1 ครั้ง</b> (ไม่ขอเงิน รหัส หรือข้อมูลธนาคารเด็ดขาด)</li>
+      <li>ห้ามใช้เพื่อสิ่งผิดกฎหมาย ห้ามพยายามเจาะหรือทำให้ระบบล่ม ถ้าพบ ระบบอาจระงับบัญชีนั้น</li>
+      <li>เจ้าของระบบอาจปรับปรุง หยุดชั่วคราว หรือยุติบริการได้ โดยจะแจ้งล่วงหน้าเท่าที่ทำได้</li>
+    </ul></div>
+  </details>
+
+  <details>
+    <summary><b>13. 🔄 ถ้านโยบายเปลี่ยน</b><span>แจ้งในแชท และขอยินยอมใหม่ถ้าเปลี่ยนเรื่องสำคัญ</span></summary>
+    <div class="body"><ul>
+      <li>อัปเดตหน้านี้พร้อมวันที่ และแจ้งในแชทเมื่อมีการเปลี่ยนแปลง</li>
+      <li>ถ้าเปลี่ยนเรื่องสำคัญ (เช่น เก็บข้อมูลเพิ่ม หรือใช้เพื่อเรื่องอื่น) จะขอให้กดยอมรับใหม่</li>
+    </ul></div>
+  </details>
+
+  <p class="foot">ฉบับที่ 1 · มีผล 12 พ.ย. 2569<br>🐷 น้องหมูดูแลข้อมูลคุณอย่างดี</p>
 </main>
+<script>
+  // ปุ่มเปิด/ปิดทั้งหมด
+  const all = document.getElementById('all');
+  all.onclick = () => {
+    const ds = [...document.querySelectorAll('details')];
+    const open = !ds.every(d => d.open);
+    ds.forEach(d => { d.open = open; });
+    all.textContent = open ? 'ปิดทั้งหมด' : 'เปิดทั้งหมด';
+  };
+</script>
 </body>
 </html>
