@@ -13,7 +13,7 @@ import {
 import { gate, joinWaitlist, setConsent, clearLegacyNotice, deleteUserData, isAdmin, POLICY_VERSION } from '../lib/access.js';
 import { isUndo, isEdit, isWipe, isHelp, cleanTarget } from '../lib/intents.js';
 import { tooMany } from '../lib/guard.js';
-import { slipReady, slipTurn, geminiTurn, fetchImage, readSlip, slipKey } from '../lib/slip.js';
+import { slipReady, slipTurn, geminiTurn, fetchImage, readSlip, slipKey, probeModels } from '../lib/slip.js';
 import {
   getProfile, saveProfile, addEntries, updateEntry, recentEntries, getEntry, setEdit, getEdit, clearEdit,
   getMiss, setMiss, clearMiss, listEntries, lastBatch, deleteEntries,
@@ -80,6 +80,10 @@ async function handle(ev) {
   // ---- ไอดีของฉัน (เจ้าของระบบเอาไปใส่ ADMIN_UID ใน Vercel) / หลังบ้าน ----
   if (/^(ไอดีของฉัน|ไอดี|id|my ?id|id ?ของฉัน)$/i.test(msg)) {
     return reply(t, [noteCard('🪪', 'ไอดีของคุณ', isAdmin(uid) ? '👑 คุณคือเจ้าของระบบ' : 'กดค้างที่ข้อความถัดไปเพื่อคัดลอก'), text(uid)]);
+  }
+  if (/^เช็ค\s*ai$/i.test(msg) && isAdmin(uid)) {
+    if (!slipReady()) return reply(t, text('ยังไม่ได้ใส่ GEMINI_API_KEY'));
+    return reply(t, text(('🤖 ผลเช็ค AI\n' + ((await probeModels()).join('\n') || 'ไม่พบรุ่นที่ใช้ได้')).slice(0, 4500)));
   }
   if (/^(หลังบ้าน|แอดมิน|admin)$/i.test(msg) && isAdmin(uid)) {
     return reply(t, adminLinkMessage());
