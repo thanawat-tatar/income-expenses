@@ -1,6 +1,6 @@
 // หลังบ้านของเจ้าของระบบ (เปิดได้เฉพาะ LINE ที่ตรงกับ ADMIN_UID ใน Vercel)
 // ไม่ส่งยอดเงินหรือรายการของผู้ใช้คนไหนเลย
-import { verifyIdToken } from '../lib/line.js';
+import { authUser } from '../lib/line.js';
 import { isAdmin, adminOverview, setLimit, deleteUserData, removeExpired } from '../lib/access.js';
 
 const json = (data, status = 200) => new Response(JSON.stringify(data), {
@@ -8,8 +8,7 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
 });
 
 async function admin(request) {
-  const token = (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
-  const user = await verifyIdToken(token);
+  const user = await authUser(request);
   if (!user) return { err: json({ error: 'unauthorized' }, 401) };
   if (!isAdmin(user.uid)) return { err: json({ error: process.env.ADMIN_UID ? 'not_admin' : 'no_admin_uid' }, 403) };
   return { user };

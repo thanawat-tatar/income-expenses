@@ -1,5 +1,6 @@
 // LINE ส่งข้อความของผู้ใช้มาที่นี่ (Webhook URL = https://<เว็บของคุณ>/api/webhook)
-import { verifySignature, reply as lineReply } from '../lib/line.js';
+import { verifySignature, reply as lineReply, showLoading } from '../lib/line.js';
+import { runCtx, later } from '../lib/ctx.js';
 import { parseMessage, normalizeThai, hasNumber } from '../lib/parser.js';
 import { OTHER } from '../lib/categories.js';
 import { bkkDate, thaiDate } from '../lib/date.js';
@@ -28,16 +29,20 @@ export async function POST(request) {
     return new Response('bad signature', { status: 401 });
   }
   const { events = [] } = JSON.parse(body);
-  await Promise.all(events.map(ev => handle(ev).catch(err => {
+  await Promise.all(events.map(ev => runCtx(() => handle(ev)).catch(err => {
     console.error(err);
     if (ev.replyToken) return reply(ev.replyToken, text('ขออภัย เกิดข้อผิดพลาด ลองใหม่อีกครั้งนะครับ 🙏'));
-  }).finally(() => prefix.delete(ev.replyToken))));
+  }).finally(() => { prefix.delete(ev.replyToken); loading.delete(ev.replyToken); })));
   return new Response('ok');
 }
 
 // ข้อความที่ต้องส่งนำหน้าคำตอบ (เช่น "ถึงคิวแล้ว", "หายไปนานเลย") แนบไปกับ reply ครั้งเดียว
 const prefix = new Map();
-function reply(token, messages) {
+const loading = new Map();
+async function reply(token, messages) {
+  const wait = loading.get(token);
+  loading.delete(token);
+  if (wait) await wait; // ให้ "…" ขึ้นก่อนคำตอบ ไม่งั้นจุดจะค้างหลังบอทตอบ
   const main = [].concat(messages);
   const pre = (prefix.get(token) || []).slice(0, Math.max(0, 5 - main.length));
   prefix.delete(token);
@@ -55,9 +60,10 @@ async function handle(ev) {
   const msg = isText ? normalizeThai(ev.message.text.trim()) : '';
   const a = ev.type === 'postback' ? new URLSearchParams(ev.postback.data).get('a') : '';
   const t = ev.replyToken;
+  loading.set(t, later(showLoading(uid))); // ขึ้น "…" ในแชททันที ระหว่างบอทคิด
 
-  // ---- ด่านรับคน ----
-  const g = await gate(uid);
+  // ---- ด่านรับคน ---- (อ่านข้อมูลทั้งหมดที่ต้องใช้ในรอบเดียว)
+  const g = await gate(uid, { all: true });
   if (g.status === 'full') {
     if (a === 'wait') return reply(t, fullMessage(await joinWaitlist(uid)));
     return reply(t, fullMessage(g.queue));
@@ -150,7 +156,7 @@ async function onText(uid, ev) {
       const d = extractDate(normalizeThai(msg), bkkDate());
       if (d.marks.length) return saveEdit(uid, ev, e, { date: d.marks[0].date }, byId, thaiDate(d.marks[0].date));
     }
-    await clearEdit(uid);
+    later(clearEdit(uid));
   }
 
   // ---- แก้ไข/ลบ แบบพิมพ์สั่ง: "แก้ข้าว 50 เป็น 60", "แก้ข้าว เป็น ค่าเดินทาง", "ลบ ข้าว 50" ----
@@ -204,10 +210,9 @@ async function onText(uid, ev) {
     const it = pending.items[pending.awaitCat];
     const word = it.word || it.guess;
     const cat = { id: 'c_' + Date.now().toString(36), name: msg, type: it.type, icon: '🏷️' };
-    await learn(uid, profile, word, cat.id, [...profile.customCategories, cat]);
     applyWord(pending, word, cat, pending.awaitCat);
     delete pending.awaitCat;
-    await setPending(uid, pending);
+    await Promise.all([learn(uid, profile, word, cat.id, [...profile.customCategories, cat]), setPending(uid, pending)]); // บันทึกพร้อมกัน
     byId[cat.id] = cat;
     return reply(ev.replyToken, [noteCard('✨', `สร้างหมวด ${cat.name} แล้ว`, word ? `จำแล้ว "${word}" = ${cat.name}` : ''), ...nextStep(pending, byId, profile.categories.concat(cat))]);
   }
@@ -257,16 +262,14 @@ async function onText(uid, ev) {
       }
       if (/^(ใช่|ช่าย|ถูก|ok|โอเค|yes)/i.test(msg) && it.guess) {
         const cat = byId[it.category];
-        await learn(uid, profile, word, cat.id);
         applyWord(pending, word, cat, q);
-        await setPending(uid, pending);
+        await Promise.all([learn(uid, profile, word, cat.id), setPending(uid, pending)]); // บันทึกพร้อมกัน
         return reply(ev.replyToken, [noteCard('🧠', `จำแล้ว "${word}"`, `= ${cat.icon} ${cat.name}`), ...nextStep(pending, byId, profile.categories)]);
       }
       const cat = msg.length <= 20 ? findCategory(msg, profile) : null;
       if (cat) {
-        await learn(uid, profile, word, cat.id);
         applyWord(pending, word, cat, q);
-        await setPending(uid, pending);
+        await Promise.all([learn(uid, profile, word, cat.id), setPending(uid, pending)]); // บันทึกพร้อมกัน
         return reply(ev.replyToken, [noteCard('🧠', `จำแล้ว "${word}"`, `= ${cat.icon} ${cat.name}`), ...nextStep(pending, byId, profile.categories)]);
       }
       return reply(ev.replyToken, [
@@ -281,11 +284,11 @@ async function onText(uid, ev) {
     // ไม่เข้าใจ 2 ครั้งติดกัน (ภายใน 15 นาที) → ส่งปุ่มเปิดหน้าตั้งค่า
     const miss = await getMiss(uid);
     const count = miss && Date.now() - miss.at < 15 * 60 * 1000 ? miss.count + 1 : 1;
-    await setMiss(uid, { count, at: Date.now() });
+    later(setMiss(uid, { count, at: Date.now() }));
     if (count >= 2) return reply(ev.replyToken, stuckMessage());
     return reply(ev.replyToken, noteCard('🤔', 'ไม่เจอจำนวนเงิน', 'ลองพิมพ์ เช่น น้ำมัน 60 ข้าว 50\nหรือพิมพ์ "วิธีใช้"'));
   }
-  clearMiss(uid).catch(() => {});
+  later(clearMiss(uid));
   const pid = Math.random().toString(36).slice(2, 10);
   const pend = { id: pid, items, date, orphans };
   await setPending(uid, pend);
@@ -337,8 +340,7 @@ function findEntry(list, query, byId) {
 
 async function saveEdit(uid, ev, e, change, byId, what) {
   const next = { ...e, ...change };
-  await updateEntry(uid, e.id, next);
-  await clearEdit(uid);
+  await Promise.all([updateEntry(uid, e.id, next), clearEdit(uid)]);
   return reply(ev.replyToken, [noteCard('✅', 'แก้แล้ว', what), editEntryMessage({ ...next, id: e.id }, byId)]);
 }
 
@@ -398,12 +400,13 @@ async function onPostback(uid, ev) {
     if (!pending || pending.id !== p.get('p') || Date.now() - pending.createdAt > PENDING_TTL) {
       return reply(ev.replyToken, noteCard('⌛', 'รายการนี้หมดอายุหรือทำไปแล้ว'));
     }
-    await clearPending(uid);
-    if (a === 'no') return reply(ev.replyToken, noteCard('✖️', 'ยกเลิกแล้ว', 'พิมพ์ใหม่ได้เลย'));
+    if (a === 'no') { later(clearPending(uid)); return reply(ev.replyToken, noteCard('✖️', 'ยกเลิกแล้ว', 'พิมพ์ใหม่ได้เลย')); }
 
-    await addEntries(uid, pending.items.map(i => ({ ...i, date: i.date || pending.date })), 'b' + pending.id);
-    const today = bkkDate();
-    const list = await listEntries(uid, today, today);
+    // บันทึก + อ่านยอดวันนี้ พร้อมกัน (ไม่ต้องรอทีละอย่าง)
+    const batch = 'b' + pending.id, today = bkkDate();
+    const items = pending.items.map(i => ({ ...i, date: i.date || pending.date }));
+    const [, , before] = await Promise.all([clearPending(uid), addEntries(uid, items, batch), listEntries(uid, today, today)]);
+    const list = [...before.filter(e => e.batch !== batch), ...items.filter(i => i.date === today)];
     const net = list.reduce((s, e) => s + (e.type === 'income' ? e.amount : -e.amount), 0);
     return reply(ev.replyToken, savedMessage(pending.items.length, new Set(pending.items.map(i => i.date || pending.date)).size > 1 ? 'หลายวัน' : thaiDate(pending.date), net));
   }
@@ -434,9 +437,8 @@ async function onPostback(uid, ev) {
     const cat = byId[p.get('c')];
     if (!cat) return reply(ev.replyToken, noteCard('🤔', 'ไม่พบหมวดนี้แล้ว'));
     const word = it.word || it.guess;
-    await learn(uid, profile, word, cat.id);
     applyWord(pending, word, cat, i);
-    await setPending(uid, pending);
+    await Promise.all([learn(uid, profile, word, cat.id), setPending(uid, pending)]); // บันทึกพร้อมกัน
     return reply(ev.replyToken, [noteCard('🧠', `จำแล้ว "${word}"`, `= ${cat.icon} ${cat.name}`), ...nextStep(pending, byId, profile.categories)]);
   }
 
@@ -444,7 +446,7 @@ async function onPostback(uid, ev) {
   if (['elist', 'pick', 'eamt', 'ecat', 'ecat2', 'eflip', 'edate', 'enote', 'edel', 'edel2', 'edone'].includes(a)) {
     const profile = await getProfile(uid);
     const byId = catMap(profile.categories);
-    if (a === 'edone') { await clearEdit(uid); return reply(ev.replyToken, noteCard('✨', 'เรียบร้อย!', 'พิมพ์รายการใหม่ได้เลย')); }
+    if (a === 'edone') { later(clearEdit(uid)); return reply(ev.replyToken, noteCard('✨', 'เรียบร้อย!', 'พิมพ์รายการใหม่ได้เลย')); }
     if (a === 'elist') return reply(ev.replyToken, await editList(uid, byId));
     const e = await getEntry(uid, p.get('id'));
     if (!e) return reply(ev.replyToken, noteCard('🤔', 'ไม่เจอรายการนี้แล้ว', 'อาจถูกลบไปแล้ว'));

@@ -218,21 +218,36 @@ function applyTheme(t) {
 function setTheme(t) { store.set('theme', t); applyTheme(t); }
 
 // ---------- API ----------
-async function api(method, action, body) {
-  if (DEMO) return demoApi(method, action, body);
+// บัตรผ่านที่ระบบออกให้ (เปิดเว็บครั้งถัดไปไม่ต้องรอ LINE)
+const session = () => { const x = store.get('sess'); return x && x.exp > Date.now() + 60000 ? x.token : null; };
+async function authHeader(fresh) {
+  const t = !fresh && session();
+  if (t) return `Session ${t}`;
   await liffReady;
-  const token = window.liff.getIDToken();
-  const isGet = method === 'GET';
-  const qs = isGet ? '?' + new URLSearchParams({ action, ...(body || {}) }) : '';
-  const res = await fetch('/api/data' + qs, {
+  if (!window.liff.isLoggedIn()) throw new Error('login');
+  return `Bearer ${window.liff.getIDToken()}`;
+}
+async function call(url, method, body, retry = true) {
+  const auth = await authHeader(!retry);
+  const res = await fetch(url, {
     method,
-    headers: { Authorization: `Bearer ${token}`, ...(isGet ? {} : { 'Content-Type': 'application/json' }) },
-    body: isGet ? undefined : JSON.stringify({ action, ...body }),
+    headers: { Authorization: auth, ...(method === 'GET' ? {} : { 'Content-Type': 'application/json' }) },
+    body: method === 'GET' ? undefined : JSON.stringify(body),
   });
-  if (res.status === 401) { window.liff.logout(); window.liff.login({ redirectUri: location.href }); throw new Error('login'); }
+  if (res.status === 401) {
+    if (auth.startsWith('Session') && retry) { store.set('sess', null); return call(url, method, body, false); } // บัตรหมดอายุ → ใช้ LINE แทน
+    window.liff.logout(); window.liff.login({ redirectUri: location.href }); throw new Error('login');
+  }
   const j = await res.json();
   if (!res.ok) throw new Error(j.error || 'error');
+  if (j.session) store.set('sess', j.session);
   return j;
+}
+async function api(method, action, body) {
+  if (DEMO) return demoApi(method, action, body);
+  const isGet = method === 'GET';
+  const qs = isGet ? '?' + new URLSearchParams({ action, ...(body || {}) }) : '';
+  return call('/api/data' + qs, method, isGet ? undefined : { action, ...body });
 }
 
 function monthRange(ym) {
@@ -250,13 +265,30 @@ function getMonth(ym) {
   }
   return state.monthCache[ym];
 }
+// รายปี: โชว์ที่จำไว้ในเครื่องทันที แล้วค่อยอัปเดต (ถ้าเปลี่ยน วาดใหม่เงียบๆ)
 function getYear(y) {
   if (!state.yearCache[y]) {
+    const saved = store.get('year:' + y);
     const p = api('GET', 'year', { year: y }).then(r => r.months);
-    p.catch(() => { if (state.yearCache[y] === p) delete state.yearCache[y]; });
-    state.yearCache[y] = p;
+    p.then(m => {
+      store.set('year:' + y, m);
+      if (saved && JSON.stringify(saved) !== JSON.stringify(m)) {
+        state.yearCache[y] = Promise.resolve(m);
+        if (state.ready && state.mode === 'year' && state.date.startsWith(y) && state.page !== 'settings' && state.page !== 'admin') render(true);
+      }
+    }).catch(() => { if (state.yearCache[y] === p) delete state.yearCache[y]; });
+    state.yearCache[y] = saved ? Promise.resolve(saved) : p;
   }
   return state.yearCache[y];
+}
+// โหลดล่วงหน้า: รายปี + เดือนก่อน กดแล้วขึ้นทันที
+function prefetchMore() {
+  const run = () => {
+    getYear(todayISO().slice(0, 4)).catch(() => {});
+    const prev = shiftDate(todayISO(), 'month', -1).slice(0, 7);
+    if (prev >= archiveBefore()) getMonth(prev).catch(() => {});
+  };
+  (window.requestIdleCallback || (f => setTimeout(f, 300)))(run);
 }
 function clearCache() { state.monthCache = {}; state.yearCache = {}; }
 
@@ -557,15 +589,7 @@ function openPicker() {
 // ---------- หลังบ้าน (เจ้าของระบบ) ----------
 async function adminApi(method, body) {
   if (DEMO) return demoAdmin(method, body);
-  await liffReady;
-  const res = await fetch('/api/admin', {
-    method,
-    headers: { Authorization: `Bearer ${window.liff.getIDToken()}`, ...(method === 'GET' ? {} : { 'Content-Type': 'application/json' }) },
-    body: method === 'GET' ? undefined : JSON.stringify(body),
-  });
-  const j = await res.json();
-  if (!res.ok) throw new Error(j.error || 'error');
-  return j;
+  return call('/api/admin', method, body);
 }
 function demoAdmin(method, body) {
   const now = Date.now(), D = 86400e3;
@@ -955,10 +979,18 @@ async function boot() {
   }
 
   try {
+    let early = null;
     if (!DEMO) {
       liffReady = initLiff();
+      liffReady.catch(() => {});
+      // มีบัตรผ่าน → ขอข้อมูลพร้อมกับเปิด LINE เลย ไม่ต้องรอ
+      if (session()) { early = api('GET', 'boot', monthRange(ym)); early.catch(() => {}); }
       await liffReady;
-      if (!window.liff.isLoggedIn()) { window.liff.login({ redirectUri: location.href }); return; }
+      if (!window.liff.isLoggedIn()) { store.set('sess', null); window.liff.login({ redirectUri: location.href }); return; }
+      // บัตรผ่านเป็นของบัญชีอื่นในเครื่องนี้ → ล้างแล้วเริ่มใหม่
+      const me = window.liff.getDecodedIDToken?.()?.sub;
+      const s = store.get('sess');
+      if (me && s && s.uid && s.uid !== me) { try { localStorage.clear(); } catch {} location.reload(); return; }
       window.liff.getProfile().then(pr => {
         const u = { name: pr.displayName, pic: pr.pictureUrl || '' };
         store.set('user', u); setUser(u);
@@ -967,10 +999,11 @@ async function boot() {
       setUser({ name: '(โหมดทดลอง)' });
     }
     // 2) ดึงหมวด + รายการเดือนนี้ในครั้งเดียว
-    const r = await api('GET', 'boot', monthRange(ym));
+    const r = await (early || api('GET', 'boot', monthRange(ym))).catch(e => (e.message === 'unauthorized' ? api('GET', 'boot', monthRange(ym)) : Promise.reject(e)));
     applyProfile(r.profile); store.set('profile', r.profile);
     state.monthCache[ym] = Promise.resolve(r.entries); cacheMonth(ym, r.entries);
     await render(shown);
+    prefetchMore();
   } catch (e) {
     if (e.message === 'login') return;
     if (e.message === 'not_member' || e.message === 'no_consent') { // ยังไม่ได้รับเข้า / ยังไม่กดยอมรับ / ลบข้อมูลไปแล้ว
