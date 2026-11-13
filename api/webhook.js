@@ -32,12 +32,24 @@ export async function GET() {
   return new Response('ok');
 }
 
+const seenEvents = new Map();
 export async function POST(request) {
   const body = await request.text();
   if (!verifySignature(body, request.headers.get('x-line-signature'))) {
     return new Response('bad signature', { status: 401 });
   }
-  const { events = [] } = JSON.parse(body);
+  let events = [];
+  try { events = JSON.parse(body).events || []; } catch { return new Response('bad body', { status: 400 }); }
+  // กันส่งซ้ำ: เหตุการณ์เดิม (รหัสเดิม) หรือเก่าเกิน 10 นาที → ข้าม (ลายเซ็นถูกก็ยังเอามายิงซ้ำไม่ได้)
+  events = events.slice(0, 20).filter(ev => {
+    if (typeof ev?.timestamp === 'number' && Date.now() - ev.timestamp > 10 * 60 * 1000) return false;
+    const id = ev?.webhookEventId;
+    if (!id) return true;
+    if (seenEvents.has(id)) return false;
+    seenEvents.set(id, Date.now());
+    if (seenEvents.size > 3000) for (const k of [...seenEvents.keys()].slice(0, 1000)) seenEvents.delete(k);
+    return true;
+  });
   await Promise.all(events.map(ev => runCtx(() => handle(ev)).catch(err => {
     console.error(err);
     if (ev.replyToken) return reply(ev.replyToken, text('ขออภัย เกิดข้อผิดพลาด ลองใหม่อีกครั้งนะครับ 🙏'));

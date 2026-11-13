@@ -226,10 +226,10 @@ function moveBlob(instant) {
   let blob = $('.nav-blob', nav);
   if (!blob) { blob = document.createElement('i'); blob.className = 'nav-blob'; nav.prepend(blob); instant = true; }
   if (!act) { blob.style.opacity = 0; return; }
-  const n = nav.getBoundingClientRect(), r = act.getBoundingClientRect();
+  const r = { left: act.offsetLeft, top: act.offsetTop, width: act.offsetWidth, height: act.offsetHeight }; // ไม่ขึ้นกับ transform
   const wide = matchMedia('(min-width: 700px)').matches;
-  const w = wide ? r.width : Math.min(r.width - 6, 100), h = wide ? r.height : Math.min(r.height - 6, 60); // แคปซูลกระจกใหญ่แบบ iPhone
-  const x = r.left - n.left + (r.width - w) / 2 + (nav.scrollLeft || 0), y = r.top - n.top + (r.height - h) / 2;
+  const w = wide ? r.width : Math.min(r.width - 6, 100), h = wide ? r.height : Math.min(r.height - 6, 56); // แคปซูลกระจกใหญ่แบบ iPhone
+  const x = r.left + (r.width - w) / 2, y = r.top + (r.height - h) / 2;
   const moved = blob.dataset.x && Math.abs(Number(blob.dataset.x) - x) > 2;
   blob.classList.toggle('instant', !!instant);
   blob.style.cssText = `opacity:1;width:${w}px;height:${h}px;transform:translate(${x}px,${y}px)`;
@@ -250,6 +250,7 @@ function bindNavDrag() {
   nav.addEventListener('click', ev => { if (swallow) { swallow = false; ev.stopPropagation(); ev.preventDefault(); } }, true);
   nav.addEventListener('pointerdown', e => {
     if (!e.target.closest('.nav-item, .nav-add') || e.button > 0) return;
+    document.body.classList.remove('nav-min'); // แตะเมนูตอนย่ออยู่ → ขยายก่อน
     s = { x: e.clientX, y: e.clientY, id: e.pointerId, drag: false };
   });
   addEventListener('pointermove', e => {
@@ -778,6 +779,7 @@ async function render(quiet) {
   const sc = $('#scope');
   sc.hidden = !state.couple || state.page === 'settings' || state.page === 'admin';
   sc.dataset.scope = isUs() ? 'us' : 'me';
+  sc.querySelector('.scope-pill').style.transform = ''; // ให้กระจกไปตามสถานะจริง (หลังลาก)
   $$('#scope button').forEach(b => b.classList.toggle('active', b.dataset.scope === sc.dataset.scope));
   document.body.classList.toggle('us', isUs() && !sc.hidden);
   const modes = ['day', 'month', 'year'];
@@ -1349,7 +1351,8 @@ function openEntry(entry) {
     const cats = state.categories.filter(c => c.type === e.type);
     if (!cats.some(c => c.id === e.category)) e.category = cats[0]?.id;
     sheet.innerHTML = `<div class="grab"></div><h2>${isEdit ? 'แก้ไขรายการ' : 'เพิ่มรายการ'}</h2>
-      <div class="type-toggle">
+      <div class="type-toggle has-pill" data-on="${e.type}">
+        <span class="tt-pill"></span>
         <button class="expense ${e.type === 'expense' ? 'on' : ''}" data-type="expense">รายจ่าย</button>
         <button class="income ${e.type === 'income' ? 'on' : ''}" data-type="income">รายรับ</button>
       </div>
@@ -1366,7 +1369,13 @@ function openEntry(entry) {
         <button class="btn" id="fSave">บันทึก</button>
       </div>`;
     const keep = () => { e.amount = $('#fAmount').value; e.note = $('#fNote').value; e.date = $('#fDate').value; };
-    $$('[data-type]', sheet).forEach(b => b.onclick = () => { keep(); e.type = b.dataset.type; draw(); });
+    $$('[data-type]', sheet).forEach(b => b.onclick = () => {
+      if (e.type === b.dataset.type) return;
+      keep(); e.type = b.dataset.type;
+      const tt = $('.type-toggle.has-pill', sheet);
+      tt.dataset.on = e.type; tt.querySelector('.tt-pill').style.transform = '';
+      setTimeout(draw, 260);
+    });
     $$('[data-cat]', sheet).forEach(b => b.onclick = () => {
       e.category = b.dataset.cat;
       $$('[data-cat]', sheet).forEach(x => x.classList.toggle('on', x === b));
@@ -1446,6 +1455,52 @@ async function refreshQuiet() {
   } catch (e) { if (us) usFail(e); }
 }
 
+// ปุ่มสลับทุกอัน: กดค้างแล้วลากกระจกไปมาได้แบบ iOS · ปล่อยตรงไหนเลือกอันนั้น · แตะปกติยังใช้ได้
+const GLASS_SEGS = [
+  { box: '.scope', pill: '.scope-pill', btn: 'button[data-scope]' },
+  { box: '.seg', pill: '.seg-pill', btn: 'button[data-mode], button[data-themeopt]' },
+  { box: '.type-toggle.has-pill', pill: '.tt-pill', btn: 'button[data-type]' },
+];
+function bindGlassSegs() {
+  let s = null, swallow = false;
+  document.addEventListener('click', e => { if (swallow && e.isTrusted) { swallow = false; e.stopPropagation(); e.preventDefault(); } }, true);
+  document.addEventListener('pointerdown', e => {
+    if (e.button > 0) return;
+    for (const g of GLASS_SEGS) {
+      const box = e.target.closest(g.box), pill = box?.querySelector(g.pill);
+      if (!box || !pill) continue;
+      s = { box, pill, btns: $$(g.btn, box), x0: e.clientX, y0: e.clientY, id: e.pointerId, drag: false };
+      return;
+    }
+  });
+  document.addEventListener('pointermove', e => {
+    if (!s || e.pointerId !== s.id) return;
+    if (!s.drag) {
+      if (Math.abs(e.clientX - s.x0) < 8 || Math.abs(e.clientY - s.y0) > Math.abs(e.clientX - s.x0)) return;
+      s.drag = true; s.box.classList.add('dragging'); s.pill.classList.add('lens');
+      try { s.box.setPointerCapture(e.pointerId); } catch {}
+    }
+    const r = s.box.getBoundingClientRect(), pw = s.pill.offsetWidth, base = s.pill.offsetLeft;
+    const tx = Math.max(0, Math.min(r.width - pw - base * 2, e.clientX - r.left - pw / 2 - base));
+    s.pill.style.transform = `translateX(${tx}px)`;
+    const near = s.btns.reduce((b, el) => { const d = Math.abs(el.getBoundingClientRect().left + el.offsetWidth / 2 - e.clientX); return !b || d < b.d ? { el, d } : b; }, null)?.el;
+    s.btns.forEach(b => b.classList.toggle('hover', b === near));
+  });
+  const end = e => {
+    if (!s || e.pointerId !== s.id) return;
+    const g = s; s = null;
+    if (!g.drag) return;
+    g.box.classList.remove('dragging'); g.pill.classList.remove('lens');
+    const near = g.btns.find(b => b.classList.contains('hover')) || g.btns[0];
+    g.btns.forEach(b => b.classList.remove('hover'));
+    const i = g.btns.indexOf(near);
+    g.pill.style.transform = `translateX(calc(${i * 100}% + ${i * (g.box.matches('.type-toggle') ? 8 : 0)}px))`; // เด้งเข้าที่แบบสปริง
+    swallow = true;
+    setTimeout(() => { swallow = false; near.click(); }, 0);
+  };
+  document.addEventListener('pointerup', end); document.addEventListener('pointercancel', end);
+}
+
 function bindScrollChrome() {
   let lastY = scrollY, raf = 0;
   addEventListener('scroll', () => {
@@ -1454,9 +1509,11 @@ function bindScrollChrome() {
       raf = 0;
       const y = scrollY, b = document.body;
       b.classList.toggle('scrolled', y > 24);
-      if (Math.abs(y - lastY) > 8) {
-        const min = y > lastY && y > 120;
-        if (b.classList.contains('nav-min') !== min) { b.classList.toggle('nav-min', min); setTimeout(() => moveBlob(true), 420); }
+      b.classList.add('scrolling');
+      clearTimeout(bindScrollChrome.t); bindScrollChrome.t = setTimeout(() => b.classList.remove('scrolling'), 160);
+      if (Math.abs(y - lastY) > 10) {
+        const min = y > lastY && y > 140;
+        if (b.classList.contains('nav-min') !== min) b.classList.toggle('nav-min', min);
         lastY = y;
       }
     });
@@ -1525,6 +1582,7 @@ async function boot() {
   bindNavDrag();
   bindSheetSwipe();
   bindScrollChrome();
+  bindGlassSegs();
   bindDeviceTilt();
   addEventListener('resize', () => moveBlob(true));
   applyTheme(store.get('theme'));

@@ -712,7 +712,6 @@ button, a, .entry, .chip, .nav-item, .nav-add { touch-action: manipulation; -web
 .nav, .scope, .seg, .stepper { -webkit-user-select: none; user-select: none; }
 input, textarea { -webkit-user-select: text; user-select: text; }
 /* การ์ดที่อยู่นอกจอ ยังไม่ต้องวาด (เลื่อนลื่นขึ้นเมื่อรายการเยอะ) */
-.day-group, .grid.home > .grid > .card:not(.hero):not(.perched) { content-visibility: auto; contain-intrinsic-size: auto 240px; }
 /* หน้าต่างเพิ่มรายการ: เด้งขึ้นแบบสปริง · ปัดลงเพื่อปิด */
 .sheet.open { transition: transform .5s cubic-bezier(.22, 1.25, .36, 1); }
 .sheet.dragging { transition: none !important; }
@@ -748,13 +747,15 @@ input, textarea { -webkit-user-select: text; user-select: text; }
 .toast { display: none !important; }
 
 /* หัวข้อใหญ่ → แถบกระจกเล็กเมื่อเลื่อนลง (Large Title) */
-.topbar { position: sticky; top: 0; z-index: 15; margin-left: -16px; margin-right: -16px; padding: 4px 18px 8px; transition: background .3s, box-shadow .3s, padding .3s; }
-.title { transition: font-size .35s cubic-bezier(.3, 1.2, .5, 1); }
+.topbar { position: sticky; top: 0; z-index: 15; margin-left: -16px; margin-right: -16px; padding: 4px 18px 8px; isolation: isolate; }
+.topbar::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity .3s; pointer-events: none;
+  background: var(--glass-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: 0 1px 0 var(--glass-edge), 0 6px 18px rgba(217, 58, 128, .08); }
+.title { transform-origin: 0 50%; transition: transform .4s cubic-bezier(.3, 1.2, .5, 1); will-change: transform; }
 .hello, .avatar { transition: opacity .25s, transform .35s cubic-bezier(.3, 1.2, .5, 1); }
-body.scrolled .topbar { background: var(--glass-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: 0 1px 0 var(--glass-edge), 0 6px 18px rgba(217, 58, 128, .08); padding-top: calc(env(safe-area-inset-top) + 4px); padding-bottom: 6px; }
-body.scrolled .title { font-size: 17px; }
-body.scrolled .hello { opacity: 0; height: 0; }
-body.scrolled .avatar { transform: scale(.78); }
+body.scrolled .topbar::before { opacity: 1; }
+body.scrolled .title { transform: scale(.8); }
+body.scrolled .hello { opacity: 0; }
+body.scrolled .avatar { transform: scale(.8); }
 @media (min-width: 700px) { .topbar { margin-left: 0; margin-right: 0; border-radius: 0 0 18px 18px; } }
 
 /* ปุ่มควบคุมแบบกระจก (Liquid Glass) */
@@ -769,13 +770,12 @@ body.scrolled .avatar { transform: scale(.78); }
   .nav { inset: auto 14px calc(10px + env(safe-area-inset-bottom)) 14px; height: 66px; padding: 0 6px; border-radius: 33px; border: 1px solid var(--glass-edge);
     background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
     box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-edge), inset 0 -1px 0 rgba(255, 255, 255, .15);
-    transition: height .45s cubic-bezier(.3, 1.3, .5, 1), inset .45s cubic-bezier(.3, 1.3, .5, 1), border-radius .45s; }
+    transform-origin: 50% 100%; will-change: transform; transition: transform .5s cubic-bezier(.32, 1.25, .5, 1); }
   .main { padding-bottom: calc(66px + 44px + env(safe-area-inset-bottom)); }
   .nav-add { margin-top: 0; width: 50px; height: 50px; box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 40%, transparent), inset 0 1px 0 rgba(255, 255, 255, .45); }
-  .nav-item span { transition: opacity .2s, font-size .3s; }
-  body.nav-min .nav { height: 54px; left: 44px; right: 44px; border-radius: 27px; }
-  body.nav-min .nav-item span { opacity: 0; font-size: 0; }
-  body.nav-min .nav-add { width: 42px; height: 42px; }
+  .nav-item span { transition: opacity .2s; }
+  body.nav-min .nav { transform: translateY(6px) scale(.86, .82); }
+  body.nav-min .nav-item span { opacity: 0; }
   .nav-blob { border-radius: 999px !important; }
 }
 
@@ -785,3 +785,34 @@ body.scrolled .avatar { transform: scale(.78); }
 .btn { border-radius: 14px; }
 .sheet { border-radius: 30px 30px 0 0; }
 @media (prefers-reduced-motion: reduce) { #island, .nav, .topbar, .title { transition: none !important; } }
+
+/* ================= รอบ 6: ลื่นสุดๆ + กระจกลากได้ทุกปุ่ม ================= */
+/* พื้นหลังทั้งหมดอยู่ในชั้นลอยของการ์ดจอ: เลื่อนหน้าแล้วไม่ต้องวาดพื้นหลังใหม่ */
+body { background: var(--bg) !important; background-attachment: scroll !important; }
+body::before {
+  background:
+    radial-gradient(38% 32% at 22% 18%, rgba(255, 140, 195, .32), transparent 70%),
+    radial-gradient(34% 30% at 82% 30%, rgba(255, 190, 160, .26), transparent 70%),
+    radial-gradient(40% 34% at 50% 85%, rgba(255, 110, 170, .16), transparent 70%),
+    radial-gradient(color-mix(in srgb, var(--accent) 12%, transparent) 1.2px, transparent 1.3px) 0 0 / 22px 22px !important;
+  transform: translateZ(0);
+}
+body.scrolling::before, body.scrolling .glare::after, body.scrolling .lover-ring { animation-play-state: paused !important; }
+
+/* กระจกที่ลากได้: ปุ่มสลับทุกอัน */
+.scope, .seg, .type-toggle.has-pill { touch-action: pan-y; }
+.scope-pill, .seg-pill, .tt-pill { transition: transform .5s cubic-bezier(.32, 1.35, .5, 1), scale .3s cubic-bezier(.3, 1.6, .5, 1), box-shadow .3s, background .3s; will-change: transform; }
+.lens { scale: 1.1 1.16; transition: scale .3s cubic-bezier(.3, 1.6, .5, 1), box-shadow .3s !important;
+  box-shadow: 0 8px 22px rgba(217, 58, 128, .25), inset 0 1px 1px rgba(255, 255, 255, .95), inset 0 -2px 6px rgba(255, 79, 154, .15) !important;
+  background: linear-gradient(160deg, rgba(255, 255, 255, .85), rgba(255, 255, 255, .45)) !important; -webkit-backdrop-filter: blur(4px) saturate(1.8); backdrop-filter: blur(4px) saturate(1.8); }
+.scope[data-scope="us"] .scope-pill.lens { background: linear-gradient(135deg, rgba(255, 79, 154, .85), rgba(181, 140, 255, .85)) !important; }
+.dragging button.hover { color: var(--accent); }
+.dragging button { transition: color .15s; }
+
+/* รายจ่าย/รายรับ: กระจกสีเลื่อนได้ */
+.type-toggle.has-pill { position: relative; isolation: isolate; }
+.type-toggle.has-pill button { position: relative; z-index: 1; background: transparent !important; box-shadow: none !important; transition: color .25s; }
+.type-toggle.has-pill::before { content: ""; position: absolute; inset: 0; z-index: -2; border-radius: 14px; background: var(--surface-2); }
+.tt-pill { position: absolute; z-index: 0; top: 0; bottom: 0; left: 0; width: calc((100% - 8px) / 2); border-radius: 12px; background: var(--expense-soft); box-shadow: 0 3px 0 color-mix(in srgb, var(--expense) 25%, transparent); }
+.type-toggle.has-pill[data-on="income"] .tt-pill { transform: translateX(calc(100% + 8px)); background: var(--income-soft); box-shadow: 0 3px 0 color-mix(in srgb, var(--income) 25%, transparent); }
+.type-toggle.has-pill button:not(.on) { color: var(--muted); }

@@ -23,7 +23,7 @@ async function admin(request) {
 export async function GET(request) {
   const { err, user } = await admin(request);
   if (err) return err;
-  try { return json({ ...(await adminOverview()), me: user.uid }); } catch (e) { console.error(e); return json({ error: e.message }, 500); }
+  try { return json({ ...(await adminOverview()), me: user.uid }); } catch (e) { console.error(e); return json({ error: 'server error' }, 500); }
 }
 
 export async function POST(request) {
@@ -44,6 +44,6 @@ export async function POST(request) {
     return json({ error: 'unknown action' }, 400);
   } catch (e) {
     console.error(e);
-    return json({ error: e.message }, 400);
+    return json({ error: /[ก-๙]/.test(e.message) ? e.message : 'bad request' }, 400); // แสดงเฉพาะข้อความที่เราเขียนเอง
   }
 }

@@ -92,7 +92,7 @@ async function get(request) {
     return json({ error: 'unknown action' }, 400);
   } catch (e) {
     console.error(e);
-    return json({ error: e.message }, 500);
+    return json({ error: 'server error' }, 500);
   }
 }
 
@@ -124,6 +124,6 @@ async function post(request) {
     return json({ error: 'unknown action' }, 400);
   } catch (e) {
     console.error(e);
-    return json({ error: e.message }, 400);
+    return json({ error: /[ก-๙]/.test(e.message) ? e.message : 'bad request' }, 400); // แสดงเฉพาะข้อความที่เราเขียนเอง
   }
 }
