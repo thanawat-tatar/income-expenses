@@ -436,9 +436,30 @@ function shiftDate(iso, mode, dir) {
   else dt = new Date(Date.UTC(y + dir, 0, 1));
   return dt.toISOString().slice(0, 10);
 }
+// แจ้งเตือนแบบ Dynamic Island: เม็ดยาสีดำด้านบน ยืดออกแบบสปริงตามความยาวข้อความ แล้วหดกลับ · แตะเพื่อปิด
 function toast(msg) {
-  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200);
+  let isl = $('#island');
+  if (!isl) {
+    isl = document.createElement('div');
+    isl.id = 'island'; isl.setAttribute('role', 'status'); isl.setAttribute('aria-live', 'polite');
+    isl.innerHTML = '<span class="isl-ico"></span><span class="isl-txt"></span><span class="isl-measure" aria-hidden="true"></span>';
+    isl.onclick = () => isl.classList.remove('show');
+    document.body.appendChild(isl);
+  }
+  const text = String(msg);
+  const m = text.match(/^(.*?)\s*([\u{1F300}-\u{1FAFF}\u2700-\u27BF\u2600-\u26FF✓✨🗑💕\uFE0F]+)\s*$/u); // อีโมจิท้ายข้อความ → ไอคอนด้านซ้าย
+  const bad = /ไม่สำเร็จ|ผิดพลาด|error/i.test(text);
+  const icon = m ? m[2] : bad ? '⚠️' : '✓';
+  const body = m ? m[1] : text;
+  isl.querySelector('.isl-ico').textContent = icon;
+  isl.querySelector('.isl-txt').textContent = body;
+  const meas = isl.querySelector('.isl-measure');
+  meas.textContent = body;
+  const w = Math.min(innerWidth - 32, Math.max(150, meas.offsetWidth + 64));
+  isl.classList.toggle('bad', bad);
+  isl.style.setProperty('--w', w + 'px');
+  isl.classList.remove('show'); void isl.offsetWidth; isl.classList.add('show');
+  clearTimeout(toast.t); toast.t = setTimeout(() => isl.classList.remove('show'), bad ? 3200 : 1900);
 }
 function countUp(el, to) {
   const start = performance.now(), dur = 700;
@@ -1425,6 +1446,23 @@ async function refreshQuiet() {
   } catch (e) { if (us) usFail(e); }
 }
 
+function bindScrollChrome() {
+  let lastY = scrollY, raf = 0;
+  addEventListener('scroll', () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      const y = scrollY, b = document.body;
+      b.classList.toggle('scrolled', y > 24);
+      if (Math.abs(y - lastY) > 8) {
+        const min = y > lastY && y > 120;
+        if (b.classList.contains('nav-min') !== min) { b.classList.toggle('nav-min', min); setTimeout(() => moveBlob(true), 420); }
+        lastY = y;
+      }
+    });
+  }, { passive: true });
+}
+
 function bindChrome() {
   $$('.nav-item').forEach(b => b.onclick = () => go(b.dataset.page));
   $$('.seg button[data-mode]').forEach(b => b.onclick = () => { state.mode = b.dataset.mode; state.date = todayISO(); render(); });
@@ -1486,6 +1524,7 @@ async function boot() {
   bindDrag();
   bindNavDrag();
   bindSheetSwipe();
+  bindScrollChrome();
   bindDeviceTilt();
   addEventListener('resize', () => moveBlob(true));
   applyTheme(store.get('theme'));
@@ -1546,7 +1585,7 @@ async function boot() {
     if (e.message === 'not_member' || e.message === 'no_consent') { // ยังไม่ได้รับเข้า / ยังไม่กดยอมรับ / ลบข้อมูลไปแล้ว
       try { Object.keys(localStorage).filter(k => k.startsWith('ie:') && k !== 'ie:theme').forEach(k => localStorage.removeItem(k)); } catch {}
       $('#view').innerHTML = `<div class="card empty gate">${pig(e.message === 'no_consent' ? 'wink' : 'sleep')}
-        <b>${e.message === 'no_consent' ? 'กดยอมรับในแชทก่อนนะ 🔒' : 'ยังไม่ได้เริ่มใช้งาน 🐷'}</b><br>
+        <b>${e.message === 'no_consent' ? 'กดยอมรับในแชทก่อนนะ 📄' : 'ยังไม่ได้เริ่มใช้งาน 🐷'}</b><br>
         ${e.message === 'no_consent' ? 'แตะ 💖 ยอมรับ ในแชท LINE แล้วกลับมาที่นี่' : 'ทักแชท LINE ก่อน บอทจะพาเริ่มใช้งาน'}<br>
         <a class="btn" href="https://line.me/R/ti/p/@514ddese">💬 ไปที่แชท</a> <a class="btn ghost" href="/privacy.html">📄 นโยบายข้อมูล</a></div>`;
       return;

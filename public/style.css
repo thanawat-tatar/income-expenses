@@ -720,3 +720,68 @@ input, textarea { -webkit-user-select: text; user-select: text; }
 .grab { cursor: grab; padding: 6px 0; box-sizing: content-box; background-clip: content-box; touch-action: none; }
 /* กดแล้วยุบนิดๆ ทุกปุ่ม (รู้สึกเหมือนปุ่มจริง) */
 .entry:active, .chip:active, .scope button:active, .seg button:active, .icon-btn:active { transform: scale(.97); transition-duration: .06s; }
+
+/* ================= รอบ 5: ดีไซน์แบบ iPhone (Liquid Glass · Dynamic Island) ================= */
+:root {
+  --glass: color-mix(in srgb, var(--surface) 58%, transparent);
+  --glass-strong: color-mix(in srgb, var(--surface) 74%, transparent);
+  --glass-edge: rgba(255, 255, 255, .65);
+  --glass-shadow: 0 10px 30px rgba(217, 58, 128, .16), 0 2px 6px rgba(217, 58, 128, .08);
+  --glass-blur: blur(22px) saturate(180%);
+}
+:root[data-theme="dark"] { --glass: color-mix(in srgb, var(--surface) 62%, transparent); --glass-strong: color-mix(in srgb, var(--surface) 80%, transparent); --glass-edge: rgba(255, 255, 255, .12); --glass-shadow: 0 10px 30px rgba(0, 0, 0, .45); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --glass: color-mix(in srgb, var(--surface) 62%, transparent); --glass-strong: color-mix(in srgb, var(--surface) 80%, transparent); --glass-edge: rgba(255, 255, 255, .12); --glass-shadow: 0 10px 30px rgba(0, 0, 0, .45); } }
+
+/* Dynamic Island */
+#island { --w: 160px; position: fixed; top: calc(env(safe-area-inset-top) + 10px); left: 50%; z-index: 95; height: 40px; width: 40px;
+  display: flex; align-items: center; gap: 9px; padding: 0 16px 0 12px; overflow: hidden; border-radius: 999px;
+  background: #0B0B0F; color: #fff; font-size: 14px; font-weight: 600; white-space: nowrap; cursor: pointer;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .28), inset 0 0 0 1px rgba(255, 255, 255, .06);
+  transform: translateX(-50%) translateY(-70px) scale(.6); opacity: 0;
+  transition: transform .5s cubic-bezier(.3, 1.45, .45, 1), width .55s cubic-bezier(.3, 1.35, .45, 1), opacity .25s; }
+#island.show { width: var(--w); transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+#island .isl-ico { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; background: linear-gradient(135deg, #FF4F9A, #B58CFF); }
+#island.bad .isl-ico { background: #F0455A; }
+#island .isl-txt { overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity .2s .18s; }
+#island.show .isl-txt { opacity: 1; }
+#island .isl-measure { position: absolute; visibility: hidden; white-space: nowrap; font: inherit; }
+.toast { display: none !important; }
+
+/* หัวข้อใหญ่ → แถบกระจกเล็กเมื่อเลื่อนลง (Large Title) */
+.topbar { position: sticky; top: 0; z-index: 15; margin-left: -16px; margin-right: -16px; padding: 4px 18px 8px; transition: background .3s, box-shadow .3s, padding .3s; }
+.title { transition: font-size .35s cubic-bezier(.3, 1.2, .5, 1); }
+.hello, .avatar { transition: opacity .25s, transform .35s cubic-bezier(.3, 1.2, .5, 1); }
+body.scrolled .topbar { background: var(--glass-strong); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: 0 1px 0 var(--glass-edge), 0 6px 18px rgba(217, 58, 128, .08); padding-top: calc(env(safe-area-inset-top) + 4px); padding-bottom: 6px; }
+body.scrolled .title { font-size: 17px; }
+body.scrolled .hello { opacity: 0; height: 0; }
+body.scrolled .avatar { transform: scale(.78); }
+@media (min-width: 700px) { .topbar { margin-left: 0; margin-right: 0; border-radius: 0 0 18px 18px; } }
+
+/* ปุ่มควบคุมแบบกระจก (Liquid Glass) */
+.scope, .seg, .stepper { background: var(--glass) !important; -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-edge) !important; border: 1px solid var(--glass-edge); }
+.scope { border-radius: 18px; } .seg { border-radius: 16px; } .stepper { border-radius: 16px; }
+.seg-pill, .scope-pill { border-radius: 12px !important; }
+.icon-btn { background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-edge); border: 1px solid var(--glass-edge); border-radius: 50%; }
+
+/* มือถือ: เมนูล่างลอยเป็นแคปซูลกระจก (iOS 26) · เลื่อนลงแล้วย่อ เลื่อนขึ้นแล้วขยาย */
+@media (max-width: 699px) {
+  .nav { inset: auto 14px calc(10px + env(safe-area-inset-bottom)) 14px; height: 66px; padding: 0 6px; border-radius: 33px; border: 1px solid var(--glass-edge);
+    background: var(--glass); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+    box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-edge), inset 0 -1px 0 rgba(255, 255, 255, .15);
+    transition: height .45s cubic-bezier(.3, 1.3, .5, 1), inset .45s cubic-bezier(.3, 1.3, .5, 1), border-radius .45s; }
+  .main { padding-bottom: calc(66px + 44px + env(safe-area-inset-bottom)); }
+  .nav-add { margin-top: 0; width: 50px; height: 50px; box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 40%, transparent), inset 0 1px 0 rgba(255, 255, 255, .45); }
+  .nav-item span { transition: opacity .2s, font-size .3s; }
+  body.nav-min .nav { height: 54px; left: 44px; right: 44px; border-radius: 27px; }
+  body.nav-min .nav-item span { opacity: 0; font-size: 0; }
+  body.nav-min .nav-add { width: 42px; height: 42px; }
+  .nav-blob { border-radius: 999px !important; }
+}
+
+/* การ์ด: มุมโค้งเท่ากันทั้งระบบ (ความโค้งซ้อนกันพอดีแบบ iOS) */
+.card { border-radius: 26px; }
+.entry .cat-ico, .cat-ico { border-radius: 12px; }
+.btn { border-radius: 14px; }
+.sheet { border-radius: 30px 30px 0 0; }
+@media (prefers-reduced-motion: reduce) { #island, .nav, .topbar, .title { transition: none !important; } }

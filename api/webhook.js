@@ -144,7 +144,7 @@ async function handle(ev) {
     return reply(t, [
       ...(welcome ? [] : consented
         ? [noteCard('📄', 'นโยบายข้อมูลอัปเดตแล้ว', 'เพิ่มเรื่องอ่านสลิปด้วย AI · อ่านแล้วกดยอมรับนะ')]
-        : [noteCard('🔒', 'ต้องกดยอมรับก่อนนะ', 'ถึงจะจดรายการให้ได้')]),
+        : [noteCard('📄', 'ต้องกดยอมรับก่อนนะ', 'ถึงจะจดรายการให้ได้')]),
       consentMessage(welcome ? '👋 ยินดีต้อนรับ 🎀' : consented ? '📄 นโยบายฉบับใหม่' : undefined),
     ]);
   }
