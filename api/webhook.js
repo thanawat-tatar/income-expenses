@@ -10,7 +10,7 @@ import {
   editListMessage, editEntryMessage, editCategoryMessage, withQuick, stuckMessage,
   consentMessage, fullMessage, wipeAskMessage, legacyNoticeMessage, adminLinkMessage, slipMessage, slipFallbackMessage, todayNet,
   pairIntroMessage, pairCodeMessage, pairAskJoinMessage, pairNotifyOwnerMessage, pairDoneMessage, coupleStatusMessage,
-  unpairAskMessage, unpairedMessage, coupleSummaryMessage,
+  unpairAskMessage, unpairedMessage, coupleSummaryMessage, notUnderstoodMessage, teachPickMessage,
 } from '../lib/messages.js';
 import {
   createInvite, cancelInvites, codeTurn, findInvite, joinPair, inviteLeft, rememberCode, forgetCode, getCouple, unpair,
@@ -19,11 +19,11 @@ import {
 import { gate, joinWaitlist, setConsent, clearLegacyNotice, deleteUserData, isAdmin, POLICY_VERSION } from '../lib/access.js';
 import { isUndo, isEdit, isWipe, isHelp, cleanTarget, isPair, pairCode, isUnpair, isCancelCode, isOurs } from '../lib/intents.js';
 import { tooMany } from '../lib/guard.js';
-import { slipReady, slipTurn, geminiTurn, fetchImage, readSlip, slipKey, probeModels } from '../lib/slip.js';
+import { slipReady, slipTurn, geminiTurn, fetchImage, readSlip, probeModels } from '../lib/slip.js';
 import {
   getProfile, saveProfile, addEntries, updateEntry, recentEntries, getEntry, setEdit, getEdit, clearEdit,
   getMiss, setMiss, clearMiss, listEntries, lastBatch, deleteEntries,
-  setPending, getPending, clearPending, findSlip, getUser,
+  setPending, getPending, clearPending, getUser, keepFrom,
 } from '../lib/store.js';
 
 const PENDING_TTL = 24 * 3600 * 1000;
@@ -361,8 +361,10 @@ async function onText(uid, ev) {
     const miss = await getMiss(uid);
     const count = miss && Date.now() - miss.at < 15 * 60 * 1000 ? miss.count + 1 : 1;
     later(setMiss(uid, { count, at: Date.now() }));
-    if (count >= 2) return reply(ev.replyToken, stuckMessage());
-    return reply(ev.replyToken, noteCard('🤔', 'ไม่เจอจำนวนเงิน', 'ลองพิมพ์ เช่น น้ำมัน 60 ข้าว 50\nหรือพิมพ์ "วิธีใช้"'));
+    if (count >= 3) return reply(ev.replyToken, [stuckMessage(), helpMessage()]);
+    // คำสั้นๆ ไม่มีตัวเลข (เช่น "ชานม") → มีปุ่มสอนคำนี้ให้เลย
+    const word = !hasDigit && msg.length <= 30 && !/\s/.test(msg) ? normalizeThai(msg).trim() : '';
+    return reply(ev.replyToken, notUnderstoodMessage(word));
   }
   later(clearMiss(uid));
   const pid = Math.random().toString(36).slice(2, 10);
@@ -391,9 +393,6 @@ async function onImage(uid, ev) {
     if (e.code !== 'notslip') console.error('slip', e.message);
     return reply(t, slipFallbackMessage(e.code || 'error'));
   }
-  const key = slipKey(uid, s);
-  const dup = await findSlip(uid, key);
-  if (dup) return reply(t, noteCard('🧾', 'สลิปนี้จดไปแล้วนะ', `${baht(dup.amount)} บาท · ${thaiDate(dup.date)}`));
   const byId = catMap(profile.categories);
   const word = s.receiver;
   const learned = word && profile.keywords.find(k => k.word === word);
@@ -402,7 +401,7 @@ async function onImage(uid, ev) {
   const cat = known || guess;
   const item = {
     type: cat?.type || 'expense', category: cat?.id || OTHER.expense, amount: s.amount,
-    note: word, word, date: s.date, slip: key, sure: !!known,
+    note: word, word, date: s.date, sure: !!known,
   };
   const pid = Math.random().toString(36).slice(2, 10);
   await setPending(uid, { id: pid, slip: true, items: [item], date: s.date });
@@ -438,15 +437,18 @@ const PAGE = 10;
 async function editList(uid, byId, { day, offset = 0, date } = {}) {
   const today = bkkDate(), yest = bkkDate(-1);
   let d = date || (day === 'y' ? yest : today);
-  let list = await listEntries(uid, d, d);
+  let list = d < keepFrom() ? [] : await listEntries(uid, d, d);
   if (!list.length && !day && !date) { d = yest; list = await listEntries(uid, d, d); }
   const label = d === today ? 'วันนี้' : d === yest ? 'เมื่อวาน' : thaiDate(d);
   const quick = [
     ...(d !== today ? [['📅 วันนี้', 'a=elist&d=t', 'แก้รายการวันนี้']] : []),
     ...(d !== yest ? [['📅 เมื่อวาน', 'a=elist&d=y', 'แก้รายการเมื่อวาน']] : []),
   ];
-  const picker = { type: 'action', action: { type: 'datetimepicker', label: '🗓️ เลือกวัน', data: 'a=elist&d=pick', mode: 'date', initial: d, max: today } };
+  const picker = { type: 'action', action: { type: 'datetimepicker', label: '🗓️ เลือกวัน', data: 'a=elist&d=pick', mode: 'date', initial: d < keepFrom() ? today : d, max: today, min: keepFrom() } };
   const withButtons = (m, more) => ({ ...m, quickReply: { items: [...more, ...quick.map(([l, data, shown]) => ({ type: 'action', action: { type: 'postback', label: l, data, displayText: shown } })), picker] } });
+  if (d < keepFrom()) { // เก่ากว่า 7 วัน → รวมเป็นยอดแล้ว
+    return withButtons(noteCard('📦', `${thaiDate(d)} เก่ากว่า 7 วันแล้ว`, 'รวมเป็นยอดตามหมวดแล้ว แก้ได้เฉพาะ 7 วันล่าสุด'), []);
+  }
   if (!list.length) return withButtons(noteCard('📝', `${label}ยังไม่มีรายการ`, 'เลือกวันอื่นด้านล่างได้เลย'), []);
   const page = list.slice(offset, offset + PAGE);
   const next = offset + PAGE < list.length
@@ -627,6 +629,18 @@ async function onPostback(uid, ev) {
 
   // ปุ่ม 🔒 จากการ์ดเก่า (ระบบส่วนตัวเลิกใช้แล้ว)
   if (a === 'privb' || a === 'epriv') return reply(ev.replyToken, noteCard('💡', 'ปุ่มนี้เลิกใช้แล้ว', 'ตอนนี้แฟนเห็นทุกรายการในยอดของเรา'));
+
+  // สอนคำจากปุ่ม (ตอนบอทไม่เข้าใจ)
+  if (a === 'teach' || a === 'teach2') {
+    const word = normalizeThai(String(p.get('w') || '')).trim().slice(0, 30);
+    if (!word) return reply(ev.replyToken, helpMessage());
+    const profile = await getProfile(uid);
+    if (a === 'teach') return reply(ev.replyToken, teachPickMessage(word, profile.categories));
+    const cat = profile.categories.find(c => c.id === p.get('c'));
+    if (!cat) return reply(ev.replyToken, noteCard('🤔', 'ไม่พบหมวดนี้แล้ว'));
+    await learn(uid, profile, word, cat.id);
+    return reply(ev.replyToken, withQuick(noteCard('🧠', `จำแล้ว "${word}" = ${cat.icon} ${cat.name}`, `ครั้งหน้าพิมพ์ "${word} 50" ได้เลย`), [['✍️ ลองจด', 'a=stype', 'ลองจด']]));
+  }
 
   if (a === 'stype') return reply(ev.replyToken, noteCard('✍️', 'พิมพ์ได้เลย', 'เช่น ข้าว 50 หรือ น้ำมัน 100'));
   if (['scat', 'snew', 'sflip', 'sno'].includes(a)) {

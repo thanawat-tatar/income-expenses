@@ -403,9 +403,15 @@ const state = {
 const isUs = () => state.scope === 'us' && !!state.couple;
 // ตั้งสถานะคู่ (จำไว้ในเครื่องแค่ชื่อ+รูป ไว้โชว์ปุ่มทันที · ไม่จำรายการของแฟน)
 function setCouple(c) {
-  state.couple = c || null;
+  const old = state.couple;
+  state.couple = c ? { ...c, pic: c.pic || (old && old.name === c.name ? old.pic : '') } : null; // รูปโหลดไม่ทัน → ใช้รูปเดิม
   store.set('couple', state.couple);
-  if (!state.couple) state.scope = 'me';
+  if (!state.couple) { // เลิกคู่แล้ว → ล้างข้อมูลคู่รักที่จำไว้ในเครื่องทิ้ง
+    state.scope = 'me';
+    try { Object.keys(localStorage).filter(k => k.startsWith('ie:us')).forEach(k => localStorage.removeItem(k)); } catch {}
+    for (const k of Object.keys(state.monthCache)) if (k.startsWith('us:')) delete state.monthCache[k];
+    for (const k of Object.keys(state.yearCache)) if (k.startsWith('us:')) delete state.yearCache[k];
+  }
 }
 let liffReady = Promise.resolve();
 
@@ -416,7 +422,9 @@ function todayISO() {
 }
 const fmt = n => Number(n).toLocaleString('th-TH', { maximumFractionDigits: 2 });
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const catById = id => state.categories.find(c => c.id === id) || state.usCats[id] || { id, name: 'อื่นๆ', icon: '🏷️', type: 'expense' };
+// หมวดเก่าที่ยุบรวมแล้ว (ข้อมูลที่จำไว้ในเครื่องอาจยังใช้รหัสเดิม)
+const ALIAS = { fuel: 'travel', repair: 'travel', phone: 'rent', care: 'health', tip: 'bonus' };
+const catById = id => state.categories.find(c => c.id === (ALIAS[id] || id)) || state.usCats[id] || { id, name: 'อื่นๆ', icon: '🏷️', type: 'expense' };
 const ymOf = iso => iso.slice(0, 7);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const lastDay = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
@@ -516,9 +524,15 @@ function getMonth(ym, us = isUs()) {
   if (us) {
     const k = 'us:' + ym;
     if (!state.monthCache[k]) {
-      const p = api('GET', 'coupleEntries', monthRange(ym)).then(r => { addUsCats(r.extraCats); return r.entries; });
+      const saved = ym === ymOf(todayISO()) ? store.get('usmonth') : null;
+      const p = api('GET', 'coupleEntries', monthRange(ym)).then(r => { addUsCats(r.extraCats); if (ym === ymOf(todayISO())) store.set('usmonth', { ym, ...r }); return r.entries; });
       p.catch(e => { if (state.monthCache[k] === p) delete state.monthCache[k]; usFail(e); });
-      state.monthCache[k] = p;
+      // จำไว้ในเครื่อง → โชว์ทันที แล้วค่อยอัปเดตเงียบๆ
+      if (saved?.ym === ym) {
+        addUsCats(saved.extraCats);
+        p.then(list => { state.monthCache[k] = Promise.resolve(list); if (JSON.stringify(list) !== JSON.stringify(saved.entries) && isUs()) render(true); }).catch(() => {});
+        state.monthCache[k] = Promise.resolve(saved.entries);
+      } else state.monthCache[k] = p;
     }
     return state.monthCache[k];
   }
@@ -534,9 +548,14 @@ function getYear(y, us = isUs()) {
   if (us) {
     const k = 'us:' + y;
     if (!state.yearCache[k]) {
-      const p = api('GET', 'coupleYear', { year: y }).then(r => { addUsCats(r.extraCats); return r.months; });
+      const saved = store.get('usyear:' + y);
+      const p = api('GET', 'coupleYear', { year: y }).then(r => { addUsCats(r.extraCats); store.set('usyear:' + y, r); return r.months; });
       p.catch(e => { if (state.yearCache[k] === p) delete state.yearCache[k]; usFail(e); });
-      state.yearCache[k] = p;
+      if (saved) {
+        addUsCats(saved.extraCats);
+        p.then(m => { state.yearCache[k] = Promise.resolve(m); }).catch(() => {});
+        state.yearCache[k] = Promise.resolve(saved.months);
+      } else state.yearCache[k] = p;
     }
     return state.yearCache[k];
   }
@@ -658,10 +677,15 @@ async function loadPeriod() {
     });
     return { inc, exp, ti, te, perMonth, entries: null };
   }
-  if (ymOf(date) < archiveBefore()) return archived(mode, date);
+  if (ymOf(date) < archiveBefore() || (mode === 'day' && date < keepFrom())) return archived(mode, date);
   let entries = await getMonth(ymOf(date));
-  state.streak = streakOf(entries);
+  if (!isUs()) state.streak = streakOf(await daysWithEntries(entries));
   if (mode === 'day') entries = entries.filter(e => e.date === date);
+  // เดือนที่มีบางวันรวมยอดไปแล้ว → ยอดรวมใช้ยอดรายเดือน (ครบทุกวัน) · รายการที่โชว์ = 7 วันล่าสุด
+  if (mode === 'month' && ymOf(date) === archiveBefore() && keepFrom().slice(8) !== '01') {
+    const agg = fromAgg((await getYear(date.slice(0, 4)))[Number(date.slice(5, 7)) - 1], '');
+    return { ...agg, entries, archived: '' };
+  }
   const inc = {}, exp = {};
   let ti = 0, te = 0;
   for (const e of entries) {
@@ -672,26 +696,39 @@ async function loadPeriod() {
 }
 
 // จดติดกันกี่วัน (นับถึงวันนี้ หรือเมื่อวานถ้าวันนี้ยังไม่จด)
-function streakOf(entries) {
-  const days = new Set(entries.map(e => e.date));
+function streakOf(days) {
   let d = todayISO(), n = 0;
   if (!days.has(d)) d = shiftDate(d, 'day', -1);
   while (days.has(d)) { n++; d = shiftDate(d, 'day', -1); }
   return n;
 }
 
-// ข้อมูลเก่ากว่าเดือนก่อน เก็บเป็นยอดรวมรายเดือนตามหมวด (ประหยัดพื้นที่)
-function archiveBefore() {
-  const [y, m] = todayISO().split('-').map(Number);
-  return new Date(Date.UTC(y, m - 2, 1)).toISOString().slice(0, 7);
-}
+// รายการย่อยเก็บ 7 วันล่าสุด (แก้ได้) · เก่ากว่านั้นเหลือยอดตามหมวดของแต่ละวัน (months.days) และของทั้งเดือน
+const keepFrom = () => shiftDate(todayISO(), 'day', -6);
+const archiveBefore = () => ymOf(keepFrom()); // เดือนที่เก่ากว่านี้ไม่มีรายการย่อยเหลือแล้ว
+const sumOf = o => Object.values(o || {}).reduce((s, v) => s + v, 0);
+const fromAgg = (mo, archivedTag) => {
+  const inc = { ...(mo?.inc || {}) }, exp = { ...(mo?.exp || {}) };
+  return { inc, exp, ti: sumOf(inc), te: sumOf(exp), entries: [], archived: archivedTag };
+};
 async function archived(mode, date) {
-  if (mode === 'day') return { inc: {}, exp: {}, ti: 0, te: 0, entries: [], archived: 'day' };
   const months = await getYear(date.slice(0, 4));
   const mo = months[Number(date.slice(5, 7)) - 1] || {};
-  const inc = { ...(mo.inc || {}) }, exp = { ...(mo.exp || {}) };
-  const sum = o => Object.values(o).reduce((s, v) => s + v, 0);
-  return { inc, exp, ti: sum(inc), te: sum(exp), entries: [], archived: 'month' };
+  if (mode === 'day') {
+    const day = mo.days?.[date.slice(8, 10)];
+    return day ? fromAgg(day, 'dayTotals') : { inc: {}, exp: {}, ti: 0, te: 0, entries: [], archived: (mo.days && Object.keys(mo.days).length) ? 'dayTotals' : 'day' };
+  }
+  return fromAgg(mo, 'month');
+}
+// วันที่เคยจด (รวมวันที่รวมยอดไปแล้ว) ไว้นับ streak
+async function daysWithEntries(entries) {
+  const set = new Set(entries.map(e => e.date));
+  const t = todayISO();
+  for (const ym of [ymOf(t), ymOf(shiftDate(t, 'month', -1))]) {
+    const months = await getYear(ym.slice(0, 4)).catch(() => null);
+    for (const dd of Object.keys(months?.[Number(ym.slice(5, 7)) - 1]?.days || {})) set.add(`${ym}-${dd}`);
+  }
+  return set;
 }
 
 function periodLabel() {
@@ -821,7 +858,7 @@ function homeHTML(d) {
         <small>${MONTHS[i].replace('.', '').slice(0, 3)}</small></div>`).join('')}</div>
       <div class="legend"><span><i style="background:var(--income)"></i>รายรับ</span><span><i style="background:var(--expense)"></i>รายจ่าย</span></div></div>`;
   } else if (d.archived) {
-    middle = `<div class="card empty archived">${pig('sleep', 'nap')}<div>📦 ข้อมูลเก่ารวมเป็นยอดตามหมวดแล้ว</div>
+    middle = `<div class="card empty archived">${pig('sleep', 'nap')}<div>📦 ${d.archived === 'dayTotals' ? 'เก่ากว่า 7 วัน รวมเป็นยอดตามหมวดแล้ว<br><small>ดูยอดด้านล่างได้ แต่แก้รายการย่อยไม่ได้</small>' : 'ข้อมูลเก่ารวมเป็นยอดตามหมวดแล้ว'}</div>
       ${d.archived === 'day' ? '<button class="btn" data-month-view>ดูยอดรายเดือน</button>' : ''}</div>`;
   } else {
     const isDay = state.mode === 'day';
@@ -1258,7 +1295,7 @@ function closeSheet() { $('#sheet').classList.remove('open'); $('#sheetBg').clas
 
 function openEntry(entry) {
   const isEdit = !!entry;
-  const e = entry ? { ...entry } : { type: 'expense', category: 'fuel', amount: '', note: '', date: todayISO() };
+  const e = entry ? { ...entry, category: ALIAS[entry.category] || entry.category } : { type: 'expense', category: 'food', amount: '', note: '', date: todayISO() };
   const sheet = $('#sheet');
   const draw = () => {
     const cats = state.categories.filter(c => c.type === e.type);
@@ -1345,6 +1382,22 @@ function go(page) {
   state.anim = PAGES.indexOf(page) > PAGES.indexOf(state.page) ? 'l' : 'r';
   state.page = page; render(); window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+// ดึงข้อมูลเดือนที่ดูอยู่ใหม่เบื้องหลัง (เช่น เพิ่งไปจดในแชทมา) ถ้าเปลี่ยนค่อยวาดใหม่ ไม่โชว์หน้าโหลด
+async function refreshQuiet() {
+  if (state.mode === 'year' || ymOf(state.date) < archiveBefore()) { clearCache(); return render(true); }
+  const ym = ymOf(state.date), us = isUs(), key = (us ? 'us:' : '') + ym;
+  try {
+    const before = await (state.monthCache[key] || Promise.resolve(null));
+    const r = await api('GET', us ? 'coupleEntries' : 'entries', monthRange(ym));
+    if (us) { addUsCats(r.extraCats); if (ym === ymOf(todayISO())) store.set('usmonth', { ym, ...r }); } else cacheMonth(ym, r.entries);
+    state.monthCache[key] = Promise.resolve(r.entries);
+    if (JSON.stringify(before) !== JSON.stringify(r.entries)) {
+      delete state.yearCache[(us ? 'us:' : '') + ym.slice(0, 4)];
+      render(true);
+    }
+  } catch (e) { if (us) usFail(e); }
+}
+
 function bindChrome() {
   $$('.nav-item').forEach(b => b.onclick = () => go(b.dataset.page));
   $$('.seg button[data-mode]').forEach(b => b.onclick = () => { state.mode = b.dataset.mode; state.date = todayISO(); render(); });
@@ -1364,7 +1417,7 @@ function bindChrome() {
   let hiddenAt = 0;
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) hiddenAt = Date.now();
-    else if (state.ready && Date.now() - hiddenAt > 3000) { clearCache(); render(true); }
+    else if (state.ready && Date.now() - hiddenAt > 3000) refreshQuiet();
   });
   matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme(store.get('theme')));
 }
@@ -1416,6 +1469,8 @@ async function boot() {
     setUser(store.get('user'));
     state.couple = store.get('couple') || null;
     if (params.get('scope') === 'us' && state.couple) state.scope = 'us';
+    const um = store.get('usmonth');
+    if (state.couple && um?.ym === ym) { addUsCats(um.extraCats); state.monthCache['us:' + ym] = Promise.resolve(um.entries); }
     const p = store.get('profile'), m = store.get('month');
     if (p && m && m.ym === ym) {
       applyProfile(p); state.monthCache[ym] = Promise.resolve(m.entries);
@@ -1449,6 +1504,11 @@ async function boot() {
     const wasUs = isUs();
     setCouple(r.couple);
     if (params.get('scope') === 'us' && state.couple) state.scope = 'us';
+    if (r.us) { // ข้อมูลคู่รักเดือนนี้มาในคำขอเดียวกัน
+      addUsCats(r.us.extraCats);
+      state.monthCache['us:' + ym] = Promise.resolve(r.us.entries);
+      store.set('usmonth', { ym, ...r.us });
+    }
     state.monthCache[ym] = Promise.resolve(r.entries); cacheMonth(ym, r.entries);
     await render(shown && wasUs === isUs());
     prefetchMore();
@@ -1477,17 +1537,17 @@ boot();
 function demoApi(method, action, body) {
   const db = demoApi.db ||= (() => {
     const cats = [
-      ['job', 'income', '🛵', 'รายได้จากการวิ่งงาน'], ['tip', 'income', '💝', 'ทิป'], ['bonus', 'income', '🎁', 'โบนัส'], ['inc_other', 'income', '💰', 'รายรับอื่นๆ'],
-      ['fuel', 'expense', '⛽', 'ค่าน้ำมัน'], ['food', 'expense', '🍚', 'ค่ากิน'], ['travel', 'expense', '🚌', 'ค่าเดินทาง'], ['phone', 'expense', '📱', 'ค่าเน็ต/ค่าโทร'], ['repair', 'expense', '🔧', 'ค่าซ่อมรถ'],
-      ['loan', 'expense', '🏍️', 'ค่าผ่อนรถ'], ['rent', 'expense', '🏠', 'ค่าที่พัก'], ['family', 'expense', '👪', 'ครอบครัว/ลูก'], ['shopping', 'expense', '🛍️', 'ของใช้'], ['care', 'expense', '💇', 'ดูแลตัวเอง'], ['health', 'expense', '💊', 'ค่ารักษา'], ['exp_other', 'expense', '🧾', 'รายจ่ายอื่นๆ'],
+      ['job', 'income', '💼', 'รายได้งาน'], ['bonus', 'income', '🎁', 'ทิป/โบนัส'], ['inc_other', 'income', '💰', 'รายรับอื่นๆ'],
+      ['food', 'expense', '🍚', 'กินดื่ม'], ['travel', 'expense', '⛽', 'รถ/เดินทาง'], ['rent', 'expense', '🏠', 'บ้าน/บิล'], ['shopping', 'expense', '🛍️', 'ช้อปปิ้ง'],
+      ['loan', 'expense', '💳', 'ผ่อน/หนี้'], ['family', 'expense', '👪', 'ครอบครัว'], ['health', 'expense', '💊', 'สุขภาพ/ความงาม'], ['exp_other', 'expense', '🧾', 'อื่นๆ'],
     ].map(([id, type, icon, name]) => ({ id, type, icon, name }));
     const entries = [];
     const t = todayISO();
     for (let i = 0; i < 70; i++) {
       const date = shiftDate(t, 'day', -i);
       entries.push({ type: 'income', category: 'job', amount: 700 + ((i * 137) % 600), note: 'วิ่งงาน', date });
-      if (i % 3 === 0) entries.push({ type: 'income', category: 'tip', amount: 20 + (i % 5) * 10, note: 'ทิป', date });
-      entries.push({ type: 'expense', category: 'fuel', amount: 60 + (i % 4) * 20, note: 'เติมน้ำมัน', date });
+      if (i % 3 === 0) entries.push({ type: 'income', category: 'bonus', amount: 20 + (i % 5) * 10, note: 'ทิป', date });
+      entries.push({ type: 'expense', category: 'travel', amount: 60 + (i % 4) * 20, note: 'เติมน้ำมัน', date });
       entries.push({ type: 'expense', category: 'food', amount: 50 + (i % 3) * 25, note: 'ข้าวมันไก่', date });
       if (i % 30 === 5) entries.push({ type: 'expense', category: 'loan', amount: 3200, note: 'งวดรถ', date });
       if (i % 30 === 1) entries.push({ type: 'expense', category: 'rent', amount: 3500, note: 'ค่าห้อง', date });
@@ -1507,15 +1567,23 @@ function demoApi(method, action, body) {
     if (action === 'coupleEntries') return wait({ entries: usList(body), extraCats });
     if (action === 'coupleYear') return wait({ extraCats, months: Array.from({ length: 12 }, (_, m) => {
       const ym = `${body.year}-${String(m + 1).padStart(2, '0')}`, inc = {}, exp = {};
-      [...db.entries, ...partner()].filter(e => e.date.startsWith(ym)).forEach(e => { const t = e.type === 'income' ? inc : exp; t[e.category] = (t[e.category] || 0) + e.amount; });
-      return { inc, exp };
+      const days = {};
+      [...db.entries, ...partner()].filter(e => e.date.startsWith(ym)).forEach(e => {
+        const t = e.type === 'income' ? inc : exp; t[e.category] = (t[e.category] || 0) + e.amount;
+        const dd = (days[e.date.slice(8)] ||= { inc: {}, exp: {} })[e.type === 'income' ? 'inc' : 'exp']; dd[e.category] = (dd[e.category] || 0) + e.amount;
+      });
+      return { inc, exp, days };
     }) });
     if (action === 'profile') return wait(profile());
     if (action === 'entries') return wait({ entries: inRange(body) });
     if (action === 'year') return wait({ months: Array.from({ length: 12 }, (_, m) => {
       const ym = `${body.year}-${String(m + 1).padStart(2, '0')}`, inc = {}, exp = {};
-      db.entries.filter(e => e.date.startsWith(ym)).forEach(e => { const t = e.type === 'income' ? inc : exp; t[e.category] = (t[e.category] || 0) + e.amount; });
-      return { inc, exp };
+      const days = {};
+      db.entries.filter(e => e.date.startsWith(ym)).forEach(e => {
+        const t = e.type === 'income' ? inc : exp; t[e.category] = (t[e.category] || 0) + e.amount;
+        const dd = (days[e.date.slice(8)] ||= { inc: {}, exp: {} })[e.type === 'income' ? 'inc' : 'exp']; dd[e.category] = (dd[e.category] || 0) + e.amount;
+      });
+      return { inc, exp, days };
     }) });
   }
   if (action === 'add') { const n = { ...body.entry, id: 'n' + Date.now(), ts: Date.now() }; db.entries.push(n); return wait({ entries: [n] }); }
