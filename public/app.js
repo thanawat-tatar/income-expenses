@@ -426,7 +426,6 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const ALIAS = { fuel: 'travel', repair: 'travel', phone: 'rent', care: 'health', tip: 'bonus' };
 const catById = id => state.categories.find(c => c.id === (ALIAS[id] || id)) || state.usCats[id] || { id, name: 'อื่นๆ', icon: '🏷️', type: 'expense' };
 const ymOf = iso => iso.slice(0, 7);
-const sleep = ms => new Promise(r => setTimeout(r, ms));
 const lastDay = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
 const thaiDay = iso => { const [y, m, d] = iso.split('-').map(Number); return `${d} ${MONTHS[m - 1]} ${y + 543}`; };
 function shiftDate(iso, mode, dir) {
@@ -1290,8 +1289,36 @@ function bindSettings() {
 }
 
 // ---------- sheet เพิ่ม/แก้ไข ----------
-function openSheetEl() { $('#sheetBg').classList.add('open'); $('#sheet').classList.add('open'); }
-function closeSheet() { $('#sheet').classList.remove('open'); $('#sheetBg').classList.remove('open'); }
+function openSheetEl() { const s = $('#sheet'); s.style.transform = ''; $('#sheetBg').style.opacity = ''; $('#sheetBg').classList.add('open'); s.classList.add('open'); }
+function closeSheet() { const s = $('#sheet'); s.style.transform = ''; $('#sheetBg').style.opacity = ''; s.classList.remove('open'); $('#sheetBg').classList.remove('open'); }
+// ปัดหน้าต่างลงเพื่อปิด (แบบ iPhone) · ลากจากแถบด้านบน หรือจากหัวหน้าต่างตอนเลื่อนอยู่บนสุด
+function bindSheetSwipe() {
+  const sheet = $('#sheet'), bg = $('#sheetBg');
+  let y0 = null, dy = 0, t0 = 0;
+  sheet.addEventListener('pointerdown', e => {
+    if (matchMedia('(min-width: 700px)').matches || !sheet.classList.contains('open')) return;
+    const onGrab = e.target.closest('.grab, h2');
+    if (!onGrab || e.target.closest('input, button, select')) return;
+    y0 = e.clientY; dy = 0; t0 = Date.now();
+    sheet.classList.add('dragging');
+    try { sheet.setPointerCapture(e.pointerId); } catch {}
+  });
+  sheet.addEventListener('pointermove', e => {
+    if (y0 === null) return;
+    dy = Math.max(0, e.clientY - y0);
+    sheet.style.transform = `translateY(${dy}px)`;
+    bg.style.opacity = String(Math.max(0, 1 - dy / 400));
+  });
+  const end = () => {
+    if (y0 === null) return;
+    y0 = null;
+    sheet.classList.remove('dragging');
+    const fast = dy / Math.max(1, Date.now() - t0) > .6; // ปัดเร็วก็ปิด
+    if (dy > 110 || (fast && dy > 30)) closeSheet();
+    else { sheet.style.transform = ''; bg.style.opacity = ''; }
+  };
+  sheet.addEventListener('pointerup', end); sheet.addEventListener('pointercancel', end);
+}
 
 function openEntry(entry) {
   const isEdit = !!entry;
@@ -1458,6 +1485,7 @@ async function boot() {
   bindPull();
   bindDrag();
   bindNavDrag();
+  bindSheetSwipe();
   bindDeviceTilt();
   addEventListener('resize', () => moveBlob(true));
   applyTheme(store.get('theme'));

@@ -591,11 +591,11 @@ body.us::after { opacity: 1; }
 
 /* การ์ดยอดเงิน: กระจกนูน 3D เอียงตามนิ้ว/มือถือ + แสงวิ้งวิ่งตาม */
 .hero.tilt { transform: perspective(800px) rotateY(var(--ry, 0deg)) rotateX(var(--rx, 0deg)); transition: transform .5s var(--spring); transform-style: preserve-3d; }
-.glare { position: absolute; inset: 0; z-index: 2 !important; pointer-events: none; border-radius: inherit;
-  background: radial-gradient(circle at var(--gx, 30%) var(--gy, 20%), rgba(255, 255, 255, .45), rgba(255, 255, 255, 0) 45%),
-              linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, .28) 45%, transparent 55%) no-repeat;
-  background-size: 100% 100%, 250% 100%; mix-blend-mode: soft-light; animation: sheen 6s ease-in-out 1.2s infinite; }
-@keyframes sheen { 0%, 70% { background-position: 0 0, 160% 0; } 100% { background-position: 0 0, -60% 0; } }
+.glare { position: absolute; inset: 0; z-index: 2 !important; pointer-events: none; border-radius: inherit; overflow: hidden;
+  background: radial-gradient(circle at var(--gx, 30%) var(--gy, 20%), rgba(255, 255, 255, .32), rgba(255, 255, 255, 0) 45%); }
+.glare::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 45%; will-change: transform;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, .26), transparent); transform: translateX(-120%); animation: sheen 6s ease-in-out 1.2s infinite; }
+@keyframes sheen { 0%, 70% { transform: translateX(-120%); } 100% { transform: translateX(260%); } }
 .hero-amount.pop { animation: amtPop .45s var(--jelly); }
 @keyframes amtPop { 0% { transform: scale(1); } 40% { transform: scale(1.08, .94); } 100% { transform: scale(1); } }
 .hero.glow { animation: heroGlow 1.6s ease-in-out 2; }
@@ -704,3 +704,19 @@ body.calm .lover, body.calm .lover-ring, body.calm .lheart, body.calm .floaty { 
 .toss-fx { position: fixed; left: 50%; bottom: calc(var(--nav-h) + 40px + env(safe-area-inset-bottom)); z-index: 90; width: 120px; height: 110px; transform: translateX(-50%); pointer-events: none; animation: fxOut 1s ease forwards; }
 @keyframes fxOut { 0%, 75% { opacity: 1; } 100% { opacity: 0; } }
 .nav-blob.held { z-index: 3; background: linear-gradient(160deg, rgba(255, 255, 255, .55), color-mix(in srgb, var(--accent) 16%, transparent)); }
+
+/* ================= รอบ 4: ลื่นแบบ iPhone ================= */
+/* แตะแล้วไม่มีกรอบสีเทา · ปุ่มตอบสนองทันที · ไม่เผลอลากเลือกข้อความ */
+html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
+button, a, .entry, .chip, .nav-item, .nav-add { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+.nav, .scope, .seg, .stepper { -webkit-user-select: none; user-select: none; }
+input, textarea { -webkit-user-select: text; user-select: text; }
+/* การ์ดที่อยู่นอกจอ ยังไม่ต้องวาด (เลื่อนลื่นขึ้นเมื่อรายการเยอะ) */
+.day-group, .grid.home > .grid > .card:not(.hero):not(.perched) { content-visibility: auto; contain-intrinsic-size: auto 240px; }
+/* หน้าต่างเพิ่มรายการ: เด้งขึ้นแบบสปริง · ปัดลงเพื่อปิด */
+.sheet.open { transition: transform .5s cubic-bezier(.22, 1.25, .36, 1); }
+.sheet.dragging { transition: none !important; }
+.sheet-bg { transition: opacity .35s ease; }
+.grab { cursor: grab; padding: 6px 0; box-sizing: content-box; background-clip: content-box; touch-action: none; }
+/* กดแล้วยุบนิดๆ ทุกปุ่ม (รู้สึกเหมือนปุ่มจริง) */
+.entry:active, .chip:active, .scope button:active, .seg button:active, .icon-btn:active { transform: scale(.97); transition-duration: .06s; }

@@ -3,7 +3,7 @@
 import { authUser } from '../lib/line.js';
 import { isAdmin, adminOverview, setLimit, deleteUserData, removeExpired } from '../lib/access.js';
 import { getDb } from '../lib/firebase.js';
-import { tooMany } from '../lib/guard.js';
+import { tooMany, readJson } from '../lib/guard.js';
 
 // บันทึกประวัติทุกการกระทำในหลังบ้าน (ใคร ทำอะไร เมื่อไหร่)
 const audit = (by, action, detail) => getDb().collection('audit').add({ at: Date.now(), by, action, detail: String(detail ?? '') }).catch(e => console.error('audit', e));
@@ -30,7 +30,8 @@ export async function POST(request) {
   const { err, user } = await admin(request);
   if (err) return err;
   try {
-    const b = await request.json();
+    const b = await readJson(request, 2000);
+    if (!b) return json({ error: 'bad request' }, 400);
     if (b.action === 'limit') { const limit = await setLimit(b.limit); await audit(user.uid, 'limit', limit); return json({ limit }); }
     if (b.action === 'delete') {
       const id = String(b.id || '');

@@ -8,7 +8,7 @@ import {
 } from '../lib/store.js';
 import { gate, POLICY_VERSION } from '../lib/access.js';
 import { runCtx, later } from '../lib/ctx.js';
-import { tooMany, tooBig } from '../lib/guard.js';
+import { tooMany, tooBig, readJson, validId } from '../lib/guard.js';
 
 const json = (data, status = 200) => new Response(JSON.stringify(data), {
   status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
@@ -17,12 +17,20 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
 const auth = authUser;
 
 // เว็บใช้ได้เฉพาะคนที่อยู่ในระบบและกดยอมรับในแชทแล้ว (รับคนใหม่ผ่านแชทเท่านั้น)
+// ผลตรวจสิทธิ์จำไว้ 20 วิ ต่อเครื่อง (เปิดเว็บ/สลับหน้าไม่ต้องอ่านฐานข้อมูลซ้ำทุกครั้ง)
+const okCache = new Map();
 async function allowed(user) {
+  const hit = okCache.get(user.uid);
+  if (hit && hit > Date.now()) return '';
   const g = await gate(user.uid, { displayName: user.name, admit: false });
   if (g.status !== 'member') return 'not_member';
   if (!g.user.consentAt || (g.user.consentVersion || 1) < POLICY_VERSION) return 'no_consent';
+  if (okCache.size > 500) okCache.clear();
+  okCache.set(user.uid, Date.now() + 20000);
   return '';
 }
+// ช่วงวันที่ต้องถูกต้องและไม่กว้างเกิน (กันขอข้อมูลก้อนใหญ่)
+const okRange = (from, to, days = 62) => isDate(from) && isDate(to) && from <= to && Date.parse(to) - Date.parse(from) <= days * 86400000;
 
 const isDate = s => /^\d{4}-\d{2}-\d{2}$/.test(s || '');
 
@@ -43,7 +51,7 @@ async function get(request) {
     if (action === 'profile') return json({ ...(await getProfile(user.uid)), name: user.name });
     if (action === 'boot') { // เปิดเว็บครั้งแรก: ดึงหมวด + รายการเดือนนี้ในครั้งเดียว
       const from = url.searchParams.get('from'), to = url.searchParams.get('to');
-      if (!isDate(from) || !isDate(to)) return json({ error: 'bad date' }, 400);
+      if (!okRange(from, to)) return json({ error: 'bad date' }, 400);
       // 💑 มีคู่ไหม (คนโสดไม่มีการอ่านเพิ่ม) → ชื่อ+รูปแฟน ไว้โชว์ปุ่ม "ของเรา"
       // รูปแฟนดึงจาก LINE ไม่เกิน 0.7 วิ (ช้ากว่านั้นใช้รูปที่เว็บจำไว้ ไม่ให้หน้าเว็บรอ)
       // มีคู่ → ส่งข้อมูลคู่รักเดือนนี้มาในคำขอเดียวกันเลย (กดสลับแล้วขึ้นทันที) · รูปแฟนรอไม่เกิน 0.3 วิ
@@ -60,7 +68,7 @@ async function get(request) {
     }
     if (action === 'entries') {
       const from = url.searchParams.get('from'), to = url.searchParams.get('to');
-      if (!isDate(from) || !isDate(to)) return json({ error: 'bad date' }, 400);
+      if (!okRange(from, to)) return json({ error: 'bad date' }, 400);
       return json({ entries: await listEntries(user.uid, from, to) });
     }
     // ---- 💑 ของเรา: เซิร์ฟเวอร์หาคู่จากบัญชีตัวเองเท่านั้น (ไม่รับ uid จากหน้าเว็บ) ----
@@ -73,7 +81,7 @@ async function get(request) {
         return json(await coupleYear(user.uid, couple, y));
       }
       const from = url.searchParams.get('from'), to = url.searchParams.get('to');
-      if (!isDate(from) || !isDate(to) || Date.parse(to) - Date.parse(from) > 62 * 86400000) return json({ error: 'bad date' }, 400);
+      if (!okRange(from, to)) return json({ error: 'bad date' }, 400);
       return json(await coupleEntries(user.uid, couple, from, to));
     }
     if (action === 'year') {
@@ -96,7 +104,11 @@ async function post(request) {
   try {
     const deny = await allowed(user);
     if (deny) return json({ error: deny }, 403);
-    const { action, ...b } = await request.json();
+    const body = await readJson(request);
+    if (!body) return json({ error: 'bad request' }, 400);
+    const { action, ...b } = body;
+    if ((action === 'update' || action === 'delete') && !validId(b.id)) return json({ error: 'bad id' }, 400);
+    if ((action === 'add' || action === 'update') && (!b.entry || typeof b.entry !== 'object')) return json({ error: 'bad entry' }, 400);
     if (action === 'add') return json({ entries: await addEntries(user.uid, [b.entry]) });
     if (action === 'update') return json({ entry: await updateEntry(user.uid, String(b.id), b.entry) });
     if (action === 'delete') return json({ deleted: await deleteEntries(user.uid, [String(b.id)]) });
