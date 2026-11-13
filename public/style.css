@@ -250,10 +250,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .mgrid button { height: 52px; background: var(--surface-2); }
 
 /* บันทึกสำเร็จ */
-.saved { display: grid; justify-items: center; gap: 4px; padding: 26px 0 30px; text-align: center; }
-.saved-title { font-size: 20px; font-weight: 700; }
-.saved-amt { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.saved-cat { color: var(--muted); font-size: 14px; }
 
 .toast { position: fixed; left: 50%; bottom: calc(var(--nav-h) + 24px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: 14px; opacity: 0; pointer-events: none; transition: all .3s var(--ease); z-index: 60; white-space: nowrap; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -364,7 +360,6 @@ body { line-height: 1.6; }
 
 /* ---------- ลูกเล่นการ์ด / หน้าโหลด ---------- */
 .pig { display: block; overflow: visible; }
-.saved-pig .coin { position: absolute; left: 50%; top: -6px; font-size: 30px; transform: translateX(-50%); animation: coin .7s ease-in both; z-index: 2; }
 .hero { transition: transform .25s var(--ease); will-change: transform; }
 .spark { position: absolute; color: #fff; font-style: normal; opacity: 0; pointer-events: none; z-index: 1; animation: twinkle 2.6s ease-in-out infinite; }
 .spark.s1 { left: 34%; top: 20px; font-size: 14px; }
@@ -383,7 +378,6 @@ body { line-height: 1.6; }
 @keyframes zz { 0%, 100% { transform: translate(0, 0); opacity: .3; } 50% { transform: translate(4px, -6px); opacity: 1; } }
 @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
 @keyframes jump { 0% { transform: none; } 30% { transform: scale(1.1, .85); } 55% { transform: translateY(-22px) scale(.95, 1.08); } 80% { transform: scale(1.06, .94); } 100% { transform: none; } }
-@keyframes coin { from { transform: translate(-50%, -60px) rotate(-30deg); opacity: 0; } 70% { opacity: 1; } to { transform: translate(-50%, 34px) rotate(0); opacity: 0; } }
 @keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(.5); } 50% { opacity: .9; transform: scale(1.2); } }
 @keyframes dot { 0%, 100% { opacity: .2; } 50% { opacity: 1; } }
 
@@ -417,8 +411,6 @@ svg.pig { height: auto; fill: initial; stroke: none; stroke-width: 0; }
 .corner-pig { float: right; width: 84px; margin: -64px -8px 0 0; animation: peekIn .8s var(--ease) both; }
 .corner-pig .pig { width: 100%; animation: wiggle 4s 1s ease-in-out infinite; }
 .nap { width: 130px; margin: 0 auto 6px; animation: breathe 3s ease-in-out infinite; }
-.saved-pig { position: relative; width: 130px; height: 130px; margin-bottom: 6px; }
-.saved-pig .jump { width: 130px; animation: jump .9s var(--ease) .25s both; }
 .streak { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: rgba(255, 255, 255, .25); font-size: 12px; font-weight: 700; animation: pop .5s var(--ease); }
 .archived div { margin-bottom: 8px; }
 
@@ -484,11 +476,6 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .hero-wrap.us { margin-top: 70px; }
 .hero-wrap.us .hero-top, .hero-wrap.us .hero.mini .hero-top { padding-right: 0; margin-top: 16px; }
 .hero-wrap.us .hero-label { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; opacity: 1; }
-.peek-body.second, .peek-paws.second { right: 96px; }
-.peek-body.second .pig, .peek-paws.second svg { filter: hue-rotate(-48deg) saturate(1.05); }
-.peek-body.second .pig { animation-delay: 1.4s; transform: scaleX(-1); }
-.pig-heart { position: absolute; right: 92px; top: -92px; z-index: 3; font-style: normal; font-size: 22px; pointer-events: none; animation: heartUp 2.6s ease-in-out infinite; }
-@keyframes heartUp { 0% { transform: translateY(8px) scale(.6); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-26px) scale(1.15); opacity: 0; } }
 
 /* รูปโปรไฟล์วงกลม */
 .face { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; display: inline-grid; place-items: center; font-style: normal; font-size: 14px; background: #FFE6F1; box-shadow: 0 0 0 2px #fff; flex: none; vertical-align: middle; }
@@ -532,10 +519,9 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .chip:active { transition-duration: .08s; transform: scale(.94); }
 
 /* น้องหมูนุ่มนิ่ม กดแล้วยุบ */
-.peek-body, .corner-pig, .saved-pig { touch-action: manipulation; }
-.peek-body.squish .pig, .corner-pig.squish .pig, .saved-pig.squish .pig { animation: none; transform: scale(1.14, .82) translateY(10%); transition: transform .1s ease-out; }
+.peek-body, .corner-pig { touch-action: manipulation; }
+.peek-body.squish .pig, .corner-pig.squish .pig { animation: none; transform: scale(1.14, .82) translateY(10%); transition: transform .1s ease-out; }
 .peek-body .pig, .corner-pig .pig { transition: transform .45s cubic-bezier(.3, 2.2, .45, 1); }
-.peek-body.second.squish .pig { transform: scale(-1.14, .82) translateY(10%); }
 
 /* จ๊ะเอ๋: น้องหมูจิ๋วชะโงกจากหลังปุ่ม */
 .boo { position: fixed; z-index: 55; width: 64px; height: 44px; overflow: hidden; pointer-events: none; }
@@ -571,7 +557,8 @@ html, body { overscroll-behavior-y: contain; }
 :root { --spring: cubic-bezier(.34, 1.56, .64, 1); --jelly: cubic-bezier(.3, 1.9, .4, 1); }
 
 /* พื้นหลังแสงชมพูพีชไหลช้าๆ (aurora) · โหมดของเรา = ชมพูอมม่วง */
-body::before, body::after { content: ""; position: fixed; inset: -25%; z-index: -1; pointer-events: none; will-change: transform; }
+body::before, body::after { content: ""; position: fixed; inset: -12%; z-index: -1; pointer-events: none; }
+body::before { will-change: transform; }
 body::before {
   background: radial-gradient(38% 32% at 22% 18%, rgba(255, 140, 195, .32), transparent 70%),
               radial-gradient(34% 30% at 82% 30%, rgba(255, 190, 160, .28), transparent 70%),
@@ -581,10 +568,10 @@ body::before {
 body::after {
   background: radial-gradient(40% 34% at 18% 20%, rgba(181, 140, 255, .34), transparent 70%),
               radial-gradient(36% 30% at 85% 40%, rgba(255, 79, 154, .22), transparent 70%);
-  opacity: 0; transition: opacity .6s ease; animation: aurora 30s ease-in-out -8s infinite alternate-reverse;
+  opacity: 0; transition: opacity .6s ease;
 }
 body.us::after { opacity: 1; }
-@keyframes aurora { 0% { transform: translate3d(0, 0, 0) rotate(0); } 50% { transform: translate3d(4%, -3%, 0) rotate(6deg); } 100% { transform: translate3d(-3%, 4%, 0) rotate(-4deg); } }
+@keyframes aurora { 0% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(4%, -3%, 0); } 100% { transform: translate3d(-3%, 4%, 0); } }
 
 /* เมนูล่าง: วงกลมกระจกชมพูเลื่อนแบบสปริง */
 .nav { isolation: isolate; }
@@ -644,11 +631,8 @@ body.us::after { opacity: 1; }
 @keyframes twink { to { transform: translate(calc(-50% + var(--dx)), -170%) scale(.4); opacity: 0; } }
 
 /* บันทึก: เหรียญหลายเหรียญตกใส่กระปุก */
-.coin.rain { font-size: 20px; left: calc(50% + var(--x)); animation: coinRain .6s cubic-bezier(.5, 0, .9, .6) var(--d) both; }
-@keyframes coinRain { from { transform: translate(-50%, -90px) rotate(-40deg) scale(.8); opacity: 0; } 30% { opacity: 1; } to { transform: translate(-50%, 46px) rotate(20deg) scale(.6); opacity: 0; } }
 
 /* ลบ: รายการม้วนตัวลงถังขยะ */
-.trash-wrap { position: relative; width: 130px; height: 120px; }
 .bin { position: absolute; left: 50%; bottom: 0; font-size: 56px; transform: translateX(-50%); animation: binShake .35s ease-in-out .55s; }
 .toss { position: absolute; left: 50%; top: 0; font-size: 34px; animation: toss .65s cubic-bezier(.45, -.4, .7, 1) both; }
 @keyframes toss { 0% { transform: translate(-150%, 10px) rotate(0) scale(1); } 60% { opacity: 1; } 100% { transform: translate(-50%, 62px) rotate(540deg) scale(.35); opacity: 0; } }
@@ -666,6 +650,57 @@ body.us::after { opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
   body::before, body::after, .glare, .perch .pig, .nav-blob { animation: none !important; }
-  .twink, .coin.rain { display: none !important; }
+  .twink, .coin-drop, .toss-fx, .floaty { display: none !important; }
 }
 body.calm::before, body.calm::after, body.calm .glare, body.calm .perch .pig, body.calm .peek-body .pig { animation: none !important; }
+
+/* ================= รอบ 3: กระจกเมนูลากได้ · รูปคู่รัก · บันทึก/ลบทันที ================= */
+/* เมนูล่าง: แคปซูลกระจกใหญ่ ลากได้ */
+.nav { touch-action: none; }
+.nav-blob { border-radius: 999px; }
+.nav-blob.held { transition: transform .09s linear, width .3s var(--spring), height .3s var(--spring); scale: 1.14 1.08; box-shadow: inset 0 1px 1px rgba(255, 255, 255, .9), 0 8px 22px color-mix(in srgb, var(--accent) 38%, transparent); }
+.nav.dragging .nav-item { transition: color .15s, transform .25s var(--spring); }
+.nav.dragging .nav-item.hover { color: var(--accent); transform: scale(1.12); }
+.nav.dragging .nav-add.hover { transform: scale(1.12); }
+@media (min-width: 700px) { .nav-blob { border-radius: 14px; } .nav { touch-action: auto; } }
+
+/* 💑 รูปคู่รักใหญ่กลางการ์ด */
+.hero-wrap.us { margin-top: 128px; }
+.hero-wrap.us.small { margin-top: 104px; }
+.lovers { position: absolute; left: 50%; top: -118px; z-index: 3; display: flex; align-items: flex-end; transform: translateX(-50%); }
+.lovers.small { top: -96px; }
+.lover { position: relative; width: 104px; height: 104px; border-radius: 50%; padding: 5px; touch-action: none; display: grid; place-items: center; }
+.lovers.small .lover { width: 82px; height: 82px; }
+.lover.me { animation: loverL 3.2s ease-in-out infinite; z-index: 1; }
+.lover.you { margin-left: -16px; animation: loverR 3.2s ease-in-out infinite; }
+.lover-ring { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, #FF4F9A, #FFB3D6, #B58CFF, #FF8CC3, #FF4F9A); animation: ringSpin 4s linear infinite; box-shadow: 0 10px 26px rgba(217, 58, 128, .35); }
+.lover img, .lover b { position: relative; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #fff; display: grid; place-items: center; font-size: 38px; font-weight: 700; color: #fff; background: linear-gradient(150deg, #FF8CC3, #B58CFF); }
+.lovers.small .lover b { font-size: 30px; }
+.lover small { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); max-width: 96px; padding: 1px 9px; border-radius: 999px; background: #fff; color: var(--accent); font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 2px 0 var(--card-edge); }
+.lover.you small { color: #8E5FD6; }
+.lover.love-pop { animation: lovePop .5s var(--jelly); }
+.lover.held { z-index: 5; filter: drop-shadow(0 12px 14px rgba(217, 58, 128, .35)); }
+.lover.spring { transition: transform .85s var(--jelly); }
+.lheart { position: absolute; left: 50%; bottom: 14px; z-index: 4; transform: translateX(-50%); font-style: normal; font-size: 34px; line-height: 1; color: #FF3D8B; text-shadow: 0 2px 0 #fff, 0 0 14px rgba(255, 61, 139, .55); animation: beat 1.1s ease-in-out infinite; pointer-events: none; }
+.lovers.small .lheart { font-size: 28px; bottom: 10px; }
+.floaty { position: absolute; left: 50%; bottom: 40px; font-size: 16px; opacity: 0; pointer-events: none; animation: floatUp 3.6s ease-out infinite; }
+.floaty.f1 { --fx: -46px; animation-delay: 0s; } .floaty.f2 { --fx: 40px; animation-delay: .9s; } .floaty.f3 { --fx: -14px; animation-delay: 1.8s; } .floaty.f4 { --fx: 24px; animation-delay: 2.7s; font-size: 12px; }
+@keyframes beat { 0%, 100% { transform: translateX(-50%) scale(1); } 15% { transform: translateX(-50%) scale(1.28); } 30% { transform: translateX(-50%) scale(.96); } 45% { transform: translateX(-50%) scale(1.16); } }
+@keyframes ringSpin { to { transform: rotate(1turn); } }
+@keyframes loverL { 0%, 100% { translate: 0 0; rotate: -3deg; } 50% { translate: 4px -4px; rotate: 2deg; } }
+@keyframes loverR { 0%, 100% { translate: 0 0; rotate: 3deg; } 50% { translate: -4px -4px; rotate: -2deg; } }
+@keyframes lovePop { 0% { scale: 1; } 35% { scale: 1.16 .9; } 65% { scale: .95 1.06; } 100% { scale: 1; } }
+@keyframes floatUp { 0% { transform: translate(-50%, 0) scale(.5); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(calc(-50% + var(--fx)), -110px) scale(1.1); opacity: 0; } }
+.hero.love .hero-top { margin-top: 18px; }
+body.calm .lover, body.calm .lover-ring, body.calm .lheart, body.calm .floaty { animation: none !important; }
+
+/* บันทึก: เหรียญตกใส่การ์ดยอดเงิน + การ์ดยุบรับ */
+.coin-drop { position: fixed; z-index: 90; font-size: 22px; pointer-events: none; animation: coinDrop .7s cubic-bezier(.5, 0, .9, .5) var(--d) both; }
+@keyframes coinDrop { from { transform: translateY(-40px) rotate(-30deg); opacity: 0; } 25% { opacity: 1; } to { transform: translateY(110px) rotate(25deg) scale(.6); opacity: 0; } }
+.hero.thump { animation: thump .5s var(--jelly) .35s; }
+@keyframes thump { 0% { scale: 1; } 40% { scale: 1.03 .96; } 100% { scale: 1; } }
+
+/* ลบ: ไอคอนม้วนลงถัง (ลอยบนจอ) */
+.toss-fx { position: fixed; left: 50%; bottom: calc(var(--nav-h) + 40px + env(safe-area-inset-bottom)); z-index: 90; width: 120px; height: 110px; transform: translateX(-50%); pointer-events: none; animation: fxOut 1s ease forwards; }
+@keyframes fxOut { 0%, 75% { opacity: 1; } 100% { opacity: 0; } }
+.nav-blob.held { z-index: 3; background: linear-gradient(160deg, rgba(255, 255, 255, .55), color-mix(in srgb, var(--accent) 16%, transparent)); }

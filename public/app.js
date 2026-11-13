@@ -148,7 +148,7 @@ function confettiPop(el) {
 }
 // น้องหมูนุ่มเด้ง: กดแล้วยุบ ปล่อยแล้วเด้งคืน
 function bindSquish(root) {
-  root.querySelectorAll('.peek-body, .corner-pig, .saved-pig').forEach(p => {
+  root.querySelectorAll('.peek-body, .corner-pig').forEach(p => {
     p.onpointerdown = () => { if (funOn()) p.classList.add('squish'); };
     p.onpointerup = p.onpointerleave = p.onpointercancel = () => p.classList.remove('squish');
   });
@@ -164,7 +164,7 @@ function bindPull() {
   let y0 = null, dist = 0;
   const scrollTop = () => document.scrollingElement.scrollTop;
   const ok = () => state.ready && !['settings', 'admin'].includes(state.page) && !$('#sheet').classList.contains('open') && !$('.picker');
-  addEventListener('touchstart', e => { y0 = e.touches.length === 1 && scrollTop() <= 0 && ok() && !e.target.closest?.('.peek-body, .perch') ? e.touches[0].clientY : null; dist = 0; }, { passive: true });
+  addEventListener('touchstart', e => { y0 = e.touches.length === 1 && scrollTop() <= 0 && ok() && !e.target.closest?.('.peek-body, .perch, .lover') ? e.touches[0].clientY : null; dist = 0; }, { passive: true });
   addEventListener('touchmove', e => {
     if (y0 === null) return;
     dist = e.touches[0].clientY - y0;
@@ -188,7 +188,22 @@ function bindPull() {
 
 // ---------- เอฟเฟกต์เพิ่ม ----------
 // น้องหมูตัวเล็กเกาะขอบการ์ด (pose: hang = นั่งห้อยขา · eyes = โผล่แค่ตา · lie = นอนพาด)
-const perch = (mood, pose) => `<span class="perch ${pose}" data-mood="${mood}" aria-hidden="true">${pig(mood)}</span>`;
+const perch = (mood, pose) => (isUs() ? '' : `<span class="perch ${pose}" data-mood="${mood}" aria-hidden="true">${pig(mood)}</span>`);
+
+// 💑 รูปคู่รักใหญ่ๆ กลางการ์ด: เรา (ซ้าย) ❤ แฟน (ขวา) · หัวใจเต้น หัวใจลอย วงแสงหมุน · แตะแล้วหัวใจระเบิด
+const initial = name => esc([...String(name || '?').trim()][0] || '?');
+const loverFace = (pic, name, cls) => `<button class="lover ${cls}" aria-label="${esc(name)}"><span class="lover-ring"></span>${pic
+  ? `<img src="${esc(pic)}" alt="" referrerpolicy="no-referrer" data-initial="${initial(name)}">`
+  : `<b>${initial(name)}</b>`}<small>${esc(name)}</small></button>`;
+function loversHTML(small) {
+  const me = store.get('user') || {};
+  return `<div class="lovers ${small ? 'small' : ''}">
+    ${loverFace(me.pic, 'ฉัน', 'me')}
+    <i class="lheart">❤</i>
+    ${loverFace(state.couple?.pic, state.couple?.name || 'แฟน', 'you')}
+    <span class="floaty f1">💕</span><span class="floaty f2">💖</span><span class="floaty f3">💗</span><span class="floaty f4">✨</span>
+  </div>`;
+}
 
 // แตะแล้ววิ้งเล็กๆ
 function sparkle(el) {
@@ -213,21 +228,66 @@ function moveBlob(instant) {
   if (!act) { blob.style.opacity = 0; return; }
   const n = nav.getBoundingClientRect(), r = act.getBoundingClientRect();
   const wide = matchMedia('(min-width: 700px)').matches;
-  const size = wide ? null : Math.min(56, r.height - 6);
-  const w = wide ? r.width : size, h = wide ? r.height : size;
+  const w = wide ? r.width : Math.min(r.width - 6, 100), h = wide ? r.height : Math.min(r.height - 6, 60); // แคปซูลกระจกใหญ่แบบ iPhone
   const x = r.left - n.left + (r.width - w) / 2 + (nav.scrollLeft || 0), y = r.top - n.top + (r.height - h) / 2;
   const moved = blob.dataset.x && Math.abs(Number(blob.dataset.x) - x) > 2;
   blob.classList.toggle('instant', !!instant);
   blob.style.cssText = `opacity:1;width:${w}px;height:${h}px;transform:translate(${x}px,${y}px)`;
-  blob.dataset.x = x;
+  blob.dataset.x = x; blob.dataset.y = y;
   if (moved && !instant && funOn()) { blob.classList.remove('go'); void blob.offsetWidth; blob.classList.add('go'); }
+}
+
+// เมนูล่างแบบ iPhone: กดค้างแล้วลากนิ้วไปมาได้ กระจกไหลตามนิ้ว ปล่อยตรงไหนไปตรงนั้น (ปล่อยบน ➕ = เพิ่มรายการ)
+function bindNavDrag() {
+  const nav = $('#nav');
+  let s = null, swallow = false;
+  const targets = () => $$('.nav-item, .nav-add', nav);
+  const nearest = (x, y) => targets().reduce((best, el) => {
+    const r = el.getBoundingClientRect(), d = Math.hypot(r.left + r.width / 2 - x, r.top + r.height / 2 - y);
+    return !best || d < best.d ? { el, d } : best;
+  }, null)?.el;
+  // หลังลาก ไม่ให้นับเป็นการแตะ
+  nav.addEventListener('click', ev => { if (swallow) { swallow = false; ev.stopPropagation(); ev.preventDefault(); } }, true);
+  nav.addEventListener('pointerdown', e => {
+    if (!e.target.closest('.nav-item, .nav-add') || e.button > 0) return;
+    s = { x: e.clientX, y: e.clientY, id: e.pointerId, drag: false };
+  });
+  addEventListener('pointermove', e => {
+    if (!s || e.pointerId !== s.id) return;
+    if (!s.drag && Math.hypot(e.clientX - s.x, e.clientY - s.y) < 10) return;
+    const blob = $('.nav-blob', nav);
+    if (!blob) return;
+    if (!s.drag) { s.drag = true; nav.classList.add('dragging'); blob.classList.add('held'); navigator.vibrate?.(8); try { nav.setPointerCapture(e.pointerId); } catch {} }
+    const n = nav.getBoundingClientRect(), w = blob.offsetWidth, h = blob.offsetHeight;
+    const wide = matchMedia('(min-width: 700px)').matches;
+    const x = wide ? Number(blob.dataset.x) : Math.max(0, Math.min(n.width - w, e.clientX - n.left - w / 2));
+    const y = wide ? Math.max(0, Math.min(n.height - h, e.clientY - n.top - h / 2)) : Number(blob.dataset.y);
+    blob.style.transform = `translate(${x}px, ${y}px)`;
+    const near = nearest(e.clientX, e.clientY);
+    targets().forEach(t => t.classList.toggle('hover', t === near));
+  });
+  const end = e => {
+    if (!s || e.pointerId !== s.id) return;
+    const was = s; s = null;
+    if (!was.drag) return;
+    swallow = true; setTimeout(() => { swallow = false; }, 400);
+    nav.classList.remove('dragging');
+    $('.nav-blob', nav)?.classList.remove('held');
+    targets().forEach(t => t.classList.remove('hover'));
+    const el = nearest(e.clientX, e.clientY);
+    navigator.vibrate?.(10);
+    if (el?.classList.contains('nav-add')) { moveBlob(); openEntry(null); }
+    else if (el?.dataset.page && el.dataset.page !== state.page) go(el.dataset.page);
+    else moveBlob();
+  };
+  addEventListener('pointerup', end); addEventListener('pointercancel', end);
 }
 
 // ลากน้องหมูได้: ยืดตามนิ้ว ปล่อยแล้วเด้งดึ๋งกลับที่เดิม
 function bindDrag() {
   let el = null, x0 = 0, y0 = 0, moved = false;
   addEventListener('pointerdown', e => {
-    const t = e.target.closest?.('.peek-body, .perch');
+    const t = e.target.closest?.('.peek-body, .perch, .lover');
     if (!t || e.button > 0) return;
     el = t; x0 = e.clientX; y0 = e.clientY; moved = false;
     el.classList.remove('spring');
@@ -255,16 +315,6 @@ function bindDrag() {
   addEventListener('pointerup', up); addEventListener('pointercancel', up);
 }
 
-// ลบ: รายการม้วนตัวลงถังขยะ
-async function showDeleted(e) {
-  const c = catById(e.category);
-  $('#sheet').innerHTML = `<div class="saved deleted">
-    <div class="trash-wrap"><span class="toss">${esc(c.icon)}</span><span class="bin">🗑️</span></div>
-    <div class="saved-title">ลบแล้ว</div>
-    <div class="saved-cat">${esc(c.name)} ${fmt(e.amount)} ฿</div></div>`;
-  await sleep(950);
-  closeSheet();
-}
 
 // จดติดกันครบ 3 / 7 / 14 / 30 / 60 / 100 วัน → ฉลองใหญ่ครั้งเดียว (แบบ Duolingo)
 function celebrateStreak() {
@@ -299,6 +349,17 @@ function showBubble(anchor, text) {
 }
 function bindPig(root) {
   bindSquish(root);
+  root.querySelectorAll('.lover').forEach(l => {
+    const img = l.querySelector('img');
+    if (img) img.onerror = () => { const b = document.createElement('b'); b.textContent = img.dataset.initial; img.replaceWith(b); }; // รูปโหลดไม่ได้ → ตัวอักษรแรก
+    l.onclick = () => {
+      if (l.dataset.dragged) { delete l.dataset.dragged; return; }
+      l.classList.remove('love-pop'); void l.offsetWidth; l.classList.add('love-pop');
+      const r = l.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + r.height / 2, ['💖', '💕', '💗', '❤️', '✨']);
+      navigator.vibrate?.(12);
+    };
+  });
   root.querySelectorAll('.peek-body').forEach(p => {
     p.onclick = () => {
       if (p.dataset.dragged) { delete p.dataset.dragged; return; }
@@ -504,6 +565,78 @@ function prefetchMore() {
   };
   (window.requestIdleCallback || (f => setTimeout(f, 300)))(run);
 }
+// ---------- อัปเดตบนจอทันที แล้วค่อยส่งเซิร์ฟเวอร์เบื้องหลัง (ไม่ต้องรอ "ประมวลผล") ----------
+const byNewest = (a, b) => b.date.localeCompare(a.date) || (b.ts || 0) - (a.ts || 0);
+// เปลี่ยนรายการ old → neu ในข้อมูลที่จำไว้ทั้งหมด (ของฉัน + คู่รัก, รายเดือน + รายปี) · old/neu = null ได้
+function applyLocal(old, neu) {
+  for (const us of [false, true]) {
+    if (us && !state.couple) continue;
+    const pre = us ? 'us:' : '';
+    const yms = new Set([old, neu].filter(Boolean).map(e => ymOf(e.date)));
+    for (const ym of yms) {
+      const key = pre + ym;
+      if (!state.monthCache[key]) continue;
+      state.monthCache[key] = state.monthCache[key].then(list => {
+        let out = old ? list.filter(e => e.id !== old.id) : list.slice();
+        if (neu && ymOf(neu.date) === ym) out = [...out, us ? { ...neu, owner: 'me' } : neu].sort(byNewest);
+        if (!us) cacheMonth(ym, out);
+        return out;
+      });
+    }
+    const ys = new Set([old, neu].filter(Boolean).map(e => e.date.slice(0, 4)));
+    for (const y of ys) {
+      const key = pre + y;
+      if (!state.yearCache[key]) continue;
+      state.yearCache[key] = state.yearCache[key].then(months => {
+        const m = structuredClone(months);
+        for (const [e, sign] of [[old, -1], [neu, 1]]) {
+          if (!e || e.date.slice(0, 4) !== y) continue;
+          const mo = m[Number(e.date.slice(5, 7)) - 1] ||= { inc: {}, exp: {} };
+          const t = e.type === 'income' ? (mo.inc ||= {}) : (mo.exp ||= {});
+          t[e.category] = Math.round(((t[e.category] || 0) + sign * e.amount) * 100) / 100;
+        }
+        if (!us) store.set('year:' + y, m);
+        return m;
+      });
+    }
+  }
+}
+// รายการที่เพิ่งเพิ่ม ยังไม่ได้รหัสจริงจากเซิร์ฟเวอร์ → รอรหัสก่อนแก้/ลบ
+const pendingIds = new Map();
+const realId = async id => (pendingIds.has(id) ? pendingIds.get(id) : id);
+// ส่งเซิร์ฟเวอร์เบื้องหลัง ถ้าไม่สำเร็จ → คืนค่าเดิมบนจอ + แจ้ง
+function syncBg(task, undo, what) {
+  return task().catch(err => {
+    if (err.message === 'login') return;
+    undo(); toast(`${what}ไม่สำเร็จ ลองใหม่นะ (${err.message})`); render(true);
+  });
+}
+// เอฟเฟกต์หลังบันทึก (ไม่ขวางการใช้งาน): เหรียญตกใส่การ์ดยอดเงิน
+function savedFx(data, pop) {
+  const hero = $('.hero');
+  if (!hero || !funOn()) return;
+  const r = hero.getBoundingClientRect();
+  if (pop) confettiPop(hero.querySelector('.hero-amount') || hero);
+  for (let i = 0; i < 6; i++) {
+    const c = document.createElement('span');
+    c.className = 'coin-drop'; c.textContent = data.type === 'income' ? '🪙' : '💸';
+    c.style.cssText = `left:${r.left + r.width * (.2 + Math.random() * .6)}px;top:${r.top - 30}px;--d:${i * 60}ms`;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 900);
+  }
+  hero.classList.remove('thump'); void hero.offsetWidth; hero.classList.add('thump');
+  navigator.vibrate?.(10);
+}
+// ลบ: ไอคอนม้วนลงถังขยะ (ลอยบนจอ ไม่ขวางการใช้งาน)
+function tossFx(icon) {
+  if (!funOn()) return;
+  const w = document.createElement('div');
+  w.className = 'toss-fx';
+  w.innerHTML = `<span class="toss">${esc(icon)}</span><span class="bin">🗑️</span>`;
+  document.body.appendChild(w);
+  setTimeout(() => w.remove(), 1000);
+}
+
 function clearCache() {
   state.monthCache = {}; state.yearCache = {};
   if (state.ready) { clearTimeout(clearCache.t); clearCache.t = setTimeout(prefetchMore, 700); }
@@ -621,6 +754,13 @@ async function render(quiet) {
   }
   done = true; clearTimeout(sk);
   if (render.key !== key) return;
+  // โหลดเดือนก่อน/ถัดไปไว้ก่อน กด ‹ › แล้วขึ้นทันที
+  if (state.mode !== 'year') {
+    for (const dir of [-1, 1]) {
+      const ym = ymOf(shiftDate(`${ymOf(state.date)}-01`, 'month', dir));
+      if (ym >= archiveBefore() && ym <= ymOf(todayISO())) getMonth(ym).catch(() => {});
+    }
+  }
   if (!quiet) restartAnim();
   view.innerHTML = state.page === 'home' ? homeHTML(data) : listHTML(data);
   bindView();
@@ -661,8 +801,8 @@ function homeHTML(d) {
   const us = isUs();
   // 💑 ของเรา: หมู 2 ตัวอยู่ด้วยกัน (ยอดเป็นบวก = ดีใจด้วยกัน มีหัวใจลอย) · ไม่มีการเทียบว่าใครใช้มากกว่า
   const mood = zero ? (us ? 'wink' : 'angry') : profit ? 'happy' : 'sad';
-  const pigs = us ? `${pigPeek(mood, true, 'second')}${pigPeek(mood, true)}${!zero && profit ? '<i class="pig-heart">💕</i>' : ''}` : pigPeek(mood);
-  const label = us ? `${duoHTML()}<span>${esc(periodWord())}ของเรา</span>` : esc(periodWord());
+  const pigs = us ? loversHTML() : pigPeek(mood);
+  const label = us ? `${esc(periodWord())}ของเรา 💕` : esc(periodWord());
   const hero = `<div class="hero-wrap ${us ? 'us' : ''}">${pigs}<div class="card hero tilt ${us ? 'love' : ''} ${zero ? '' : profit ? 'profit' : 'loss'}">
     <i class="spark s1">✦</i><i class="spark s2">✦</i><i class="spark s3">✦</i><i class="glare"></i>
     <div class="hero-top"><span class="hero-label">${label} ${streak}</span><span class="badge">${zero ? '—' : profit ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
@@ -731,8 +871,8 @@ function listHTML(d) {
   if (!d.entries.length) return `<div class="card">${emptyEntries}</div>`;
   const net = d.ti - d.te;
   const us = isUs(), lm = net >= 0 ? 'happy' : 'sad';
-  const top = `<div class="hero-wrap small ${us ? 'us' : ''}">${us ? pigPeek(lm, true, 'second') : ''}${pigPeek(lm, true)}<div class="card hero mini tilt ${us ? 'love' : ''} ${net >= 0 ? 'profit' : 'loss'}">
-    <div class="hero-top"><span class="hero-label">${us ? duoHTML() : ''}${esc(periodWord())}${us ? 'ของเรา' : ''} · ${d.entries.length} รายการ</span><span class="badge">${net >= 0 ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
+  const top = `<div class="hero-wrap small ${us ? 'us' : ''}">${us ? loversHTML(true) : pigPeek(lm, true)}<div class="card hero mini tilt ${us ? 'love' : ''} ${net >= 0 ? 'profit' : 'loss'}">
+    <div class="hero-top"><span class="hero-label">${esc(periodWord())}${us ? 'ของเรา' : ''} · ${d.entries.length} รายการ</span><span class="badge">${net >= 0 ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${net < 0 ? '-' : ''}${fmt(Math.abs(net))}<small>บาท</small></div>
     <div class="split"><div class="pill"><span><i>💰</i>รายรับ</span><b>+${fmt(d.ti)}</b></div><div class="pill"><span><i>💸</i>รายจ่าย</span><b>-${fmt(d.te)}</b></div></div></div></div>`;
   const groups = {};
@@ -1033,7 +1173,7 @@ function settingsHTML() {
       ${state.couple ? `
         <div class="couple-row">${duoHTML()}<div class="grow"><b>คุณ กับ ${esc(state.couple.name)}</b><small>จับคู่เมื่อ ${thaiDay(new Date(state.couple.since + 7 * 3600e3).toISOString().slice(0, 10))}</small></div></div>
         <p class="hint">แฟนเห็นยอดรวมของเราและทุกรายการที่จด · แก้ได้เฉพาะของตัวเอง</p>
-        <div class="form-row"><button class="btn" id="cOpen">💑 ดูของเรา</button><button class="btn ghost danger-text" id="cUnpair">เลิกคู่</button></div>`
+        <div class="form-row"><button class="btn" id="cOpen">💑 ไปหน้าคู่รัก</button><button class="btn ghost danger-text" id="cUnpair">เลิกคู่</button></div>`
       : `<div class="couple-row"><span class="duo">${face(myPic())}<i class="face p2">💌</i></span><div class="grow"><b>ชวนแฟนมาจดด้วยกัน</b><small>ดูยอดรวมของเราสองคน · เลิกได้ทุกเมื่อ</small></div></div>
         <a class="btn" href="https://line.me/R/oaMessage/%40514ddese/?${encodeURIComponent('จับคู่')}">💌 ชวนแฟน (ไปที่แชท)</a>
         <p class="hint">ไม่ใช้ก็ไม่เป็นไร ทุกอย่างเหมือนเดิม</p>`}
@@ -1149,34 +1289,46 @@ function openEntry(entry) {
     });
     $('#fCancel') && ($('#fCancel').onclick = closeSheet);
     $('#fDel') && armDelete($('#fDel'), async () => {
-      try {
-        await api('POST', 'delete', { id: e.id });
-        if (rushing() || !funOn()) { closeSheet(); toast('ลบแล้ว 🗑️'); } else await showDeleted(e);
-        clearCache(); render();
-      }
-      catch (err) { toast(err.message); draw(); }
+      const old = { ...entry };
+      delete old.owner;
+      applyLocal(old, null);
+      syncBg(async () => api('POST', 'delete', { id: await realId(old.id) }), () => applyLocal(null, old), 'ลบ');
+      closeSheet();
+      if (rushing() || !funOn()) toast('ลบแล้ว 🗑️'); else tossFx(catById(old.category).icon);
+      render(true);
     });
     $('#fSave').onclick = async () => {
       keep();
       if (!(Number(e.amount) > 0)) { $('#fAmount').focus(); return toast('กรุณาใส่จำนวนเงิน'); }
       if (!e.date) return toast('กรุณาเลือกวันที่');
       const data = { type: e.type, category: e.category, amount: Number(e.amount), note: e.note, date: e.date };
-      $('#fSave').disabled = true; $('#fSave').textContent = 'กำลังบันทึก…';
-      try {
-        let id = e.id;
-        if (isEdit) await api('POST', 'update', { id: e.id, entry: data });
-        else id = (await api('POST', 'add', { entry: data })).entries?.[0]?.id;
-        // กำลังรีบ (บันทึกติดกันใน 5 วิ) → ไม่มีแอนิเมชัน ปิดหน้าต่างทันที
-        const rush = rushing(), pop = lucky();
-        lastSaveAt = Date.now();
-        if (rush) { closeSheet(); toast(`${isEdit ? 'แก้ไขแล้ว' : 'บันทึกแล้ว'} ✓`); }
-        else { if (pop) confettiPop($('#fSave')); await showSaved(data, isEdit ? 'แก้ไขแล้ว' : 'บันทึกแล้ว'); }
-        clearCache();
-        // หลังบันทึก พาไปดูรายวันของวันนั้น
-        state.mode = 'day'; state.date = data.date; state.highlight = id;
-        if (state.page === 'settings') state.page = 'home';
-        render();
-      } catch (err) { toast(err.message); $('#fSave').disabled = false; $('#fSave').textContent = 'บันทึก'; }
+      // ขึ้นบนจอทันที แล้วค่อยส่งเซิร์ฟเวอร์เบื้องหลัง
+      const rush = rushing(), pop = lucky();
+      lastSaveAt = Date.now();
+      const old = isEdit ? { ...entry } : null;
+      const id = isEdit ? e.id : 'tmp' + Date.now();
+      const neu = { ...(old || {}), ...data, id, ts: old?.ts || Date.now() };
+      delete neu.owner;
+      applyLocal(old, neu);
+      if (isEdit) {
+        syncBg(async () => api('POST', 'update', { id: await realId(id), entry: data }), () => applyLocal(neu, old), 'แก้ไข');
+      } else {
+        const p = api('POST', 'add', { entry: data }).then(r => {
+          const real = r.entries?.[0]?.id;
+          if (real) applyLocal(neu, { ...neu, id: real });
+          return real;
+        });
+        pendingIds.set(id, p);
+        p.finally(() => setTimeout(() => pendingIds.delete(id), 5000)).catch(() => {});
+        syncBg(() => p, () => applyLocal(neu, null), 'บันทึก');
+      }
+      closeSheet();
+      if (rush || !funOn()) toast(`${isEdit ? 'แก้ไขแล้ว' : 'บันทึกแล้ว'} ✓`);
+      // พาไปดูรายวันของวันนั้น
+      state.mode = 'day'; state.date = data.date; state.highlight = id;
+      if (state.page === 'settings') state.page = 'home';
+      await render();
+      if (!rush) savedFx(data, pop);
     };
   };
   draw();
@@ -1185,18 +1337,6 @@ function openEntry(entry) {
   if (lucky()) setTimeout(() => $('#sheet').classList.contains('open') && peekaboo($('#sheet')), 900); // ชะโงกจากขอบบนของหน้าต่าง
 }
 
-async function showSaved(d, title) {
-  const c = catById(d.category);
-  const coins = funOn() ? Array.from({ length: 5 }, (_, i) => `<span class="coin rain" style="--x:${(i - 2) * 16}px;--d:${.15 + i * .09}s">🪙</span>`).join('') : '';
-  $('#sheet').innerHTML = `<div class="saved">
-    <div class="saved-pig"><span class="coin">🪙</span>${coins}${pig('wow', 'jump')}</div>
-    <div class="saved-title">${title}</div>
-    <div class="saved-amt ${d.type === 'income' ? 'amt-in' : 'amt-out'}">${d.type === 'income' ? '+' : '-'}${fmt(d.amount)} ฿</div>
-    <div class="saved-cat">${esc(c.icon)} ${esc(c.name)} · ${thaiDay(d.date)}</div></div>`;
-  setTimeout(() => { const r = $('.saved-pig')?.getBoundingClientRect(); if (r) burst(r.left + r.width / 2, r.top + 20, ['🪙', '💖', '✨', '🎉']); }, 650);
-  await sleep(1300);
-  closeSheet();
-}
 
 // ---------- navigation ----------
 const PAGES = ['home', 'list', 'settings'];
@@ -1264,6 +1404,7 @@ async function boot() {
   bindChrome();
   bindPull();
   bindDrag();
+  bindNavDrag();
   bindDeviceTilt();
   addEventListener('resize', () => moveBlob(true));
   applyTheme(store.get('theme'));
