@@ -109,6 +109,83 @@ function burst(x, y, emojis = ['💖', '✨', '🪙', '💕', '🌸']) {
     setTimeout(() => s.remove(), 1000);
   }
 }
+// ---------- ลูกเล่นเซอร์ไพรส์ (นานๆ โผล่ที · ไม่กวนตอนรีบ · ปิดได้ในตั้งค่า) ----------
+const FUN_CHANCE = 0.1;      // โผล่ประมาณ 1 ใน 10 ครั้ง
+const RUSH_MS = 5000;        // บันทึกติดกันภายใน 5 วิ = กำลังรีบ → ข้ามลูกเล่นทั้งหมด
+let lastSaveAt = 0;
+const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const funOn = () => store.get('fun') !== false && !reducedMotion();
+const rushing = () => Date.now() - lastSaveAt < RUSH_MS;
+// ?fun=1 = โผล่ทุกครั้ง (ไว้ทดสอบ)
+const lucky = () => funOn() && !rushing() && (params.get('fun') === '1' || Math.random() < FUN_CHANCE);
+
+// น้องหมูจิ๋วชะโงกจากหลังปุ่ม แล้วผลุบกลับ (จ๊ะเอ๋)
+function peekaboo(el) {
+  if (!el || $('.boo')) return;
+  const r = el.getBoundingClientRect();
+  const b = document.createElement('span');
+  b.className = 'boo'; b.innerHTML = pig('wink');
+  b.style.cssText = `left:${Math.round(r.right - 150)}px;top:${Math.round(r.top - 43)}px`;
+  document.body.appendChild(b);
+  const hide = () => { if (b.classList.contains('out')) return; b.classList.add('out'); setTimeout(() => b.remove(), 400); };
+  setTimeout(hide, 2600);
+  addEventListener('pointerdown', hide, { once: true }); // แตะตรงไหนก็ผลุบกลับ ไม่ขวางการใช้งาน
+}
+// ดาวกระจายพุ่งจากปุ่ม 0.5 วินาที
+function confettiPop(el) {
+  if (!el) return;
+  const r = el.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+  const bits = ['✦', '★', '♥', '✧', '●'];
+  for (let i = 0; i < 14; i++) {
+    const s = document.createElement('span');
+    s.className = 'confetti';
+    s.textContent = bits[i % bits.length];
+    const a = -Math.PI * (0.1 + 0.8 * (i / 13)), d = 60 + Math.random() * 70;
+    s.style.cssText = `left:${x}px;top:${y}px;--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d}px;--r:${Math.random() * 360}deg;--h:${Math.round(Math.random() * 80 - 40)}deg`;
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 520);
+  }
+}
+// น้องหมูนุ่มเด้ง: กดแล้วยุบ ปล่อยแล้วเด้งคืน
+function bindSquish(root) {
+  root.querySelectorAll('.peek-body, .corner-pig, .saved-pig').forEach(p => {
+    p.onpointerdown = () => { if (funOn()) p.classList.add('squish'); };
+    p.onpointerup = p.onpointerleave = p.onpointercancel = () => p.classList.remove('squish');
+  });
+}
+
+// ดึงหน้าจอลงเพื่อรีเฟรช: ดึงหางน้องหมูให้ยืด ปล่อยแล้วเด้งกลับ (เฉพาะจอสัมผัส · ไม่ขวางการเลื่อนปกติ)
+function bindPull() {
+  if (!('ontouchstart' in window)) return;
+  const el = document.createElement('div');
+  el.className = 'pull'; el.innerHTML = `<i class="pull-tail"></i><span class="pull-pig">${pig('wow')}</span><b></b>`;
+  document.body.appendChild(el);
+  const NEED = 80;
+  let y0 = null, dist = 0;
+  const scrollTop = () => document.scrollingElement.scrollTop;
+  const ok = () => state.ready && !['settings', 'admin'].includes(state.page) && !$('#sheet').classList.contains('open') && !$('.picker');
+  addEventListener('touchstart', e => { y0 = e.touches.length === 1 && scrollTop() <= 0 && ok() ? e.touches[0].clientY : null; dist = 0; }, { passive: true });
+  addEventListener('touchmove', e => {
+    if (y0 === null) return;
+    dist = e.touches[0].clientY - y0;
+    if (dist <= 6 || scrollTop() > 0) { el.classList.remove('show'); if (scrollTop() > 0) y0 = null; return; }
+    const d = Math.min(130, dist * .5); // ยิ่งดึงยิ่งหนืด
+    el.classList.add('show'); el.classList.toggle('ready', dist * .5 >= NEED);
+    el.style.setProperty('--d', d + 'px');
+    el.querySelector('b').textContent = dist * .5 >= NEED ? 'ปล่อยเลย!' : 'ดึงหางอีกนิด…';
+  }, { passive: true });
+  const end = () => {
+    if (y0 === null) return;
+    const go = dist * .5 >= NEED;
+    y0 = null;
+    el.classList.remove('ready'); el.classList.add('snap'); el.style.setProperty('--d', '0px');
+    setTimeout(() => el.classList.remove('show', 'snap'), 420);
+    if (go) { navigator.vibrate?.(10); clearCache(); render(true).then(() => toast('อัปเดตแล้ว ✨')); }
+  };
+  addEventListener('touchend', end, { passive: true });
+  addEventListener('touchcancel', end, { passive: true });
+}
+
 function showBubble(anchor, text) {
   const wrap = anchor.closest('.hero-wrap') || anchor.parentElement;
   wrap.querySelector('.bubble')?.remove();
@@ -121,6 +198,7 @@ function showBubble(anchor, text) {
   setTimeout(() => b.remove(), 3000);
 }
 function bindPig(root) {
+  bindSquish(root);
   root.querySelectorAll('.peek-body').forEach(p => {
     p.onclick = () => {
       p.classList.remove('boing'); void p.offsetWidth; p.classList.add('boing');
@@ -834,6 +912,8 @@ function settingsHTML() {
 
     <div class="card span">
       <h2 class="section-title">🎨 หน้าตา</h2>
+      <button class="priv ${store.get('fun') !== false ? 'on' : ''}" id="funToggle" type="button" style="margin:10px 0 12px">
+        <span>🐷</span><div><b>ลูกเล่นน้องหมู</b><small>${store.get('fun') !== false ? 'นานๆ น้องจะโผล่มาเซอร์ไพรส์ · รีบอยู่น้องไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
       <div class="seg" style="max-width:none;margin-top:10px">
         ${[['light', 'สว่าง'], ['dark', 'มืด'], ['auto', 'ตามเครื่อง']].map(([v, l]) => `<button data-themeopt="${v}" class="${theme === v ? 'active' : ''}">${l}</button>`).join('')}
         <span class="seg-pill" style="transform:translateX(${['light', 'dark', 'auto'].indexOf(theme) * 100}%)"></span>
@@ -892,6 +972,8 @@ function bindSettings() {
     saveProfile({ keywords }, 'ลบคำแล้ว');
   }, 'ลบ?'));
 
+  $('#funToggle').onclick = () => { store.set('fun', store.get('fun') === false); render(true); };
+  bindSquish($('#view'));
   $('#cOpen') && ($('#cOpen').onclick = () => { state.scope = 'us'; go('home'); });
   $('#cUnpair') && armDelete($('#cUnpair'), async () => {
     try { await api('POST', 'unpair', {}); setCouple(null); clearCache(); toast('เลิกโหมดคู่รักแล้ว'); render(true); }
@@ -953,7 +1035,11 @@ function openEntry(entry) {
         let id = e.id;
         if (isEdit) await api('POST', 'update', { id: e.id, entry: data });
         else id = (await api('POST', 'add', { entry: data })).entries?.[0]?.id;
-        await showSaved(data, isEdit ? 'แก้ไขแล้ว' : 'บันทึกแล้ว');
+        // กำลังรีบ (บันทึกติดกันใน 5 วิ) → ไม่มีแอนิเมชัน ปิดหน้าต่างทันที
+        const rush = rushing(), pop = lucky();
+        lastSaveAt = Date.now();
+        if (rush) { closeSheet(); toast(`${isEdit ? 'แก้ไขแล้ว' : 'บันทึกแล้ว'} ✓`); }
+        else { if (pop) confettiPop($('#fSave')); await showSaved(data, isEdit ? 'แก้ไขแล้ว' : 'บันทึกแล้ว'); }
         clearCache();
         // หลังบันทึก พาไปดูรายวันของวันนั้น
         state.mode = 'day'; state.date = data.date; state.highlight = id;
@@ -965,6 +1051,7 @@ function openEntry(entry) {
   draw();
   openSheetEl();
   if (!isEdit) setTimeout(() => $('#fAmount')?.focus(), 350);
+  if (lucky()) setTimeout(() => $('#sheet').classList.contains('open') && peekaboo($('#sheet')), 900); // ชะโงกจากขอบบนของหน้าต่าง
 }
 
 async function showSaved(d, title) {
@@ -1042,6 +1129,7 @@ async function initLiff() {
 
 async function boot() {
   bindChrome();
+  bindPull();
   applyTheme(store.get('theme'));
   const ym = ymOf(todayISO());
   let shown = false;
