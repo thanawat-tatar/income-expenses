@@ -164,7 +164,7 @@ function bindPull() {
   let y0 = null, dist = 0;
   const scrollTop = () => document.scrollingElement.scrollTop;
   const ok = () => state.ready && !['settings', 'admin'].includes(state.page) && !$('#sheet').classList.contains('open') && !$('.picker');
-  addEventListener('touchstart', e => { y0 = e.touches.length === 1 && scrollTop() <= 0 && ok() ? e.touches[0].clientY : null; dist = 0; }, { passive: true });
+  addEventListener('touchstart', e => { y0 = e.touches.length === 1 && scrollTop() <= 0 && ok() && !e.target.closest?.('.peek-body, .perch') ? e.touches[0].clientY : null; dist = 0; }, { passive: true });
   addEventListener('touchmove', e => {
     if (y0 === null) return;
     dist = e.touches[0].clientY - y0;
@@ -186,6 +186,106 @@ function bindPull() {
   addEventListener('touchcancel', end, { passive: true });
 }
 
+// ---------- เอฟเฟกต์เพิ่ม ----------
+// น้องหมูตัวเล็กเกาะขอบการ์ด (pose: hang = นั่งห้อยขา · eyes = โผล่แค่ตา · lie = นอนพาด)
+const perch = (mood, pose) => `<span class="perch ${pose}" data-mood="${mood}" aria-hidden="true">${pig(mood)}</span>`;
+
+// แตะแล้ววิ้งเล็กๆ
+function sparkle(el) {
+  if (!funOn() || !el) return;
+  el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+  const r = el.getBoundingClientRect();
+  for (let i = 0; i < 3; i++) {
+    const s = document.createElement('span');
+    s.className = 'twink'; s.textContent = '✦';
+    s.style.cssText = `left:${r.left + r.width * (.2 + .3 * i)}px;top:${r.top + 4}px;--dx:${(i - 1) * 14}px`;
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 500);
+  }
+  navigator.vibrate?.(6);
+}
+
+// เมนูล่าง: วงกลมกระจกชมพูเลื่อนตามแบบสปริง (เหมือน iPhone)
+function moveBlob(instant) {
+  const nav = $('#nav'), act = $('.nav-item.active', nav);
+  let blob = $('.nav-blob', nav);
+  if (!blob) { blob = document.createElement('i'); blob.className = 'nav-blob'; nav.prepend(blob); instant = true; }
+  if (!act) { blob.style.opacity = 0; return; }
+  const n = nav.getBoundingClientRect(), r = act.getBoundingClientRect();
+  const wide = matchMedia('(min-width: 700px)').matches;
+  const size = wide ? null : Math.min(56, r.height - 6);
+  const w = wide ? r.width : size, h = wide ? r.height : size;
+  const x = r.left - n.left + (r.width - w) / 2 + (nav.scrollLeft || 0), y = r.top - n.top + (r.height - h) / 2;
+  const moved = blob.dataset.x && Math.abs(Number(blob.dataset.x) - x) > 2;
+  blob.classList.toggle('instant', !!instant);
+  blob.style.cssText = `opacity:1;width:${w}px;height:${h}px;transform:translate(${x}px,${y}px)`;
+  blob.dataset.x = x;
+  if (moved && !instant && funOn()) { blob.classList.remove('go'); void blob.offsetWidth; blob.classList.add('go'); }
+}
+
+// ลากน้องหมูได้: ยืดตามนิ้ว ปล่อยแล้วเด้งดึ๋งกลับที่เดิม
+function bindDrag() {
+  let el = null, x0 = 0, y0 = 0, moved = false;
+  addEventListener('pointerdown', e => {
+    const t = e.target.closest?.('.peek-body, .perch');
+    if (!t || e.button > 0) return;
+    el = t; x0 = e.clientX; y0 = e.clientY; moved = false;
+    el.classList.remove('spring');
+    try { el.setPointerCapture(e.pointerId); } catch {}
+  });
+  addEventListener('pointermove', e => {
+    if (!el) return;
+    const dx = e.clientX - x0, dy = e.clientY - y0, d = Math.hypot(dx, dy);
+    if (!moved && d < 8) return;
+    if (!moved) { moved = true; el.classList.add('held'); navigator.vibrate?.(8); }
+    const k = Math.min(d, 220), pull = k / d || 0; // ยิ่งลากไกลยิ่งหนืด
+    const tx = dx * pull * .8, ty = dy * pull * .8, a = Math.atan2(dy, dx);
+    const st = 1 + Math.min(.45, k / 450);         // ยืดตามทิศที่ลาก
+    el.style.transform = `translate(${tx}px, ${ty}px) rotate(${a}rad) scale(${st}, ${1 / st}) rotate(${-a}rad)`;
+  });
+  const up = () => {
+    if (!el) return;
+    const t = el; el = null;
+    if (!moved) return;
+    t.dataset.dragged = '1'; setTimeout(() => delete t.dataset.dragged, 50);
+    t.classList.remove('held'); t.classList.add('spring'); t.style.transform = '';
+    navigator.vibrate?.(12);
+    setTimeout(() => t.classList.remove('spring'), 900);
+  };
+  addEventListener('pointerup', up); addEventListener('pointercancel', up);
+}
+
+// ลบ: รายการม้วนตัวลงถังขยะ
+async function showDeleted(e) {
+  const c = catById(e.category);
+  $('#sheet').innerHTML = `<div class="saved deleted">
+    <div class="trash-wrap"><span class="toss">${esc(c.icon)}</span><span class="bin">🗑️</span></div>
+    <div class="saved-title">ลบแล้ว</div>
+    <div class="saved-cat">${esc(c.name)} ${fmt(e.amount)} ฿</div></div>`;
+  await sleep(950);
+  closeSheet();
+}
+
+// จดติดกันครบ 3 / 7 / 14 / 30 / 60 / 100 วัน → ฉลองใหญ่ครั้งเดียว (แบบ Duolingo)
+function celebrateStreak() {
+  const n = state.streak;
+  if (!funOn() || isUs() || state.page !== 'home' || state.mode !== 'day' || state.date !== todayISO()) return;
+  if (![3, 7, 14, 30, 60, 100].includes(n) || (store.get('cel') || 0) >= n) return;
+  store.set('cel', n);
+  const hero = $('.hero');
+  if (!hero) return;
+  hero.classList.add('glow');
+  setTimeout(() => {
+    const r = hero.getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top + 40, ['🔥', '🎉', '✨', '🪙', '💖']);
+    setTimeout(() => burst(r.left + r.width * .25, r.top + 60, ['🎉', '✨', '🔥']), 220);
+    setTimeout(() => burst(r.left + r.width * .75, r.top + 60, ['🎉', '💖', '🔥']), 420);
+    const p = $('.peek-body');
+    if (p) { bindPig.greeted = true; showBubble(p, `จดติดกัน ${n} วันแล้ว! เก่งที่สุด 🎉`); }
+    navigator.vibrate?.([20, 40, 20]);
+  }, 700);
+}
+
 function showBubble(anchor, text) {
   const wrap = anchor.closest('.hero-wrap') || anchor.parentElement;
   wrap.querySelector('.bubble')?.remove();
@@ -201,6 +301,7 @@ function bindPig(root) {
   bindSquish(root);
   root.querySelectorAll('.peek-body').forEach(p => {
     p.onclick = () => {
+      if (p.dataset.dragged) { delete p.dataset.dragged; return; }
       p.classList.remove('boing'); void p.offsetWidth; p.classList.add('boing');
       const r = p.getBoundingClientRect();
       burst(r.left + r.width / 2, r.top + r.height * .45);
@@ -350,8 +451,8 @@ function usFail(e) {
   if (e.message === 'no_couple') { setCouple(null); clearCache(); toast('โหมดคู่รักถูกยกเลิกแล้ว'); render(); }
 }
 function addUsCats(list) { for (const c of list || []) state.usCats[c.id] = c; }
-function getMonth(ym) {
-  if (isUs()) {
+function getMonth(ym, us = isUs()) {
+  if (us) {
     const k = 'us:' + ym;
     if (!state.monthCache[k]) {
       const p = api('GET', 'coupleEntries', monthRange(ym)).then(r => { addUsCats(r.extraCats); return r.entries; });
@@ -368,8 +469,8 @@ function getMonth(ym) {
   return state.monthCache[ym];
 }
 // รายปี: โชว์ที่จำไว้ในเครื่องทันที แล้วค่อยอัปเดต (ถ้าเปลี่ยน วาดใหม่เงียบๆ)
-function getYear(y) {
-  if (isUs()) {
+function getYear(y, us = isUs()) {
+  if (us) {
     const k = 'us:' + y;
     if (!state.yearCache[k]) {
       const p = api('GET', 'coupleYear', { year: y }).then(r => { addUsCats(r.extraCats); return r.months; });
@@ -395,13 +496,18 @@ function getYear(y) {
 // โหลดล่วงหน้า: รายปี + เดือนก่อน กดแล้วขึ้นทันที
 function prefetchMore() {
   const run = () => {
+    // มีคู่ → โหลด "ของเรา" เดือนนี้ + ปีนี้ไว้ก่อน กดสลับแล้วขึ้นทันที
+    if (state.couple) { getMonth(ymOf(todayISO()), true).catch(() => {}); getYear(todayISO().slice(0, 4), true).catch(() => {}); }
     getYear(todayISO().slice(0, 4)).catch(() => {});
     const prev = shiftDate(todayISO(), 'month', -1).slice(0, 7);
     if (prev >= archiveBefore()) getMonth(prev).catch(() => {});
   };
   (window.requestIdleCallback || (f => setTimeout(f, 300)))(run);
 }
-function clearCache() { state.monthCache = {}; state.yearCache = {}; }
+function clearCache() {
+  state.monthCache = {}; state.yearCache = {};
+  if (state.ready) { clearTimeout(clearCache.t); clearCache.t = setTimeout(prefetchMore, 700); }
+}
 
 // ---------- โหลดข้อมูลตามช่วงเวลา ----------
 async function loadPeriod() {
@@ -476,6 +582,7 @@ function periodWord() {
 // ---------- render ----------
 async function render(quiet) {
   $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === state.page));
+  moveBlob();
   $('#pageTitle').textContent = TITLES[state.page];
   $('#period').classList.toggle('hide', state.page === 'settings' || state.page === 'admin');
   const sc = $('#scope');
@@ -521,7 +628,11 @@ async function render(quiet) {
     $$('[data-w]', view).forEach(el => { el.style.width = el.dataset.w + '%'; });
     $$('[data-h]', view).forEach(el => { el.style.height = el.dataset.h + '%'; });
     const amt = view.querySelector('[data-count]');
-    if (amt) quiet ? (amt.textContent = fmt(Number(amt.dataset.count))) : countUp(amt, Number(amt.dataset.count));
+    if (amt) {
+      if (quiet) amt.textContent = fmt(Number(amt.dataset.count));
+      else { countUp(amt, Number(amt.dataset.count)); setTimeout(() => amt.closest('.hero-amount')?.classList.add('pop'), 650); }
+    }
+    celebrateStreak();
     if (state.highlight) {
       const el = view.querySelector(`.entry[data-id="${CSS.escape(state.highlight)}"]`);
       if (el) { el.classList.add('flash'); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
@@ -553,7 +664,7 @@ function homeHTML(d) {
   const pigs = us ? `${pigPeek(mood, true, 'second')}${pigPeek(mood, true)}${!zero && profit ? '<i class="pig-heart">💕</i>' : ''}` : pigPeek(mood);
   const label = us ? `${duoHTML()}<span>${esc(periodWord())}ของเรา</span>` : esc(periodWord());
   const hero = `<div class="hero-wrap ${us ? 'us' : ''}">${pigs}<div class="card hero tilt ${us ? 'love' : ''} ${zero ? '' : profit ? 'profit' : 'loss'}">
-    <i class="spark s1">✦</i><i class="spark s2">✦</i><i class="spark s3">✦</i>
+    <i class="spark s1">✦</i><i class="spark s2">✦</i><i class="spark s3">✦</i><i class="glare"></i>
     <div class="hero-top"><span class="hero-label">${label} ${streak}</span><span class="badge">${zero ? '—' : profit ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${!zero && !profit ? '-' : ''}<span data-count="${Math.abs(net)}">0</span><small>บาท</small></div>
     <div class="split">
@@ -564,7 +675,7 @@ function homeHTML(d) {
   let middle = '';
   if (d.perMonth) {
     const max = Math.max(1, ...d.perMonth.flatMap(m => [m.inc, m.exp]));
-    middle = `<div class="card"><h3>📊 รายเดือน</h3><div class="chart">${d.perMonth.map((m, i) => `
+    middle = `<div class="card perched">${perch('wow', 'hang')}<h3>📊 รายเดือน</h3><div class="chart">${d.perMonth.map((m, i) => `
       <div class="col" data-month="${i}" title="${MONTHS[i]}: +${fmt(m.inc)} / -${fmt(m.exp)}">
         <div class="bars"><i class="i" data-h="${(m.inc / max) * 100}"></i><i class="o" data-h="${(m.exp / max) * 100}"></i></div>
         <small>${MONTHS[i].replace('.', '').slice(0, 3)}</small></div>`).join('')}</div>
@@ -575,16 +686,16 @@ function homeHTML(d) {
   } else {
     const isDay = state.mode === 'day';
     const list = isDay ? d.entries : d.entries.slice(0, 5);
-    middle = `<div class="card"><h3>🧾 ${isDay ? 'รายการ' : 'ล่าสุด'}${us ? 'ของเรา' : ''} ${!isDay && d.entries.length > 5 ? '<button class="link" data-go="list">ดูทั้งหมด</button>' : ''}</h3>
+    middle = `<div class="card perched">${perch(d.entries.length ? 'happy' : 'sleep', 'hang')}<h3>🧾 ${isDay ? 'รายการ' : 'ล่าสุด'}${us ? 'ของเรา' : ''} ${!isDay && d.entries.length > 5 ? '<button class="link" data-go="list">ดูทั้งหมด</button>' : ''}</h3>
       ${list.length ? list.map(entryHTML).join('') : emptyEntries}
-      ${us ? '<p class="hint us-hint">ไม่รวมรายการ 🔒 ส่วนตัวของแต่ละคน</p>' : ''}</div>`;
+      </div>`;
   }
 
   return `<div class="grid home">
     <div class="grid">${hero}${middle}</div>
     <div class="grid">
-      <div class="card"><h3>💸 รายจ่าย <small>${fmt(d.te)} ฿</small></h3>${catRows(d.exp, d.te, 'out')}</div>
-      <div class="card"><h3>💰 รายรับ <small>${fmt(d.ti)} ฿</small></h3>${catRows(d.inc, d.ti, 'in')}</div>
+      <div class="card perched">${perch('wink', 'eyes')}<h3>💸 รายจ่าย <small>${fmt(d.te)} ฿</small></h3>${catRows(d.exp, d.te, 'out')}</div>
+      <div class="card perched">${perch('happy', 'lie')}<h3>💰 รายรับ <small>${fmt(d.ti)} ฿</small></h3>${catRows(d.inc, d.ti, 'in')}</div>
     </div>
   </div>`;
 }
@@ -598,10 +709,9 @@ function entryHTML(e, i = 0) {
   const c = catById(e.category);
   const showNote = e.note && e.note !== c.name;
   const who = e.owner ? `<span class="who ${e.owner}">${face(e.owner === 'me' ? myPic() : state.couple?.pic)}${e.owner === 'me' ? 'ฉัน' : esc(state.couple?.name || 'แฟน')}</span>` : '';
-  const lock = e.private && state.couple ? ' <span class="lock" title="ส่วนตัว แฟนไม่เห็น">🔒</span>' : '';
   return `<button class="entry" style="--i:${Math.min(i, 12)}" data-id="${esc(e.id)}" data-ym="${esc(ymOf(e.date))}" ${e.owner === 'partner' ? 'data-partner' : ''}>
     <div class="cat-ico">${esc(c.icon)}</div>
-    <div><div class="entry-name">${esc(c.name)}${lock}</div>${who || showNote ? `<div class="entry-note">${who}${showNote ? esc(e.note) : ''}</div>` : ''}</div>
+    <div><div class="entry-name">${esc(c.name)}</div>${who || showNote ? `<div class="entry-note">${who}${showNote ? esc(e.note) : ''}</div>` : ''}</div>
     <div class="${e.type === 'income' ? 'amt-in' : 'amt-out'}">${e.type === 'income' ? '+' : '-'}${fmt(e.amount)}</div>
   </button>`;
 }
@@ -635,14 +745,33 @@ function listHTML(d) {
   }).join('');
 }
 
+// เอียงการ์ด + แสงวิ้งวิ่งตาม (x, y = -0.5 ถึง 0.5)
+function setTilt(el, x, y) {
+  el.style.setProperty('--ry', `${x * 12}deg`); el.style.setProperty('--rx', `${-y * 12}deg`);
+  el.style.setProperty('--gx', `${50 + x * 90}%`); el.style.setProperty('--gy', `${50 + y * 90}%`);
+}
+// มือถือ Android: เอียงเครื่องแล้วการ์ดเอียงตาม (iPhone ต้องขออนุญาต จึงใช้แสงวิ่งเองแทน)
+function bindDeviceTilt() {
+  if (!('DeviceOrientationEvent' in window) || typeof DeviceOrientationEvent.requestPermission === 'function') return;
+  let raf = 0;
+  addEventListener('deviceorientation', e => {
+    if (raf || e.gamma == null || !funOn()) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      const x = Math.max(-.5, Math.min(.5, e.gamma / 50)), y = Math.max(-.5, Math.min(.5, (e.beta - 45) / 60));
+      $$('.hero.tilt').forEach(el => setTilt(el, x, y));
+    });
+  });
+}
+
 function bindTilt(root) {
   $$('.tilt', root).forEach(el => {
     el.onpointermove = e => {
       const r = el.getBoundingClientRect();
       const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
-      el.style.transform = `perspective(700px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg) translateY(-2px)`;
+      setTilt(el, x, y);
     };
-    el.onpointerleave = el.onpointerup = () => { el.style.transform = ''; };
+    el.onpointerleave = el.onpointerup = () => setTilt(el, 0, 0);
   });
 }
 
@@ -903,9 +1032,9 @@ function settingsHTML() {
       <h2 class="section-title">💑 โหมดคู่รัก</h2>
       ${state.couple ? `
         <div class="couple-row">${duoHTML()}<div class="grow"><b>คุณ กับ ${esc(state.couple.name)}</b><small>จับคู่เมื่อ ${thaiDay(new Date(state.couple.since + 7 * 3600e3).toISOString().slice(0, 10))}</small></div></div>
-        <p class="hint">แฟนเห็นยอดรวมของเราและรายการที่ไม่ได้ 🔒 · ตั้ง 🔒 ได้ตอนเพิ่ม/แก้รายการ</p>
+        <p class="hint">แฟนเห็นยอดรวมของเราและทุกรายการที่จด · แก้ได้เฉพาะของตัวเอง</p>
         <div class="form-row"><button class="btn" id="cOpen">💑 ดูของเรา</button><button class="btn ghost danger-text" id="cUnpair">เลิกคู่</button></div>`
-      : `<div class="couple-row"><span class="duo">${face(myPic())}<i class="face p2">💌</i></span><div class="grow"><b>ชวนแฟนมาจดด้วยกัน</b><small>ดูยอดรวมของเราสองคน · เก็บรายการส่วนตัวได้ · เลิกได้ทุกเมื่อ</small></div></div>
+      : `<div class="couple-row"><span class="duo">${face(myPic())}<i class="face p2">💌</i></span><div class="grow"><b>ชวนแฟนมาจดด้วยกัน</b><small>ดูยอดรวมของเราสองคน · เลิกได้ทุกเมื่อ</small></div></div>
         <a class="btn" href="https://line.me/R/oaMessage/%40514ddese/?${encodeURIComponent('จับคู่')}">💌 ชวนแฟน (ไปที่แชท)</a>
         <p class="hint">ไม่ใช้ก็ไม่เป็นไร ทุกอย่างเหมือนเดิม</p>`}
     </div>
@@ -972,7 +1101,7 @@ function bindSettings() {
     saveProfile({ keywords }, 'ลบคำแล้ว');
   }, 'ลบ?'));
 
-  $('#funToggle').onclick = () => { store.set('fun', store.get('fun') === false); render(true); };
+  $('#funToggle').onclick = () => { store.set('fun', store.get('fun') === false); document.body.classList.toggle('calm', !funOn()); render(true); };
   bindSquish($('#view'));
   $('#cOpen') && ($('#cOpen').onclick = () => { state.scope = 'us'; go('home'); });
   $('#cUnpair') && armDelete($('#cUnpair'), async () => {
@@ -1007,8 +1136,6 @@ function openEntry(entry) {
       <input class="input" id="fNote" maxlength="60" placeholder="ไม่บังคับ" value="${esc(e.note)}">
       <span class="label">วันที่</span>
       <input class="input" id="fDate" type="date" value="${esc(e.date)}">
-      ${state.couple ? `<button class="priv ${e.private ? 'on' : ''}" id="fPriv" type="button" aria-pressed="${!!e.private}">
-        <span>${e.private ? '🔒' : '🔓'}</span><div><b>${e.private ? 'ส่วนตัว' : 'แฟนเห็นได้'}</b><small>${e.private ? 'แฟนไม่เห็น ไม่นับในยอดของเรา' : 'แตะเพื่อเก็บเป็นส่วนตัว (เช่น ของขวัญเซอร์ไพรส์)'}</small></div><i></i></button>` : ''}
       <div class="actions">
         ${isEdit ? `<button class="btn danger" id="fDel">ลบ</button>` : '<button class="btn ghost" id="fCancel">ยกเลิก</button>'}
         <button class="btn" id="fSave">บันทึก</button>
@@ -1018,18 +1145,22 @@ function openEntry(entry) {
     $$('[data-cat]', sheet).forEach(b => b.onclick = () => {
       e.category = b.dataset.cat;
       $$('[data-cat]', sheet).forEach(x => x.classList.toggle('on', x === b));
+      sparkle(b);
     });
-    $('#fPriv') && ($('#fPriv').onclick = () => { keep(); e.private = !e.private; draw(); });
     $('#fCancel') && ($('#fCancel').onclick = closeSheet);
     $('#fDel') && armDelete($('#fDel'), async () => {
-      try { await api('POST', 'delete', { id: e.id }); closeSheet(); clearCache(); toast('ลบแล้ว 🗑️'); render(); }
+      try {
+        await api('POST', 'delete', { id: e.id });
+        if (rushing() || !funOn()) { closeSheet(); toast('ลบแล้ว 🗑️'); } else await showDeleted(e);
+        clearCache(); render();
+      }
       catch (err) { toast(err.message); draw(); }
     });
     $('#fSave').onclick = async () => {
       keep();
       if (!(Number(e.amount) > 0)) { $('#fAmount').focus(); return toast('กรุณาใส่จำนวนเงิน'); }
       if (!e.date) return toast('กรุณาเลือกวันที่');
-      const data = { type: e.type, category: e.category, amount: Number(e.amount), note: e.note, date: e.date, ...(state.couple ? { private: !!e.private } : {}) };
+      const data = { type: e.type, category: e.category, amount: Number(e.amount), note: e.note, date: e.date };
       $('#fSave').disabled = true; $('#fSave').textContent = 'กำลังบันทึก…';
       try {
         let id = e.id;
@@ -1056,8 +1187,9 @@ function openEntry(entry) {
 
 async function showSaved(d, title) {
   const c = catById(d.category);
+  const coins = funOn() ? Array.from({ length: 5 }, (_, i) => `<span class="coin rain" style="--x:${(i - 2) * 16}px;--d:${.15 + i * .09}s">🪙</span>`).join('') : '';
   $('#sheet').innerHTML = `<div class="saved">
-    <div class="saved-pig"><span class="coin">🪙</span>${pig('wow', 'jump')}</div>
+    <div class="saved-pig"><span class="coin">🪙</span>${coins}${pig('wow', 'jump')}</div>
     <div class="saved-title">${title}</div>
     <div class="saved-amt ${d.type === 'income' ? 'amt-in' : 'amt-out'}">${d.type === 'income' ? '+' : '-'}${fmt(d.amount)} ฿</div>
     <div class="saved-cat">${esc(c.icon)} ${esc(c.name)} · ${thaiDay(d.date)}</div></div>`;
@@ -1128,8 +1260,12 @@ async function initLiff() {
 }
 
 async function boot() {
+  document.body.classList.toggle('calm', !funOn()); // ปิดลูกเล่น = พื้นหลัง/น้องหมูนิ่ง
   bindChrome();
   bindPull();
+  bindDrag();
+  bindDeviceTilt();
+  addEventListener('resize', () => moveBlob(true));
   applyTheme(store.get('theme'));
   const ym = ymOf(todayISO());
   let shown = false;
@@ -1224,13 +1360,13 @@ function demoApi(method, action, body) {
   if (method === 'GET') {
     // โหมดทดลองคู่รัก: /?demo=1&couple=1
     const partner = () => db.entries.filter((e, i) => i % 3 === 0).map((e, i) => ({ ...e, id: '~' + i, owner: 'partner', amount: Math.round(e.amount * 0.8), note: e.type === 'income' ? 'ขายของ' : e.note, category: e.type === 'income' ? '~income|ขายของออนไลน์' : e.category }));
-    const usList = b => [...inRange(b).filter(e => !e.private).map(e => ({ ...e, owner: 'me' })), ...partner().filter(e => e.date >= b.from && e.date <= b.to)].sort((a, c) => c.date.localeCompare(a.date) || c.ts - a.ts);
+    const usList = b => [...inRange(b).map(e => ({ ...e, owner: 'me' })), ...partner().filter(e => e.date >= b.from && e.date <= b.to)].sort((a, c) => c.date.localeCompare(a.date) || c.ts - a.ts);
     const extraCats = [{ id: '~income|ขายของออนไลน์', name: 'ขายของออนไลน์', icon: '🛒', type: 'income' }];
     if (action === 'boot') return wait({ profile: profile(), entries: inRange(body), couple: params.has('couple') && !db.unpaired ? { name: 'มิ้นท์ 🌸', pic: '', since: Date.now() - 12 * 86400e3 } : null });
     if (action === 'coupleEntries') return wait({ entries: usList(body), extraCats });
     if (action === 'coupleYear') return wait({ extraCats, months: Array.from({ length: 12 }, (_, m) => {
       const ym = `${body.year}-${String(m + 1).padStart(2, '0')}`, inc = {}, exp = {};
-      [...db.entries.filter(e => !e.private), ...partner()].filter(e => e.date.startsWith(ym)).forEach(e => { const t = e.type === 'income' ? inc : exp; t[e.category] = (t[e.category] || 0) + e.amount; });
+      [...db.entries, ...partner()].filter(e => e.date.startsWith(ym)).forEach(e => { const t = e.type === 'income' ? inc : exp; t[e.category] = (t[e.category] || 0) + e.amount; });
       return { inc, exp };
     }) });
     if (action === 'profile') return wait(profile());

@@ -45,7 +45,9 @@ async function get(request) {
       const from = url.searchParams.get('from'), to = url.searchParams.get('to');
       if (!isDate(from) || !isDate(to)) return json({ error: 'bad date' }, 400);
       // 💑 มีคู่ไหม (คนโสดไม่มีการอ่านเพิ่ม) → ชื่อ+รูปแฟน ไว้โชว์ปุ่ม "ของเรา"
-      const couplePromise = getCouple(user.uid).then(async c => (c ? { name: c.partnerName, since: c.since, pic: (await getLineProfile(c.partner)).pic } : null));
+      // รูปแฟนดึงจาก LINE ไม่เกิน 0.7 วิ (ช้ากว่านั้นใช้รูปที่เว็บจำไว้ ไม่ให้หน้าเว็บรอ)
+      const picOf = id => Promise.race([getLineProfile(id).then(p => p.pic), new Promise(r => setTimeout(() => r(''), 700))]);
+      const couplePromise = getCouple(user.uid).then(async c => (c ? { name: c.partnerName, since: c.since, pic: await picOf(c.partner) } : null));
       const [profile, entries, couple] = await Promise.all([getProfile(user.uid), listEntries(user.uid, from, to), couplePromise]);
       later(compactOld(user.uid, bkkDate())); // รวมข้อมูลเก่า เดือนละครั้ง (ทำหลังตอบ)
       return json({ profile: { ...profile, name: user.name }, entries, couple, session: makeSession(user) });

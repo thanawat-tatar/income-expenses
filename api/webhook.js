@@ -23,7 +23,7 @@ import { slipReady, slipTurn, geminiTurn, fetchImage, readSlip, slipKey, probeMo
 import {
   getProfile, saveProfile, addEntries, updateEntry, recentEntries, getEntry, setEdit, getEdit, clearEdit,
   getMiss, setMiss, clearMiss, listEntries, lastBatch, deleteEntries,
-  setPending, getPending, clearPending, findSlip, getUser, setPrivate, batchEntries,
+  setPending, getPending, clearPending, findSlip, getUser,
 } from '../lib/store.js';
 
 const PENDING_TTL = 24 * 3600 * 1000;
@@ -247,7 +247,7 @@ async function onText(uid, ev) {
     }
     const cat = findCategory(target, profile);
     if (cat) return saveEdit(uid, ev, e, { category: cat.id, type: cat.type }, byId, `${cat.icon} ${cat.name}`);
-    return reply(ev.replyToken, editEntryMessage(e, byId, coupled));
+    return reply(ev.replyToken, editEntryMessage(e, byId));
   }
   // ---- แก้/ลบ แบบบอกว่าอันไหน: "แก้ค่ากินวันที่12", "แก้รายการวันที่11", "ลบค่ากินเมื่อวาน", "ลบ ข้าว 50" ----
   const target = msg.match(/^(?:ขอ)?(แก้(?!ว)(?:ไข)?|ลบ(?!คำ)|เอาออก)\s*(.*)$/);
@@ -260,7 +260,7 @@ async function onText(uid, ev) {
         return reply(ev.replyToken, [noteCard('🔍', `ไม่เจอรายการ ${what}`, 'แตะเลือกจากรายการล่าสุดได้เลย'), await editList(uid, byId)]);
       }
       if (found.matches.length === 1) {
-        return reply(ev.replyToken, del ? deleteAsk(found.matches[0], byId) : editEntryMessage(found.matches[0], byId, coupled));
+        return reply(ev.replyToken, del ? deleteAsk(found.matches[0], byId) : editEntryMessage(found.matches[0], byId));
       }
       return reply(ev.replyToken, [
         noteCard('🔍', `เจอ ${found.matches.length} รายการ`, `${what} · แตะอันที่จะ${del ? 'ลบ' : 'แก้'}`),
@@ -368,7 +368,7 @@ async function onText(uid, ev) {
   const pid = Math.random().toString(36).slice(2, 10);
   const pend = { id: pid, items, date, orphans };
   await setPending(uid, pend);
-  const out = [confirmMessage(items, date, pid, byId, orphans, coupled), ...nextStep(pend, byId, profile.categories, true)];
+  const out = [confirmMessage(items, date, pid, byId, orphans), ...nextStep(pend, byId, profile.categories, true)];
   if (truncated) out.unshift(noteCard('⚠️', 'รับได้ครั้งละ 30 รายการ', 'ที่เหลือส่งข้อความใหม่ได้เลย'));
   return reply(ev.replyToken, out);
 }
@@ -377,12 +377,15 @@ async function onText(uid, ev) {
 async function onImage(uid, ev) {
   const t = ev.replyToken;
   if (!slipReady()) return reply(t, slipFallbackMessage('off'));
-  if (!(await slipTurn(uid))) return reply(t, noteCard('😅', 'บอทอ่านไม่ทัน ขอทีละสลิปน้า', 'รอแป๊บ แล้วส่งรูปถัดไปได้เลย'));
-  if (!(await geminiTurn())) return reply(t, slipFallbackMessage('busy'));
-  const profile = await getProfile(uid);
+  // ทำพร้อมกันทุกอย่างที่ไม่ต้องรอกัน (เช็คความถี่ · เช็คโควต้า AI · ดึงรูปจาก LINE · อ่านหมวดของคุณ) เร็วขึ้น ~1 วิ
+  const imgP = fetchImage(ev.message.id);
+  imgP.catch(() => {});
+  const [okTurn, okAi, profile] = await Promise.all([slipTurn(uid), geminiTurn(), getProfile(uid)]);
+  if (!okTurn) return reply(t, noteCard('😅', 'บอทอ่านไม่ทัน ขอทีละสลิปน้า', 'รอแป๊บ แล้วส่งรูปถัดไปได้เลย'));
+  if (!okAi) return reply(t, slipFallbackMessage('busy'));
   let s;
   try {
-    const img = await fetchImage(ev.message.id);
+    const img = await imgP;
     s = await readSlip(img, profile.categories.filter(c => c.type === 'expense'));
   } catch (e) {
     if (e.code !== 'notslip') console.error('slip', e.message);
@@ -425,7 +428,6 @@ async function saveSlip(uid, ev, pending, cat, profile, extraCats) {
   return reply(ev.replyToken, withQuick(msg, [
     ['↩️ ยกเลิก', `a=del&b=${batch}`, 'ยกเลิกรายการนี้'],
     ['✏️ แก้', `a=pick&id=${saved[0].id}`, 'แก้รายการนี้'],
-    ...(hasCouple() ? [privQuick(batch)] : []),
   ]));
 }
 
@@ -489,7 +491,7 @@ function findEntry(list, query, byId) {
 async function saveEdit(uid, ev, e, change, byId, what) {
   const next = { ...e, ...change };
   await Promise.all([updateEntry(uid, e.id, next), clearEdit(uid)]);
-  return reply(ev.replyToken, [noteCard('✅', 'แก้แล้ว', what), editEntryMessage({ ...next, id: e.id }, byId, hasCouple())]);
+  return reply(ev.replyToken, [noteCard('✅', 'แก้แล้ว', what), editEntryMessage({ ...next, id: e.id }, byId)]);
 }
 
 function deleteAsk(e, byId) {
@@ -536,12 +538,11 @@ function openQuestion(pending) {
 function nextStep(pending, byId, categories, first) {
   const i = openQuestion(pending);
   if (i >= 0) return [askMessage(pending.items[i], i, pending.id, categories)];
-  return first ? [] : [confirmMessage(pending.items, pending.date, pending.id, byId, pending.orphans || [], hasCouple())];
+  return first ? [] : [confirmMessage(pending.items, pending.date, pending.id, byId, pending.orphans || [])];
 }
 // มีคู่ไหม (อ่านจากข้อมูลผู้ใช้ที่โหลดไว้แล้วในคำขอนี้ ไม่อ่านฐานข้อมูลเพิ่ม)
 const hasCouple = (uid = docGet('@uid')) => !!docGet(`users/${uid}`)?.coupleId;
 const bkkIso = ms => new Date(ms + 7 * 3600 * 1000).toISOString().slice(0, 10);
-const privQuick = batch => ['🔒 ส่วนตัว', `a=privb&b=${batch}`, 'ตั้งเป็นส่วนตัว'];
 
 // ---------- 💑 จับคู่ ----------
 // B ส่ง "จับคู่ <รหัส>"
@@ -612,29 +613,20 @@ async function onPostback(uid, ev) {
 
     // บันทึก + อ่านยอดวันนี้ พร้อมกัน (ไม่ต้องรอทีละอย่าง)
     const batch = 'b' + pending.id, today = bkkDate();
-    const coupled = hasCouple();
-    const priv = coupled && p.get('pv') === '1'; // 🔒 ยืนยันแบบส่วนตัว (เฉพาะคนมีคู่)
-    const items = pending.items.map(i => ({ ...i, date: i.date || pending.date, ...(priv ? { private: true } : {}) }));
+    const items = pending.items.map(i => ({ ...i, date: i.date || pending.date }));
     const [, , before] = await Promise.all([clearPending(uid), addEntries(uid, items, batch), listEntries(uid, today, today)]);
     const mine = items.filter(i => i.date === today);
     const list = [...before.filter(e => e.batch !== batch), ...mine];
     const net = list.reduce((s, e) => s + (e.type === 'income' ? e.amount : -e.amount), 0);
     const days = [...new Set(items.map(i => i.date))];
     const saved = savedMessage(items.length, days.length > 1 ? 'หลายวัน' : thaiDate(days[0]), mine.length ? net : null);
-    if (priv) return reply(ev.replyToken, [saved, noteCard('🔒', 'ตั้งเป็นส่วนตัวแล้ว', 'แฟนไม่เห็น และไม่นับในยอดของเรา')]);
-    return reply(ev.replyToken, coupled ? withQuick(saved, [privQuick(batch)]) : saved);
+    return reply(ev.replyToken, saved);
   }
 
   if (['pair1', 'pairx', 'pairok', 'pairundo', 'paircancel', 'unpair2', 'unpairno'].includes(a)) return onPairPostback(uid, ev, a, p);
 
-  // 🔒 ตั้งรายการที่เพิ่งจด (ทั้งชุด) เป็นส่วนตัว
-  if (a === 'privb') {
-    if (!hasCouple()) return reply(ev.replyToken, noteCard('🤔', 'ใช้ได้เมื่อจับคู่แล้ว', 'พิมพ์ "จับคู่" เพื่อเริ่ม'));
-    const list = await batchEntries(uid, String(p.get('b') || ''));
-    if (!list.length) return reply(ev.replyToken, noteCard('🤔', 'ไม่เจอรายการนี้แล้ว', 'อาจถูกลบไปแล้ว'));
-    await setPrivate(uid, list.map(e => e.id), true);
-    return reply(ev.replyToken, noteCard('🔒', `ตั้งเป็นส่วนตัวแล้ว ${list.length} รายการ`, 'แฟนไม่เห็น และไม่นับในยอดของเรา · เปลี่ยนได้ที่ "แก้ไข"'));
-  }
+  // ปุ่ม 🔒 จากการ์ดเก่า (ระบบส่วนตัวเลิกใช้แล้ว)
+  if (a === 'privb' || a === 'epriv') return reply(ev.replyToken, noteCard('💡', 'ปุ่มนี้เลิกใช้แล้ว', 'ตอนนี้แฟนเห็นทุกรายการในยอดของเรา'));
 
   if (a === 'stype') return reply(ev.replyToken, noteCard('✍️', 'พิมพ์ได้เลย', 'เช่น ข้าว 50 หรือ น้ำมัน 100'));
   if (['scat', 'snew', 'sflip', 'sno'].includes(a)) {
@@ -694,7 +686,7 @@ async function onPostback(uid, ev) {
   }
 
   // ---- แก้ไขรายการ ----
-  if (['elist', 'pick', 'eamt', 'ecat', 'ecat2', 'eflip', 'edate', 'enote', 'edel', 'edel2', 'edone', 'epriv'].includes(a)) {
+  if (['elist', 'pick', 'eamt', 'ecat', 'ecat2', 'eflip', 'edate', 'enote', 'edel', 'edel2', 'edone'].includes(a)) {
     const profile = await getProfile(uid);
     const byId = catMap(profile.categories);
     if (a === 'edone') { later(clearEdit(uid)); return reply(ev.replyToken, noteCard('✨', 'เรียบร้อย!', 'พิมพ์รายการใหม่ได้เลย')); }
@@ -707,16 +699,7 @@ async function onPostback(uid, ev) {
     }
     const e = await getEntry(uid, p.get('id'));
     if (!e) return reply(ev.replyToken, noteCard('🤔', 'ไม่เจอรายการนี้แล้ว', 'อาจถูกลบไปแล้ว'));
-    if (a === 'pick') return reply(ev.replyToken, editEntryMessage(e, byId, hasCouple()));
-    if (a === 'epriv') {
-      const flag = p.get('v') === '1';
-      if (!hasCouple()) return reply(ev.replyToken, editEntryMessage(e, byId));
-      await setPrivate(uid, [e.id], flag);
-      return reply(ev.replyToken, [
-        noteCard(flag ? '🔒' : '🔓', flag ? 'ตั้งเป็นส่วนตัวแล้ว' : 'ให้แฟนเห็นแล้ว', flag ? 'แฟนไม่เห็น และไม่นับในยอดของเรา' : 'นับในยอดของเราแล้ว'),
-        editEntryMessage({ ...e, private: flag }, byId, true),
-      ]);
-    }
+    if (a === 'pick') return reply(ev.replyToken, editEntryMessage(e, byId));
     if (a === 'eamt') { await setEdit(uid, { id: e.id, await: 'amount' }); return reply(ev.replyToken, noteCard('💰', 'พิมพ์จำนวนเงินใหม่', `ตอนนี้ ${baht(e.amount)} บาท · เช่น 60 หรือ 30+20`)); }
     if (a === 'enote') { await setEdit(uid, { id: e.id, await: 'note' }); return reply(ev.replyToken, noteCard('📝', 'พิมพ์ชื่อรายการใหม่', 'เช่น ข้าวมันไก่')); }
     if (a === 'ecat') return reply(ev.replyToken, editCategoryMessage(e, profile.categories));
