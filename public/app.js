@@ -492,7 +492,7 @@ const isDark = () => {
 function applyTheme(t) {
   const root = document.documentElement;
   if (t === 'light' || t === 'dark') root.dataset.theme = t; else root.removeAttribute('data-theme');
-  $('meta[name="theme-color"]').content = isDark() ? '#1A0D16' : '#FFF0F6';
+  $('meta[name="theme-color"]').content = isDark() ? '#0F1A26' : '#FFF8D6';
   $('#themeBtn').innerHTML = isDark() ? ICON_SUN : ICON_MOON;
 }
 function setTheme(t) { store.set('theme', t); applyTheme(t); }
@@ -864,8 +864,8 @@ function homeHTML(d) {
   const mood = zero ? (us ? 'wink' : 'angry') : profit ? 'happy' : 'sad';
   const pigs = us ? loversHTML() : pigPeek(mood);
   const label = us ? `${esc(periodWord())}ของเรา 💕` : esc(periodWord());
-  const hero = `<div class="hero-wrap ${us ? 'us' : ''}">${pigs}<div class="card hero tilt ${us ? 'love' : ''} ${zero ? '' : profit ? 'profit' : 'loss'}">
-    <i class="spark s1">✦</i><i class="spark s2">✦</i><i class="spark s3">✦</i><i class="glare"></i>
+  const hero = `<div class="hero-wrap ${us ? 'us' : ''}">${pigs}<i class="hero-shadow"></i><div class="card hero tilt ${us ? 'love' : ''} ${zero ? '' : profit ? 'profit' : 'loss'}">
+    <i class="spark s1">✦</i><i class="spark s2">✦</i><i class="spark s3">✦</i><i class="glare"></i><i class="spec"></i>
     <div class="hero-top"><span class="hero-label">${label} ${streak}</span><span class="badge">${zero ? '—' : profit ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${!zero && !profit ? '-' : ''}<span data-count="${Math.abs(net)}">0</span><small>บาท</small></div>
     <div class="split">
@@ -932,7 +932,7 @@ function listHTML(d) {
   if (!d.entries.length) return `<div class="card">${emptyEntries}</div>`;
   const net = d.ti - d.te;
   const us = isUs(), lm = net >= 0 ? 'happy' : 'sad';
-  const top = `<div class="hero-wrap small ${us ? 'us' : ''}">${us ? loversHTML(true) : pigPeek(lm, true)}<div class="card hero mini tilt ${us ? 'love' : ''} ${net >= 0 ? 'profit' : 'loss'}">
+  const top = `<div class="hero-wrap small ${us ? 'us' : ''}">${us ? loversHTML(true) : pigPeek(lm, true)}<i class="hero-shadow"></i><div class="card hero mini tilt ${us ? 'love' : ''} ${net >= 0 ? 'profit' : 'loss'}"><i class="spec"></i>
     <div class="hero-top"><span class="hero-label">${esc(periodWord())}${us ? 'ของเรา' : ''} · ${d.entries.length} รายการ</span><span class="badge">${net >= 0 ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${net < 0 ? '-' : ''}${fmt(Math.abs(net))}<small>บาท</small></div>
     <div class="split"><div class="pill"><span><i>💰</i>รายรับ</span><b>+${fmt(d.ti)}</b></div><div class="pill"><span><i>💸</i>รายจ่าย</span><b>-${fmt(d.te)}</b></div></div></div></div>`;
@@ -965,6 +965,31 @@ function bindDeviceTilt() {
   });
 }
 
+// ✨ การ์ดยอดเงิน 2.5D: เลื่อนจอ → ตัวเลขลอยเยื้องจากพื้นกระจก + เส้นแสงขอบวิ่งตาม + เงาใต้การ์ดยืด/จางตามความเร็ว
+// หยุดนิ้วแล้วค่อยๆ หน่วงกลับนิ่ง · ขยับแค่ transform/translate · ปิดลูกเล่นหรือเครื่องตั้งลดการเคลื่อนไหว = นิ่ง
+function bindHeroDepth() {
+  const still = matchMedia('(prefers-reduced-motion: reduce)');
+  let lastY = scrollY, lastT = performance.now(), v = 0, raf = 0;
+  const frame = () => {
+    raf = 0;
+    const heroes = $$('.hero.tilt');
+    if (!heroes.length) return;
+    const now = performance.now(), y = scrollY, dt = Math.max(8, now - lastT);
+    v = v * .82 + ((y - lastY) / dt) * .18; lastY = y; lastT = now;
+    const off = still.matches || !funOn();
+    const p = off ? 0 : Math.max(0, Math.min(1, y / 320)), k = off ? 0 : Math.max(-1, Math.min(1, v / 1.6));
+    heroes.forEach(h => {
+      h.style.setProperty('--dy', `${(-p * 7 + k * 4).toFixed(2)}px`);
+      h.style.setProperty('--sx', `${(-35 + p * 70 + k * 30).toFixed(1)}%`);
+      const sh = h.previousElementSibling;
+      if (sh?.classList.contains('hero-shadow')) sh.style.transform = `translate3d(0, ${(p * 4).toFixed(1)}px, 0) scale(${(1 + Math.abs(k) * .14).toFixed(3)}, 1)`, sh.style.opacity = (.85 - Math.abs(k) * .4 - p * .2).toFixed(2);
+    });
+    if (!off && Math.abs(v) > .004) raf = requestAnimationFrame(frame); // ยังแกว่งอยู่ → หน่วงต่อจนนิ่ง
+  };
+  bindHeroDepth.kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
+  addEventListener('scroll', bindHeroDepth.kick, { passive: true });
+}
+
 function bindTilt(root) {
   $$('.tilt', root).forEach(el => {
     el.onpointermove = e => {
@@ -979,6 +1004,7 @@ function bindTilt(root) {
 function bindView() {
   const view = $('#view');
   bindTilt(view);
+  bindHeroDepth.kick?.();
   bindPig(view);
   $$('.entry', view).forEach(b => b.onclick = async () => {
     if (b.hasAttribute('data-partner')) return toast('รายการของแฟน แก้ได้เฉพาะเจ้าของนะ 💕');
@@ -1247,7 +1273,7 @@ function settingsHTML() {
     <div class="card span">
       <h2 class="section-title">🎨 หน้าตา</h2>
       <button class="priv ${store.get('fun') !== false ? 'on' : ''}" id="funToggle" type="button" style="margin:10px 0 12px">
-        <span>🐷</span><div><b>ลูกเล่นน้องหมู</b><small>${store.get('fun') !== false ? 'นานๆ น้องจะโผล่มาเซอร์ไพรส์ · รีบอยู่น้องไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
+        <span>🐷</span><div><b>ลูกเล่นมินเนี่ยน</b><small>${store.get('fun') !== false ? 'นานๆ น้องจะโผล่มาเซอร์ไพรส์ · รีบอยู่น้องไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
       <div class="seg" style="max-width:none;margin-top:10px">
         ${[['light', 'สว่าง'], ['dark', 'มืด'], ['auto', 'ตามเครื่อง']].map(([v, l]) => `<button data-themeopt="${v}" class="${theme === v ? 'active' : ''}">${l}</button>`).join('')}
         <span class="seg-pill" style="transform:translateX(${['light', 'dark', 'auto'].indexOf(theme) * 100}%)"></span>
@@ -1659,7 +1685,7 @@ async function boot() {
   bindSheetSwipe();
   bindScrollChrome();
   bindGlassSegs();
-  bindDeviceTilt();
+  bindHeroDepth();
   addEventListener('resize', () => moveBlob(true));
   applyTheme(store.get('theme'));
   const ym = ymOf(todayISO());
