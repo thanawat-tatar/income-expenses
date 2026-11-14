@@ -63,7 +63,7 @@ addEventListener('error', e => {
 // น้องลูกเจี๊ยบเกาะหลังการ์ด (กลางคืน 20:00–06:00 = ตัวถือไฟฉาย ส่องแสงขึ้นไปที่ตัวเลข)
 function mascotPeek(mood, small, extra = '') {
   const night = isNight() && !extra;
-  return `<button class="peek-body ${small ? 'small' : ''} ${night ? 'night' : ''} ${extra}" data-mood="${mood}" aria-label="น้องลูกเจี๊ยบ">${mascot(night ? 'sleep' : mood)}</button>`;
+  return `<button class="peek-body ${small ? 'small' : ''} ${night ? 'night' : ''} ${extra}" data-mood="${mood}" aria-label="น้องลูกเจี๊ยบ">${night ? `<span class="torch-rig">${mascot('sleep')}<i class="torch-beam"></i></span>` : mascot(mood)}</button>`;
 }
 
 // ---------- คำพูดน้องลูกเจี๊ยบ (ลูกสมุนคุยกับบอส: ชม ให้กำลังใจ ชวนจดต่อ) ----------
@@ -694,6 +694,17 @@ function rocketFx() {
     document.body.appendChild(s); setTimeout(() => s.remove(), 750);
   }, i * 90);
 }
+// ✨ ประกายดาวกระจายจากแถวที่ถูกลบ
+function starBurst(el) {
+  const r = el.getBoundingClientRect();
+  for (let i = 0; i < 9; i++) {
+    const s = document.createElement('span');
+    s.className = 'star-fx burst'; s.textContent = i % 3 ? '✦' : '★';
+    const a = (i / 9) * Math.PI * 2;
+    s.style.cssText = `left:${r.left + r.width * (.2 + Math.random() * .6)}px;top:${r.top + r.height / 2}px;--bx:${Math.round(Math.cos(a) * 46)}px;--by:${Math.round(Math.sin(a) * 30)}px`;
+    document.body.appendChild(s); setTimeout(() => s.remove(), 650);
+  }
+}
 // 🌠 ดาวตกพาดฟ้าทุกๆ ~7 วิ (หยุดเมื่อปิดลูกเล่น/แท็บไม่ได้เปิดอยู่)
 function bindShootingStars() {
   setInterval(() => {
@@ -922,7 +933,7 @@ function homeHTML(d) {
   let middle = '';
   if (d.perMonth) {
     const max = Math.max(1, ...d.perMonth.flatMap(m => [m.inc, m.exp]));
-    middle = `<div class="card perched">${perch('wow', 'hang')}<h3>📊 รายเดือน</h3><div class="chart">${d.perMonth.map((m, i) => `
+    middle = `<div class="card"><h3>📊 รายเดือน</h3><div class="chart">${d.perMonth.map((m, i) => `
       <div class="col" data-month="${i}" title="${MONTHS[i]}: +${fmt(m.inc)} / -${fmt(m.exp)}">
         <div class="bars"><i class="i" data-h="${(m.inc / max) * 100}"></i><i class="o" data-h="${(m.exp / max) * 100}"></i></div>
         <small>${MONTHS[i].replace('.', '').slice(0, 3)}</small></div>`).join('')}</div>
@@ -941,7 +952,7 @@ function homeHTML(d) {
     <div class="grid">${hero}${middle}</div>
     <div class="grid">
       <div class="card perched">${perch('wink', 'eyes')}<h3>💸 รายจ่าย <small>${fmt(d.te)} ฿</small></h3>${catRows(d.exp, d.te, 'out')}</div>
-      <div class="card perched">${perch('happy', 'lie')}<h3>💰 รายรับ <small>${fmt(d.ti)} ฿</small></h3>${catRows(d.inc, d.ti, 'in')}</div>
+      <div class="card"><h3>💰 รายรับ <small>${fmt(d.ti)} ฿</small></h3>${catRows(d.inc, d.ti, 'in')}</div>
     </div>
   </div>`;
 }
@@ -1530,7 +1541,7 @@ function openEntry(entry) {
       // แตะยืนยันครั้งที่ 2 แล้ว → ปิดหน้าต่าง แถวนั้นลื่นเปลือกกล้วยปลิวออกข้างจอ แล้วค่อยหายจากรายการ
       const row = funOn() && !rushing() ? $(`.entry[data-id="${CSS.escape(old.id)}"]`) : null;
       closeSheet();
-      if (row) { row.classList.add('slip'); await new Promise(r => setTimeout(r, 380)); }
+      if (row) { starBurst(row); row.classList.add('slip'); await new Promise(r => setTimeout(r, 380)); }
       applyLocal(old, null);
       syncBg(async () => api('POST', 'delete', { id: await realId(old.id) }), () => applyLocal(null, old), 'ลบ');
       if (rushing() || !funOn()) toast('ลบแล้ว 🗑️'); else tossFx(catById(old.category).icon);

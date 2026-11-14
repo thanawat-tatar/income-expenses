@@ -1009,3 +1009,28 @@ body.calm #space .shoot { display: none; }
 .m-peek, .perch .mascot, .boo .mascot { aspect-ratio: 190 / 130 !important; }
 .m-flash { aspect-ratio: 140 / 160 !important; }
 .m-couple { aspect-ratio: 210 / 160 !important; }
+
+/* ===== รอบ 3: เก็บงานจากภาพจริง ===== */
+/* ไก่ไฟฉาย: ตัวไก่ + ไฟฉาย + ลำแสง อยู่ในกล่องเดียว ส่ายไปพร้อมกัน · อยู่หลังการ์ด ไม่บังตัวเลข */
+.torch-rig { position: relative; display: block; transform-origin: 46% 92%; animation: torchSway 6s ease-in-out infinite alternate; }
+.torch-rig .mascot { animation: none !important; position: relative; z-index: 1; }
+.torch-beam { position: absolute; left: 71%; top: 19%; width: 220px; height: 300px; margin-left: -110px; margin-top: -300px; transform-origin: 50% 100%; rotate: -25deg;
+  pointer-events: none; z-index: 0; mix-blend-mode: screen; opacity: .45;
+  background: conic-gradient(from -14deg at 50% 100%, rgba(255, 236, 160, .9), rgba(255, 236, 160, 0) 28deg, transparent 332deg, rgba(255, 236, 160, .9));
+  -webkit-mask: linear-gradient(to top, #000 8%, transparent 92%); mask: linear-gradient(to top, #000 8%, transparent 92%); }
+body.us .torch-beam { background: conic-gradient(from -14deg at 50% 100%, rgba(255, 170, 205, .9), rgba(255, 170, 205, 0) 28deg, transparent 332deg, rgba(255, 170, 205, .9)); }
+@keyframes torchSway { from { rotate: -9deg; } to { rotate: 7deg; } }
+.peek-body.night { z-index: 0; }
+body.scrolling .torch-rig { animation-play-state: paused; }
+body.calm .torch-rig { animation: none; } body.calm .torch-beam { display: none; }
+@media (prefers-reduced-motion: reduce) { .torch-rig { animation: none; } }
+/* ไก่ห้อยเชือก: เล็กลง 12% ขยับขึ้น 8px ไม่ชนปุ่มคู่รัก */
+.rope { width: 58px; margin-top: -8px; }
+/* ฉากหลังจางลง ไม่แย่งสายตาจากตัวเลข */
+#space .obj { opacity: .35; }
+/* หัวข้อเขียนมือ: ตัวขาวทึบ (ไม่มีเส้นขอบเหลือง) ค่อยๆ เขียนจากซ้ายไปขวา */
+.hw-t { fill: #fff; fill-opacity: 1; stroke: none; }
+.hw.done .hw-t { fill-opacity: 1; }
+/* ประกายดาวตอนปัดลบ */
+.star-fx.burst { animation: burst .6s cubic-bezier(.2, .8, .3, 1) forwards; text-shadow: 0 0 8px currentColor; }
+@keyframes burst { from { transform: translate(-50%, -50%) scale(.6); opacity: 1; } to { transform: translate(calc(-50% + var(--bx)), calc(-50% + var(--by))) scale(1.1); opacity: 0; } }
