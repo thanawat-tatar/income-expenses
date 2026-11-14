@@ -11,7 +11,7 @@
   --font: "Mali", "Sukhumvit Set", "Noto Sans Thai", system-ui, sans-serif;
   --radius: 20px;
   --nav-h: 68px;
-  --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease: cubic-bezier(.22, 1, .36, 1); /* iOS: เปิดแผ่น/ขยายการ์ด */
   color-scheme: light;
 }
 /* ---------- สี (โหมดมืด) ---------- */
@@ -862,3 +862,12 @@ body.calm .rope { display: none; }
 .corner-mascot { width: 64px; margin: -44px -6px 0 0; }
 .perch { width: auto; }
 .perch .mascot { width: auto; height: 64px; }
+
+/* (ง) สัมผัสแบบ iOS: กดแล้วยุบ 0.96 (CSS :active ล้วน ไม่บล็อกการไถ) · ใช้ scale แยกจาก transform เดิม ไม่ชนเอฟเฟกต์อื่น */
+button, .chip, a.btn { transition: scale .12s cubic-bezier(.22, 1, .36, 1); }
+button:not(.btn):not(.nav-add):not(.entry):not(.nav-item):active, .chip:active { scale: .96; }
+.entry:active { scale: .98; }
+/* ลบรายการ: ลื่นเปลือกกล้วยปลิวออกข้างจอ (หลังแตะยืนยันครั้งที่ 2) */
+.entry.slip { animation: slipOut .38s cubic-bezier(.5, 0, .9, .6) forwards !important; pointer-events: none; }
+@keyframes slipOut { 0% { transform: none; opacity: 1; } 25% { transform: translateX(-4%) rotate(-3deg); } 100% { transform: translateX(120%) rotate(15deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { button:active, .chip:active, .entry:active { scale: none; } }

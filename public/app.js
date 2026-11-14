@@ -478,6 +478,9 @@ function armDelete(btn, fn, label = 'แตะอีกครั้งเพื�
   };
 }
 
+// iPhone: ให้ :active (ปุ่มยุบตอนกด) ทำงาน · passive = ไม่หน่วงการไถจอ
+document.addEventListener('touchstart', () => {}, { passive: true });
+
 // ---------- ธีม ----------
 const isDark = () => {
   const t = document.documentElement.dataset.theme;
@@ -897,7 +900,7 @@ function homeHTML(d) {
 }
 
 // รูปโปรไฟล์วงกลม (ไม่มีรูป → มินเนี่ยน)
-const face = (pic, cls = '') => (pic ? `<img class="face ${cls}" src="${esc(pic)}" alt="" referrerpolicy="no-referrer">` : `<i class="face ${cls}">🐷</i>`);
+const face = (pic, cls = '') => (pic ? `<img class="face ${cls}" src="${esc(pic)}" alt="" referrerpolicy="no-referrer">` : `<i class="face ${cls}">🍌</i>`);
 const myPic = () => store.get('user')?.pic || '';
 const duoHTML = () => `<span class="duo">${face(myPic())}${face(state.couple?.pic, 'p2')}</span>`;
 
@@ -1159,7 +1162,7 @@ function adminHTML(d) {
     <div class="card span">
       <h2 class="section-title">👥 ผู้ใช้ <small>${d.count} คน · ไม่แสดงยอดเงินของใคร</small></h2>
       ${users.map(u => `<div class="item-row a-user">
-        <div class="cat-ico">${u.id === d.me ? '👑' : u.consentAt ? '🐷' : '💌'}</div>
+        <div class="cat-ico">${u.id === d.me ? '👑' : u.consentAt ? '🍌' : '💌'}</div>
         <div class="grow">${esc(u.name || 'ไม่มีชื่อ')} ${badge(u)}
           <small>เข้า ${dmy(u.joinedAt)} · ใช้ล่าสุด ${ago(u.lastActive, now)}${u.consentBy === 'owner' ? ' · ผู้ใช้เดิม' : ''}${u.words ? ` · สอนคำ ${u.words}` : ''}${u.couple ? ' · 💑 มีคู่' : ''}</small></div>
         ${u.id === d.me ? '' : `<button class="del-btn" data-auser="${esc(u.id)}" aria-label="ลบผู้ใช้">${ICON_TRASH}</button>`}
@@ -1273,7 +1276,7 @@ function settingsHTML() {
     <div class="card span">
       <h2 class="section-title">🎨 หน้าตา</h2>
       <button class="priv ${store.get('fun') !== false ? 'on' : ''}" id="funToggle" type="button" style="margin:10px 0 12px">
-        <span>🐷</span><div><b>ลูกเล่นมินเนี่ยน</b><small>${store.get('fun') !== false ? 'นานๆ มินเนี่ยนจะโผล่มาเซอร์ไพรส์ · รีบอยู่ไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
+        <span>🍌</span><div><b>ลูกเล่นมินเนี่ยน</b><small>${store.get('fun') !== false ? 'นานๆ มินเนี่ยนจะโผล่มาเซอร์ไพรส์ · รีบอยู่ไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
       <div class="seg" style="max-width:none;margin-top:10px">
         ${[['light', 'สว่าง'], ['dark', 'มืด'], ['auto', 'ตามเครื่อง']].map(([v, l]) => `<button data-themeopt="${v}" class="${theme === v ? 'active' : ''}">${l}</button>`).join('')}
         <span class="seg-pill" style="transform:translateX(${['light', 'dark', 'auto'].indexOf(theme) * 100}%)"></span>
@@ -1487,9 +1490,12 @@ function openEntry(entry) {
     $('#fDel') && armDelete($('#fDel'), async () => {
       const old = { ...entry };
       delete old.owner;
+      // แตะยืนยันครั้งที่ 2 แล้ว → ปิดหน้าต่าง แถวนั้นลื่นเปลือกกล้วยปลิวออกข้างจอ แล้วค่อยหายจากรายการ
+      const row = funOn() && !rushing() ? $(`.entry[data-id="${CSS.escape(old.id)}"]`) : null;
+      closeSheet();
+      if (row) { row.classList.add('slip'); await new Promise(r => setTimeout(r, 380)); }
       applyLocal(old, null);
       syncBg(async () => api('POST', 'delete', { id: await realId(old.id) }), () => applyLocal(null, old), 'ลบ');
-      closeSheet();
       if (rushing() || !funOn()) toast('ลบแล้ว 🗑️'); else tossFx(catById(old.category).icon);
       render(true);
     });
@@ -1628,7 +1634,7 @@ function bindChrome() {
   $$('#scope button').forEach(b => b.onclick = () => {
     if (state.scope === b.dataset.scope) return;
     state.anim = b.dataset.scope === 'us' ? 'l' : 'r'; state.scope = b.dataset.scope; render();
-    if (b.dataset.scope === 'us') { const r = b.getBoundingClientRect(); burst(r.left + r.width / 2, r.top, ['💕', '💖', '🐷', '✨']); }
+    if (b.dataset.scope === 'us') { const r = b.getBoundingClientRect(); burst(r.left + r.width / 2, r.top, ['💕', '💖', '🍌', '✨']); }
   });
   $('#prev').onclick = () => { state.anim = 'r'; state.date = shiftDate(state.date, state.mode, -1); render(); };
   $('#next').onclick = () => { state.anim = 'l'; state.date = shiftDate(state.date, state.mode, 1); render(); };
@@ -1651,7 +1657,7 @@ function applyProfile(p) {
 }
 function setUser(u) {
   if (!u) return;
-  $('#hello').textContent = `สวัสดี ${u.name || ''} 🎀`;
+  $('#hello').textContent = `สวัสดี ${u.name || ''} 🍌`;
   if (u.pic) { $('#avatar').src = u.pic; $('#avatar').hidden = false; }
 }
 const hideLoader = () => $('#loader').classList.add('hide');
@@ -1745,7 +1751,7 @@ async function boot() {
     if (e.message === 'not_member' || e.message === 'no_consent') { // ยังไม่ได้รับเข้า / ยังไม่กดยอมรับ / ลบข้อมูลไปแล้ว
       try { Object.keys(localStorage).filter(k => k.startsWith('ie:') && k !== 'ie:theme').forEach(k => localStorage.removeItem(k)); } catch {}
       $('#view').innerHTML = `<div class="card empty gate">${mascot(e.message === 'no_consent' ? 'wink' : 'sleep')}
-        <b>${e.message === 'no_consent' ? 'กดยอมรับในแชทก่อนนะ 📄' : 'ยังไม่ได้เริ่มใช้งาน 🐷'}</b><br>
+        <b>${e.message === 'no_consent' ? 'กดยอมรับในแชทก่อนนะ 📄' : 'ยังไม่ได้เริ่มใช้งาน 🍌'}</b><br>
         ${e.message === 'no_consent' ? 'แตะ 💖 ยอมรับ ในแชท LINE แล้วกลับมาที่นี่' : 'ทักแชท LINE ก่อน บอทจะพาเริ่มใช้งาน'}<br>
         <a class="btn" href="https://line.me/R/ti/p/@514ddese">💬 ไปที่แชท</a> <a class="btn ghost" href="/privacy.html">📄 นโยบายข้อมูล</a></div>`;
       return;
