@@ -871,3 +871,4 @@ button:not(.btn):not(.nav-add):not(.entry):not(.nav-item):active, .chip:active {
 .entry.slip { animation: slipOut .38s cubic-bezier(.5, 0, .9, .6) forwards !important; pointer-events: none; }
 @keyframes slipOut { 0% { transform: none; opacity: 1; } 25% { transform: translateX(-4%) rotate(-3deg); } 100% { transform: translateX(120%) rotate(15deg); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { button:active, .chip:active, .entry:active { scale: none; } }
+body.calm button:active, body.calm .chip:active, body.calm .entry:active { scale: none; }
