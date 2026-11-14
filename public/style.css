@@ -359,7 +359,7 @@ body { line-height: 1.6; }
 .topbar-text { padding-top: 2px; }
 
 /* ---------- ลูกเล่นการ์ด / หน้าโหลด ---------- */
-.pig { display: block; overflow: visible; }
+.mascot { display: block; overflow: visible; }
 .hero { transition: transform .25s var(--ease); will-change: transform; }
 .spark { position: absolute; color: #fff; font-style: normal; opacity: 0; pointer-events: none; z-index: 1; animation: twinkle 2.6s ease-in-out infinite; }
 .spark.s1 { left: 34%; top: 20px; font-size: 14px; }
@@ -382,12 +382,11 @@ body { line-height: 1.6; }
 @keyframes dot { 0%, 100% { opacity: .2; } 50% { opacity: 1; } }
 
 /* มาสคอตไม่ใช้สไตล์ไอคอนเส้น */
-svg.pig { height: auto; fill: initial; stroke: none; stroke-width: 0; }
 .hero-wrap .hero-top { padding-right: 104px; gap: 8px; }
 .hero-wrap .hero.mini .hero-top { padding-right: 80px; }
 
 /* =========================================================
-   น้องหมูออมสิน v2: ตัวใหญ่ มีรายละเอียด แตะแล้วตอบสนอง
+   มินเนี่ยน: ตัวใหญ่ มีรายละเอียด แตะแล้วตอบสนอง
    ========================================================= */
 .hero-wrap { position: relative; margin-top: 78px; }
 .hero-wrap.small { margin-top: 62px; }
@@ -395,21 +394,10 @@ svg.pig { height: auto; fill: initial; stroke: none; stroke-width: 0; }
 .peek-body { position: absolute; right: 8px; top: -104px; width: 140px; z-index: 0; padding: 0; background: none; border: 0;
   filter: drop-shadow(0 8px 10px rgba(30, 68, 102, .28)); animation: peekIn .9s var(--ease) both; cursor: pointer; }
 .peek-body.small { width: 108px; top: -80px; }
-.peek-body .pig { width: 100%; animation: bob 3.4s .9s ease-in-out infinite; transform-origin: 50% 80%; }
-.peek-body .pig-shadow, .peek-body .hooves { display: none; }
-.peek-paws { position: absolute; right: 8px; top: -14px; width: 140px; z-index: 2; pointer-events: none; animation: pawsIn .9s .15s var(--ease) both; }
-.peek-paws.small { width: 108px; top: -11px; }
-.peek-paws svg { width: 100%; height: auto; display: block; fill: initial; stroke: none; filter: drop-shadow(0 3px 3px rgba(150, 30, 80, .25)); }
-.peek-body.boing .pig { animation: boing .7s var(--ease); }
-.pig .ear-l { transform-origin: 66px 50px; animation: earL 5s ease-in-out infinite; }
-.pig .ear-r { transform-origin: 134px 50px; animation: earR 5s .4s ease-in-out infinite; }
-.pig .tail { transform-origin: 164px 128px; animation: tail 1.4s ease-in-out infinite; }
-.pig .bow { transform-box: fill-box; }
-.pig .eye { transform-box: fill-box; transform-origin: center; animation: blink 4.6s infinite; }
-.pig .tear { animation: tear 2.2s ease-in infinite; }
-.pig .zz { animation: zz 2.2s ease-in-out infinite; } .pig .z2 { animation-delay: .6s; }
-.corner-pig { float: right; width: 84px; margin: -64px -8px 0 0; animation: peekIn .8s var(--ease) both; }
-.corner-pig .pig { width: 100%; animation: wiggle 4s 1s ease-in-out infinite; }
+.peek-body .mascot { width: 100%; animation: bob 3.4s .9s ease-in-out infinite; transform-origin: 50% 80%; }
+.peek-body.boing .mascot { animation: boing .7s var(--ease); }
+.corner-mascot { float: right; width: 84px; margin: -64px -8px 0 0; animation: peekIn .8s var(--ease) both; }
+.corner-mascot .mascot { width: 100%; animation: wiggle 4s 1s ease-in-out infinite; }
 .nap { width: 130px; margin: 0 auto 6px; animation: breathe 3s ease-in-out infinite; }
 .streak { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: rgba(255, 255, 255, .25); font-size: 12px; font-weight: 700; animation: pop .5s var(--ease); }
 .archived div { margin-bottom: 8px; }
@@ -436,7 +424,6 @@ svg.pig { height: auto; fill: initial; stroke: none; stroke-width: 0; }
 @keyframes particle { 0% { transform: translate(-50%, -50%) scale(.4); opacity: 1; } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--r)) scale(1.1); opacity: 0; } }
 
 /* หน้างอน: เครื่องหมายโกรธเต้นตุบๆ */
-.pig .anger { transform-box: fill-box; transform-origin: center; animation: anger 1s ease-in-out infinite; }
 @keyframes anger { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
 
 /* ---------- ยังไม่ได้เข้าใช้ / ยังไม่ยอมรับ ---------- */
@@ -518,16 +505,15 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .btn:active, .nav-add:active { transition-duration: .08s; transform: translateY(3px) scale(.97, .93); }
 .chip:active { transition-duration: .08s; transform: scale(.94); }
 
-/* น้องหมูนุ่มนิ่ม กดแล้วยุบ */
-.peek-body, .corner-pig { touch-action: manipulation; }
-.peek-body.squish .pig, .corner-pig.squish .pig { animation: none; transform: scale(1.14, .82) translateY(10%); transition: transform .1s ease-out; }
-.peek-body .pig, .corner-pig .pig { transition: transform .45s cubic-bezier(.3, 2.2, .45, 1); }
+/* มินเนี่ยนนุ่มนิ่ม กดแล้วยุบ */
+.peek-body, .corner-mascot { touch-action: manipulation; }
+.peek-body.squish .mascot, .corner-mascot.squish .mascot { animation: none; transform: scale(1.14, .82) translateY(10%); transition: transform .1s ease-out; }
+.peek-body .mascot, .corner-mascot .mascot { transition: transform .45s cubic-bezier(.3, 2.2, .45, 1); }
 
-/* จ๊ะเอ๋: น้องหมูจิ๋วชะโงกจากหลังปุ่ม */
+/* จ๊ะเอ๋: มินเนี่ยนจิ๋วชะโงกจากหลังปุ่ม */
 .boo { position: fixed; z-index: 55; width: 64px; height: 44px; overflow: hidden; pointer-events: none; }
-.boo .pig { width: 64px; display: block; animation: booUp .45s cubic-bezier(.3, 1.7, .5, 1) both; }
-.boo .pig-shadow, .boo .hooves { display: none; }
-.boo.out .pig { animation: booDown .35s ease-in both; }
+.boo .mascot { width: 64px; display: block; animation: booUp .45s cubic-bezier(.3, 1.7, .5, 1) both; }
+.boo.out .mascot { animation: booDown .35s ease-in both; }
 @keyframes booUp { from { transform: translateY(100%); } to { transform: translateY(6%); } }
 @keyframes booDown { from { transform: translateY(6%); } to { transform: translateY(105%); } }
 
@@ -537,21 +523,10 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .confetti:nth-child(3n+1) { color: #FFC24B; }
 @keyframes confetti { from { transform: translate(-50%, -50%) scale(.3); opacity: 1; } 70% { opacity: 1; } to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(var(--r)); opacity: 0; } }
 
-/* ดึงลงเพื่อรีเฟรช: ดึงหางน้องหมู */
+/* (เดิม) ดึงลงเพื่อรีเฟรช — ย้ายไปที่มินเนี่ยนห้อยเชือก */
 html, body { overscroll-behavior-y: contain; }
-.pull { --d: 0px; position: fixed; top: 0; left: 50%; z-index: 60; display: none; flex-direction: column; align-items: center; transform: translateX(-50%); pointer-events: none; }
-.pull.show { display: flex; }
-.pull-tail { width: 6px; height: calc(var(--d) * .75); border-radius: 0 0 4px 4px; background: repeating-linear-gradient(180deg, #5B8FC0 0 7px, #2B5B84 7px 12px); transform-origin: top; }
-.pull-pig { width: 46px; line-height: 1; margin-top: -6px; transform: scale(calc(1 - var(--d) / 900px), calc(1 + var(--d) / 450px)); transform-origin: top; filter: drop-shadow(0 3px 4px rgba(30, 68, 102, .35)); }
-.pull b { margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--accent-text); background: var(--surface); padding: 2px 10px; border-radius: 999px; box-shadow: 0 2px 0 var(--card-edge); }
-.pull.ready .pull-pig { animation: wiggle .3s ease-in-out infinite; }
-.pull.snap .pull-tail { transition: height .4s cubic-bezier(.3, 2.4, .4, 1); }
-.pull.snap .pull-pig { transition: transform .4s cubic-bezier(.3, 2.4, .4, 1); }
-.pull.snap b { opacity: 0; }
 @keyframes wiggle { 0%, 100% { rotate: -8deg; } 50% { rotate: 8deg; } }
 @media (prefers-reduced-motion: reduce) { .boo, .confetti { display: none !important; } }
-.pull-pig .pig { width: 100%; }
-.pull-pig .pig-shadow { display: none; }
 
 /* ================= เอฟเฟกต์ชุดใหญ่ (สั้น นุ่ม ปิดได้ · เครื่องที่ลดการเคลื่อนไหวจะไม่เห็น) ================= */
 :root { --spring: cubic-bezier(.34, 1.56, .64, 1); --jelly: cubic-bezier(.3, 1.9, .4, 1); }
@@ -601,27 +576,26 @@ body.us::after { opacity: 1; }
 .hero.glow { animation: heroGlow 1.6s ease-in-out 2; }
 @keyframes heroGlow { 50% { box-shadow: 0 6px 0 var(--hero-edge), 0 0 0 6px rgba(255, 210, 120, .55), 0 18px 40px rgba(255, 170, 60, .5); } }
 
-/* น้องหมูตัวเล็กเกาะขอบการ์ด */
+/* มินเนี่ยนตัวเล็กเกาะขอบการ์ด */
 .card.perched { position: relative; overflow: visible; z-index: 2; margin-top: 10px; }
 .perch { position: absolute; z-index: 2; width: 58px; pointer-events: auto; touch-action: none; cursor: grab; }
-.perch .pig { width: 100%; display: block; }
-.perch .pig-shadow { display: none; }
+.perch .mascot { width: 100%; display: block; }
 .perch.hang { right: 18px; top: -41px; }
-.perch.hang .pig { animation: swing 3.2s ease-in-out infinite; transform-origin: 50% 90%; }
+.perch.hang .mascot { animation: swing 3.2s ease-in-out infinite; transform-origin: 50% 90%; }
 .perch.eyes { right: 22px; top: -27px; height: 30px; overflow: hidden; }
-.perch.eyes .pig { animation: peekUp 5s ease-in-out infinite; }
+.perch.eyes .mascot { animation: peekUp 5s ease-in-out infinite; }
 .perch.lie { right: 16px; top: -30px; width: 66px; }
-.perch.lie .pig { transform: rotate(-82deg) translateX(-8px); animation: snooze 3.6s ease-in-out infinite; }
-.perch.lie.held .pig, .perch.lie.spring .pig { animation: none; }
+.perch.lie .mascot { transform: rotate(-82deg) translateX(-8px); animation: snooze 3.6s ease-in-out infinite; }
+.perch.lie.held .mascot, .perch.lie.spring .mascot { animation: none; }
 @keyframes swing { 0%, 100% { rotate: -5deg; } 50% { rotate: 5deg; } }
 @keyframes peekUp { 0%, 55%, 100% { transform: translateY(42%); } 65%, 90% { transform: translateY(4%); } }
 @keyframes snooze { 0%, 100% { scale: 1; } 50% { scale: 1.04 .97; } }
 .card.perched > h3 { padding-right: 70px; }
 
-/* ลากน้องหมู: ยืดตามนิ้ว ปล่อยแล้วเด้งกลับ */
+/* ลากมินเนี่ยน: ยืดตามนิ้ว ปล่อยแล้วเด้งกลับ */
 .peek-body { touch-action: none; cursor: grab; }
 .peek-body.held, .perch.held { z-index: 40; cursor: grabbing; transition: none; filter: drop-shadow(0 10px 12px rgba(30, 68, 102, .35)); }
-.peek-body.held .pig, .perch.held .pig { animation-play-state: paused; }
+.peek-body.held .mascot, .perch.held .mascot { animation-play-state: paused; }
 .peek-body.spring, .perch.spring { transition: transform .85s var(--jelly); }
 
 /* แตะหมวด: เด้ง + วิ้ง */
@@ -649,10 +623,10 @@ body.us::after { opacity: 1; }
 .scope-pill { transition: transform .55s var(--spring), background .5s, box-shadow .5s; }
 
 @media (prefers-reduced-motion: reduce) {
-  body::before, body::after, .glare, .perch .pig, .nav-blob { animation: none !important; }
+  body::before, body::after, .glare, .perch .mascot, .nav-blob { animation: none !important; }
   .twink, .coin-drop, .toss-fx, .floaty { display: none !important; }
 }
-body.calm::before, body.calm::after, body.calm .glare, body.calm .perch .pig, body.calm .peek-body .pig { animation: none !important; }
+body.calm::before, body.calm::after, body.calm .glare, body.calm .perch .mascot, body.calm .peek-body .mascot { animation: none !important; }
 
 /* ================= รอบ 3: กระจกเมนูลากได้ · รูปคู่รัก · บันทึก/ลบทันที ================= */
 /* เมนูล่าง: แคปซูลกระจกใหญ่ ลากได้ */
@@ -845,3 +819,46 @@ body.calm .hero > .spec::before { translate: -35% 0; }
 /* (ข) Sticky stage: การ์ดยอดย่อ/ถอย/จางตอนเลื่อน (รายการแสดงนิ่งเต็มขนาดตลอด ไม่มีแอนิเมชันตอนไถ) */
 .hero-wrap { transform-origin: 50% 0; }
 @media (prefers-reduced-motion: reduce) { .hero-wrap { translate: none !important; scale: none !important; opacity: 1 !important; visibility: visible !important; } }
+
+/* 🍌 มินเนี่ยน (รูปพื้นใสใน public/assets/) · ยังไม่มีไฟล์ = กรอบเส้นประบอกชื่อไฟล์ */
+.mascot { display: block; user-select: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
+.mascot.missing { box-sizing: border-box; border: 2px dashed color-mix(in srgb, var(--accent-text) 55%, transparent); border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent); position: relative; }
+.mascot.missing::after { content: attr(data-file); position: absolute; inset: 0; display: grid; place-items: center; padding: 4px; text-align: center;
+  font-size: 9px; line-height: 1.2; font-weight: 600; color: var(--accent-text); word-break: break-all; }
+.m-peek { height: 100px; width: auto; aspect-ratio: 9 / 16; }
+.m-flash { height: 100px; width: auto; aspect-ratio: 3 / 4; }
+.m-avatar { width: 100%; height: auto; aspect-ratio: 1; border-radius: 22px; }
+.m-rope { width: 66px; height: auto; aspect-ratio: 1 / 1.3; }
+.peek-body { width: auto; top: -96px; }
+.peek-body.small { width: auto; top: -76px; }
+.peek-body.small .mascot { height: 80px; }
+.peek-body .mascot { width: auto; }
+.perch .mascot { width: 100%; height: auto; aspect-ratio: 9 / 16; }
+.perch.eyes .mascot { margin-top: 0; }
+.boo .mascot { width: 64px; height: auto; aspect-ratio: 9 / 16; }
+.corner-mascot .mascot { border-radius: 22px; box-shadow: 0 3px 0 var(--card-edge); }
+.nap.mascot, .empty .mascot { margin: 0 auto 6px; }
+/* กลางคืน: ไฟฉายส่องลำแสงขึ้นไปหาตัวเลข */
+.peek-body.night .beam { position: absolute; left: 50%; bottom: 62%; width: 150px; height: 170px; translate: -70% 0; pointer-events: none; z-index: -1;
+  background: conic-gradient(from 150deg at 60% 100%, transparent 0deg, rgba(255, 236, 140, .55) 18deg, rgba(255, 250, 210, .7) 30deg, rgba(255, 236, 140, .45) 42deg, transparent 60deg);
+  filter: blur(6px); opacity: .8; animation: beamFlicker 4s ease-in-out infinite; }
+@keyframes beamFlicker { 0%, 100% { opacity: .75; } 50% { opacity: .95; } }
+/* 🪢 มินเนี่ยนห้อยเชือก (เลื่อนไปกับหน้า · พ้นจอ = ไม่คิดฟิสิกส์) */
+.rope { position: absolute; top: 0; left: 58%; z-index: 30; width: 66px; pointer-events: none; }
+.rope[hidden] { display: none; }
+.rope-arm { position: relative; transform-origin: 50% -160px; padding-top: 0; will-change: transform; pointer-events: auto; touch-action: none; cursor: grab; }
+.rope-line { position: absolute; left: 50%; bottom: calc(100% - 24px); width: 3px; height: 400px; margin-left: -1.5px;
+  background: repeating-linear-gradient(170deg, #9A6A3A 0 4px, #C08A52 4px 7px); border-radius: 2px; }
+.rope-body { display: block; padding-top: 10px; position: relative; }
+.rope.held .rope-arm { cursor: grabbing; }
+.rope-arm.snap { transition: transform .55s cubic-bezier(.34, 1.56, .64, 1); }
+.rope.ready .rope-body { animation: wiggle .3s ease-in-out infinite; }
+.rope.spin .rope-body { animation: ropeSpin .65s cubic-bezier(.22, 1, .36, 1); }
+@keyframes ropeSpin { to { transform: rotate(180deg); } }
+.rope-body .mascot.missing { height: 86px; }
+@media (prefers-reduced-motion: reduce) { .rope { display: none; } .peek-body.night .beam { animation: none; } }
+body.calm .rope { display: none; }
+.corner-mascot { width: 64px; margin: -44px -6px 0 0; }
+.perch { width: auto; }
+.perch .mascot { width: auto; height: 64px; }

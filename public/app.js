@@ -11,91 +11,55 @@ const ICON_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path 
 const ICON_MOON = '<svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
 const ICON_TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>';
 
-// ---------- น้องหมูออมสิน (มาสคอต วาดเอง ไม่ใช้ตัวการ์ตูนของใคร) ----------
-// mood: happy | sad | sleep | wink | wow
-function pig(mood = 'happy', cls = '') {
-  const eye = (x, flip) => mood === 'sleep'
-    ? `<path d="M${x - 9} 80 q9 8 18 0" stroke="#3B1530" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
-    : mood === 'wink' && flip
-      ? `<path d="M${x - 9} 82 q9 -9 18 0" stroke="#3B1530" stroke-width="3.5" fill="none" stroke-linecap="round"/>`
-      : `<g class="eye"><ellipse cx="${x}" cy="80" rx="8.5" ry="${mood === 'wow' ? 11 : 10}" fill="#3B1530"/><circle cx="${x + 3}" cy="75.5" r="3.4" fill="#fff"/><circle cx="${x - 3}" cy="85" r="1.7" fill="#fff"/></g>`;
-  const brows = mood === 'sad' ? '<path d="M62 64 l18 6M138 64 l-18 6" stroke="#B02A63" stroke-width="3" stroke-linecap="round"/>'
-    : mood === 'angry' ? '<path d="M60 62 l22 10M140 62 l-22 10" stroke="#8E1B4E" stroke-width="4.5" stroke-linecap="round"/><g transform="translate(42 30)"><g class="anger"><path d="M-8-2h5v-5M2-7v5h5M7 2h-5v5M-3 7v-5h-5" stroke="#E2307A" stroke-width="3.2" fill="none" stroke-linecap="round"/></g></g>' : '';
-  const tear = mood === 'sad' ? '<path class="tear" d="M134 92 q-5 9 0 12 q5 -3 0 -12z" fill="#8FD3FF"/>' : '';
-  const mouth = mood === 'sad'
-    ? '<path d="M91 123 q9 -8 18 0" stroke="#3B1530" stroke-width="3.2" fill="none" stroke-linecap="round"/>'
-    : mood === 'angry'
-      ? '<path d="M92 124 q4 -5 8 0 q4 5 8 0" stroke="#3B1530" stroke-width="3" fill="none" stroke-linecap="round"/>'
-    : mood === 'sleep'
-      ? '<ellipse cx="100" cy="121" rx="4" ry="3" fill="#B02A63"/>'
-      : mood === 'wow'
-        ? '<ellipse cx="100" cy="122" rx="7" ry="8" fill="#B02A63"/><ellipse cx="100" cy="126" rx="4" ry="3" fill="#FF8FB8"/>'
-        : '<path d="M90 117 q10 11 20 0z" fill="#B02A63" stroke="#3B1530" stroke-width="2.6" stroke-linejoin="round"/><path d="M95 121 q5 4 10 0" fill="#FF8FB8"/>';
-  return `<svg class="pig ${cls}" viewBox="0 0 200 200" aria-hidden="true">
-    <ellipse class="pig-shadow" cx="100" cy="193" rx="58" ry="7" fill="#D93A80" opacity=".18"/>
-    <path class="tail" d="M164 128 q16 -4 13 -17 q-3 -10 -12 -3 q-7 7 5 10" fill="none" stroke="#F27AAE" stroke-width="5.5" stroke-linecap="round"/>
-    <rect x="60" y="158" width="26" height="32" rx="12" fill="url(#pgLeg)"/><rect x="114" y="158" width="26" height="32" rx="12" fill="url(#pgLeg)"/>
-    <path d="M60 181h26v3a6 6 0 0 1-6 6h-14a6 6 0 0 1-6-6z M114 181h26v3a6 6 0 0 1-6 6h-14a6 6 0 0 1-6-6z" fill="#C94683"/>
-    <ellipse cx="100" cy="140" rx="70" ry="46" fill="url(#pgBody)"/>
-    <ellipse cx="74" cy="126" rx="24" ry="10" fill="#fff" opacity=".35" transform="rotate(-10 74 126)"/>
-    <rect x="128" y="104" width="22" height="6" rx="3" fill="#C2336F" opacity=".75" transform="rotate(14 139 107)"/>
-    <g class="ear ear-l"><path d="M50 56 Q42 12 82 30 Q72 50 50 56Z" fill="#F27AAE"/><path d="M57 49 Q53 25 74 33 Q66 45 57 49Z" fill="#FFCFE3"/></g>
-    <g class="ear ear-r"><path d="M150 56 Q158 12 118 30 Q128 50 150 56Z" fill="#F27AAE"/><path d="M143 49 Q147 25 126 33 Q134 45 143 49Z" fill="#FFCFE3"/></g>
-    <ellipse cx="100" cy="86" rx="60" ry="49" fill="url(#pgHead)"/>
-    <ellipse cx="78" cy="56" rx="24" ry="9" fill="#fff" opacity=".5" transform="rotate(-14 78 56)"/>
-    <g class="bow" transform="translate(142 40) rotate(18)">
-      <path d="M0 0C-10-15-28-11-26 2C-24 15-8 11 0 0Z" fill="url(#pgBow)"/>
-      <path d="M0 0C10-15 28-11 26 2C24 15 8 11 0 0Z" fill="url(#pgBow)"/>
-      <path d="M-3 3l-8 16 7-4 3 7 2-18zM3 3l8 16-7-4-3 7-2-18z" fill="#D92E76"/>
-      <circle r="6.5" fill="#E8357F"/><circle cx="-2" cy="-2.5" r="2.2" fill="#fff" opacity=".8"/>
-      <path d="M-19-5q5-5 10-2M19-5q-5-5-10-2" stroke="#fff" stroke-width="2" opacity=".55" fill="none" stroke-linecap="round"/>
-    </g>
-    ${brows}${eye(74)}${eye(126, true)}${tear}
-    <ellipse cx="56" cy="102" rx="15" ry="9" fill="url(#pgBlush)"/><ellipse cx="144" cy="102" rx="15" ry="9" fill="url(#pgBlush)"/>
-    <ellipse cx="100" cy="103" rx="23" ry="16" fill="url(#pgSnout)"/>
-    <ellipse cx="93" cy="96" rx="9" ry="3.5" fill="#fff" opacity=".55"/>
-    <ellipse cx="92" cy="104" rx="4.2" ry="6.2" fill="#A3245B"/><ellipse cx="108" cy="104" rx="4.2" ry="6.2" fill="#A3245B"/>
-    ${mouth}
-    <g class="hooves"><ellipse cx="74" cy="160" rx="13" ry="10" fill="url(#pgLeg)"/><ellipse cx="126" cy="160" rx="13" ry="10" fill="url(#pgLeg)"/>
-      <path d="M74 152v8M126 152v8" stroke="#C94683" stroke-width="2" stroke-linecap="round"/></g>
-    ${mood === 'sleep' ? '<text x="150" y="40" font-size="22" font-weight="700" fill="#D93A80" class="zz">z</text><text x="166" y="22" font-size="15" font-weight="700" fill="#D93A80" class="zz z2">z</text>' : ''}
-  </svg>`;
+// ---------- มินเนี่ยน (รูปพื้นใสที่เจ้าของวางเองใน public/assets/ · ยังไม่มีไฟล์ = กรอบจำลองขนาด) ----------
+const ASSET = { rope: 'minion-rope', peek: 'minion-peek', flash: 'minion-flashlight', avatar: 'minion-avatar', banner: 'minion-banner' };
+const assetUrl = kind => `/assets/${ASSET[kind]}.webp`;
+const isNight = () => { const h = new Date().getHours(); return h >= 20 || h < 6; };
+// mood: happy | sad | angry | wink | wow | sleep(=ถือไฟฉาย) | avatar
+function mascot(mood = 'happy', cls = '') {
+  const kind = ASSET[mood] ? mood : mood === 'sleep' ? 'flash' : 'peek';
+  return `<img class="mascot m-${kind} ${cls}" src="${assetUrl(kind)}" alt="" draggable="false" data-kind="${kind}">`;
+}
+// รูปยังไม่ได้วาง → เปลี่ยนเป็นกรอบเส้นประบอกชื่อไฟล์ (ขนาดเท่าจริง)
+addEventListener('error', e => {
+  const img = e.target;
+  if (!(img instanceof HTMLImageElement) || !img.classList.contains('mascot')) return;
+  const s = document.createElement('span');
+  s.className = img.className + ' missing'; s.dataset.file = ASSET[img.dataset.kind] + '.webp';
+  img.replaceWith(s);
+}, true);
+
+// มินเนี่ยนเกาะหลังการ์ด (กลางคืน 20:00–06:00 = ตัวถือไฟฉาย ส่องแสงขึ้นไปที่ตัวเลข)
+function mascotPeek(mood, small, extra = '') {
+  const night = isNight() && !extra;
+  return `<button class="peek-body ${small ? 'small' : ''} ${night ? 'night' : ''} ${extra}" data-mood="${mood}" aria-label="มินเนี่ยน">${night ? '<i class="beam"></i>' : ''}${mascot(night ? 'sleep' : mood)}</button>`;
 }
 
-// หมูโผล่จากหลังการ์ด เอากีบเกาะขอบไว้
-function pigPeek(mood, small, extra = '') {
-  return `<button class="peek-body ${small ? 'small' : ''} ${extra}" data-mood="${mood}" aria-label="น้องหมู">${pig(mood)}</button>
-    <div class="peek-paws ${small ? 'small' : ''} ${extra}"><svg viewBox="0 0 200 40" aria-hidden="true">
-      <ellipse cx="70" cy="18" rx="17" ry="13" fill="url(#pgLeg)"/><ellipse cx="130" cy="18" rx="17" ry="13" fill="url(#pgLeg)"/>
-      <path d="M70 8v12M130 8v12" stroke="#C94683" stroke-width="2.5" stroke-linecap="round"/>
-      <ellipse cx="64" cy="12" rx="5" ry="3" fill="#fff" opacity=".5"/><ellipse cx="124" cy="12" rx="5" ry="3" fill="#fff" opacity=".5"/></svg></div>`;
-}
-
-// ---------- คำพูดน้องหมู (ให้กำลังใจ ชวนจดต่อ) ----------
-const PIG_LINES = {
+// ---------- คำพูดมินเนี่ยน (ลูกสมุนคุยกับบอส: ชม ให้กำลังใจ ชวนจดต่อ) ----------
+const MINION_LINES = {
   // กำไร: ชม
-  happy: ['วันนี้เก่งมาก! 💖', 'กำไรแล้ว เย้~ 🎉', 'ออมเก่งที่สุดในโลก 🐷', 'ป้อนเหรียญอีกนะ 🪙', 'จดครบแบบนี้ รวยแน่ ✨',
-    'หนูภูมิใจในตัวเธอ 🥹', 'เงินเข้า เงินเก็บ ปังมาก 💰', 'แบบนี้ต้องให้รางวัลตัวเองแล้ว 🍰', 'คนเก่งของหนู 💕', 'พรุ่งนี้กำไรอีกนะ ✌️'],
+  happy: ['Bello บอส! กำไรแล้ว 🍌', 'บอสเก่งที่สุดในโลก! 🎉', 'Banana! เงินเข้า เงินเก็บ 💰', 'รับทราบครับบอส ออมต่อ! ✊', 'จดครบแบบนี้ รวยแน่บอส ✨',
+    'ลูกสมุนภูมิใจในตัวบอส 🥹', 'บอสสุดยอด! ปาร์ตี้กล้วย 🍌🍌', 'ให้รางวัลตัวเองหน่อยครับบอส 🍰', 'บอสคนเก่ง 💛', 'พรุ่งนี้กำไรอีกนะบอส ✌️'],
   // ขาดทุน: ให้กำลังใจ
-  sad: ['ไม่เป็นไรนะ พรุ่งนี้เอาคืน 💪', 'ใจเย็นๆ ค่อยๆ ออม 🌷', 'หนูอยู่ข้างๆ นะ 🫶', 'ลองดูหมวดไหนจ่ายเยอะสุด 👀', 'ขาดทุนนิดหน่อย ไม่เป็นไร 🥺',
-    'พรุ่งนี้ลดของไม่จำเป็นกันนะ ✂️', 'จดไว้แบบนี้ เดี๋ยวก็รู้ว่าเงินรั่วตรงไหน 🔍', 'กอดๆ 🤗 สู้ต่อนะ', 'วันนี้เหนื่อยไหม พักบ้างนะ 💗', 'เก็บทีละนิด เดี๋ยวก็กลับมาบวก 📈'],
-  // ยังไม่จด (0 บาท): งอน ชวนมาจด
-  angry: ['ยังไม่จดเลยนะ! 😤', 'หนูหิว… ป้อนรายการหน่อย 🪙', 'วันนี้ใช้เงินไปกับอะไร บอกหนูสิ 😠', 'ไม่จด = เงินรั่วนะ! 💸', 'พิมพ์ในแชท LINE แค่ "ข้าว 50" ก็พอ ✍️',
-    'หนูรออยู่นะ… 🙄', 'จดวันละนิด รวยวันละหน่อย 💖', 'กดปุ่ม + ด้านล่างเลย! 👇', 'อย่าปล่อยหนูว่างเปล่าสิ 🥺', 'จดเดี๋ยวนี้ ไม่งั้นงอนจริงนะ 😾'],
+  sad: ['ไม่เป็นไรครับบอส พรุ่งนี้เอาคืน 💪', 'ใจเย็นๆ บอส ค่อยๆ ออม 🍌', 'ลูกสมุนอยู่ข้างๆ บอสเสมอ 🫶', 'ลองดูหมวดไหนจ่ายเยอะสุดครับบอส 👀', 'ขาดทุนนิดหน่อย ไม่เป็นไรบอส 🥺',
+    'พรุ่งนี้ลดของไม่จำเป็นกันนะบอส ✂️', 'จดไว้แบบนี้ เดี๋ยวก็รู้ว่าเงินรั่วตรงไหน 🔍', 'สู้ๆ ครับบอส! 🤗', 'บอสเหนื่อยไหม พักบ้างนะ 💛', 'เก็บทีละนิด เดี๋ยวก็กลับมาบวกครับบอส 📈'],
+  // ยังไม่จด (0 บาท): ชวนมาจด
+  angry: ['บอส! ยังไม่จดเลยนะ 😤', 'ลูกสมุนหิว… ขอรายการหน่อยบอส 🍌', 'วันนี้บอสใช้เงินไปกับอะไรครับ? 🤔', 'ไม่จด = เงินรั่วนะบอส! 💸', 'พิมพ์ในแชท LINE แค่ "ข้าว 50" ก็พอครับบอส ✍️',
+    'ลูกสมุนรออยู่นะบอส… 🙄', 'จดวันละนิด รวยวันละหน่อย 💛', 'กดปุ่ม + ด้านล่างเลยบอส! 👇', 'Bello? บอสอยู่ไหม 👀', 'จดเดี๋ยวนี้เลยครับบอส! 🍌'],
 };
 // สุ่มแบบไม่ซ้ำ: ครบ 10 ประโยคก่อนค่อยวนใหม่
-const pigQueue = {};
+const mascotQueue = {};
 let lastLine = '';
-function pigSay(mood) {
-  const pool = PIG_LINES[mood] || PIG_LINES.happy;
-  if (!pigQueue[mood]?.length) {
+function mascotSay(mood) {
+  const pool = MINION_LINES[mood] || MINION_LINES.happy;
+  if (!mascotQueue[mood]?.length) {
     const q = [...pool];
     if (state.streak > 1 && mood !== 'angry') q.push(`จดติดกัน ${state.streak} วันแล้ว 🔥`);
     for (let i = q.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [q[i], q[j]] = [q[j], q[i]]; }
     if (q[q.length - 1] === lastLine) q.unshift(q.pop());
-    pigQueue[mood] = q;
+    mascotQueue[mood] = q;
   }
-  lastLine = pigQueue[mood].pop();
+  lastLine = mascotQueue[mood].pop();
   return lastLine;
 }
 function burst(x, y, emojis = ['💖', '✨', '🪙', '💕', '🌸']) {
@@ -119,12 +83,12 @@ const rushing = () => Date.now() - lastSaveAt < RUSH_MS;
 // ?fun=1 = โผล่ทุกครั้ง (ไว้ทดสอบ)
 const lucky = () => funOn() && !rushing() && (params.get('fun') === '1' || Math.random() < FUN_CHANCE);
 
-// น้องหมูจิ๋วชะโงกจากหลังปุ่ม แล้วผลุบกลับ (จ๊ะเอ๋)
+// มินเนี่ยนจิ๋วชะโงกจากหลังปุ่ม แล้วผลุบกลับ (จ๊ะเอ๋)
 function peekaboo(el) {
   if (!el || $('.boo')) return;
   const r = el.getBoundingClientRect();
   const b = document.createElement('span');
-  b.className = 'boo'; b.innerHTML = pig('wink');
+  b.className = 'boo'; b.innerHTML = mascot('wink');
   b.style.cssText = `left:${Math.round(r.right - 150)}px;top:${Math.round(r.top - 43)}px`;
   document.body.appendChild(b);
   const hide = () => { if (b.classList.contains('out')) return; b.classList.add('out'); setTimeout(() => b.remove(), 400); };
@@ -146,49 +110,79 @@ function confettiPop(el) {
     setTimeout(() => s.remove(), 520);
   }
 }
-// น้องหมูนุ่มเด้ง: กดแล้วยุบ ปล่อยแล้วเด้งคืน
+// มินเนี่ยนนุ่มเด้ง: กดแล้วยุบ ปล่อยแล้วเด้งคืน
 function bindSquish(root) {
-  root.querySelectorAll('.peek-body, .corner-pig').forEach(p => {
+  root.querySelectorAll('.peek-body, .corner-mascot').forEach(p => {
     p.onpointerdown = () => { if (funOn()) p.classList.add('squish'); };
     p.onpointerup = p.onpointerleave = p.onpointercancel = () => p.classList.remove('squish');
   });
 }
 
-// ดึงหน้าจอลงเพื่อรีเฟรช: ดึงหางน้องหมูให้ยืด ปล่อยแล้วเด้งกลับ (เฉพาะจอสัมผัส · ไม่ขวางการเลื่อนปกติ)
-function bindPull() {
-  if (!('ontouchstart' in window)) return;
+// 🪢 มินเนี่ยนห้อยเชือกจากขอบบน: ไถจอแล้วเหวี่ยงตามแรง (คิดเฉพาะช่วงบนสุด scrollY < 120 · พ้นจอแล้วหยุดคิดทันที)
+// แตะ = เด้ง + แซว · ลากตัวมินเนี่ยนลง = รีเฟรช (หนืดแบบ iOS · ถึงระยะแล้วหมุนตัว) · ลากเฉพาะตัวมันเท่านั้น ไม่ชนการปัดปิด LINE
+const ROPE_QUIPS = ['Bello บอส! 👋', 'Banana! 🍌', 'บอสจะไปไหนครับ?', 'รับทราบครับบอส!', 'ปล่อยลูกสมุนลงไปหน่อย~', 'ดึงลงมาสิบอส รีเฟรชให้ 🔄'];
+function bindRope() {
   const el = document.createElement('div');
-  el.className = 'pull'; el.innerHTML = `<i class="pull-tail"></i><span class="pull-pig">${pig('wow')}</span><b></b>`;
+  el.className = 'rope'; el.setAttribute('aria-hidden', 'true');
+  el.innerHTML = `<div class="rope-arm"><i class="rope-line"></i><span class="rope-body">${mascot('rope')}</span></div>`;
   document.body.appendChild(el);
-  const NEED = 80;
-  let y0 = null, dist = 0;
-  const scrollTop = () => document.scrollingElement.scrollTop;
-  const ok = () => state.ready && !['settings', 'debts', 'admin'].includes(state.page) && !$('#sheet').classList.contains('open') && !$('.picker');
-  addEventListener('touchstart', e => { y0 = e.touches.length === 1 && scrollTop() <= 0 && ok() && !e.target.closest?.('.peek-body, .perch, .lover') ? e.touches[0].clientY : null; dist = 0; }, { passive: true });
-  addEventListener('touchmove', e => {
-    if (y0 === null) return;
-    dist = e.touches[0].clientY - y0;
-    if (dist <= 6 || scrollTop() > 0) { el.classList.remove('show'); if (scrollTop() > 0) y0 = null; return; }
-    const d = Math.min(130, dist * .5); // ยิ่งดึงยิ่งหนืด
-    el.classList.add('show'); el.classList.toggle('ready', dist * .5 >= NEED);
-    el.style.setProperty('--d', d + 'px');
-    el.querySelector('b').textContent = dist * .5 >= NEED ? 'ปล่อยเลย!' : 'ดึงหางอีกนิด…';
-  }, { passive: true });
-  const end = () => {
-    if (y0 === null) return;
-    const go = dist * .5 >= NEED;
-    y0 = null;
-    el.classList.remove('ready'); el.classList.add('snap'); el.style.setProperty('--d', '0px');
-    setTimeout(() => el.classList.remove('show', 'snap'), 420);
-    if (go) { navigator.vibrate?.(10); clearCache(); render(true).then(() => toast('อัปเดตแล้ว ✨')); }
+  const arm = el.querySelector('.rope-arm');
+  const NEED = 90;
+  let ang = 0, vel = 0, raf = 0, lastY = scrollY, drag = null, pull = 0;
+  const show = () => { el.hidden = !funOn() || ['settings', 'debts', 'admin'].includes(state.page); };
+  const paint = () => { arm.style.transform = `translate3d(0, ${pull.toFixed(1)}px, 0) rotate(${ang.toFixed(2)}deg)`; };
+  // สปริงหน่วง: เหวี่ยงแล้วค่อยๆ หยุด
+  const step = () => {
+    raf = 0;
+    if (drag) return;
+    vel = (vel - ang * .06) * .9; ang += vel;
+    if (Math.abs(ang) < .05 && Math.abs(vel) < .05) { ang = vel = 0; paint(); return; }
+    paint(); raf = requestAnimationFrame(step);
   };
-  addEventListener('touchend', end, { passive: true });
-  addEventListener('touchcancel', end, { passive: true });
+  const kick = v => { vel += v; if (!raf) raf = requestAnimationFrame(step); };
+  addEventListener('scroll', () => {
+    const y = scrollY, dy = y - lastY; lastY = y;
+    if (y > 120 || el.hidden || reducedMotion()) return; // พ้นช่วงบน = ไม่คิดอะไรเลย
+    kick(Math.max(-6, Math.min(6, -dy * .35)));
+  }, { passive: true });
+  arm.addEventListener('pointerdown', e => {
+    if (el.hidden) return;
+    e.preventDefault();
+    arm.setPointerCapture(e.pointerId);
+    drag = { y0: e.clientY, moved: false }; el.classList.add('held'); el.classList.remove('spin');
+  });
+  arm.addEventListener('pointermove', e => {
+    if (!drag) return;
+    e.preventDefault();
+    const d = Math.max(0, e.clientY - drag.y0);
+    if (d > 4) drag.moved = true;
+    pull = d < NEED ? d * .7 : NEED * .7 + (d - NEED) * .2; // ยิ่งดึงยิ่งหนืด
+    el.classList.toggle('ready', d >= NEED);
+    paint();
+  });
+  const up = () => {
+    if (!drag) return;
+    const { moved } = drag, go = el.classList.contains('ready');
+    drag = null; el.classList.remove('held', 'ready');
+    pull = 0; arm.classList.add('snap'); paint(); setTimeout(() => arm.classList.remove('snap'), 600);
+    if (go) {
+      navigator.vibrate?.(10);
+      el.classList.add('spin'); setTimeout(() => el.classList.remove('spin'), 700);
+      toast('Banana! กำลังรีเฟรชครับบอส 🍌');
+      clearCache(); render(true).then(() => toast('รับทราบครับบอส! อัปเดตแล้ว ✨'));
+    } else if (!moved) {
+      kick(9 * (Math.random() < .5 ? -1 : 1));
+      toast(ROPE_QUIPS[Math.floor(Math.random() * ROPE_QUIPS.length)]);
+      navigator.vibrate?.(8);
+    }
+  };
+  arm.addEventListener('pointerup', up); arm.addEventListener('pointercancel', up);
+  bindRope.show = show; show();
 }
 
 // ---------- เอฟเฟกต์เพิ่ม ----------
-// น้องหมูตัวเล็กเกาะขอบการ์ด (pose: hang = นั่งห้อยขา · eyes = โผล่แค่ตา · lie = นอนพาด)
-const perch = (mood, pose) => (isUs() ? '' : `<span class="perch ${pose}" data-mood="${mood}" aria-hidden="true">${pig(mood)}</span>`);
+// มินเนี่ยนตัวเล็กเกาะขอบการ์ด (pose: hang = นั่งห้อยขา · eyes = โผล่แค่ตา · lie = นอนพาด)
+const perch = (mood, pose) => (isUs() ? '' : `<span class="perch ${pose}" data-mood="${mood}" aria-hidden="true">${mascot(mood)}</span>`);
 
 // 💑 รูปคู่รักใหญ่ๆ กลางการ์ด: เรา (ซ้าย) ❤ แฟน (ขวา) · หัวใจเต้น หัวใจลอย วงแสงหมุน · แตะแล้วหัวใจระเบิด
 const initial = name => esc([...String(name || '?').trim()][0] || '?');
@@ -284,7 +278,7 @@ function bindNavDrag() {
   addEventListener('pointerup', end); addEventListener('pointercancel', end);
 }
 
-// ลากน้องหมูได้: ยืดตามนิ้ว ปล่อยแล้วเด้งดึ๋งกลับที่เดิม
+// ลากมินเนี่ยนได้: ยืดตามนิ้ว ปล่อยแล้วเด้งดึ๋งกลับที่เดิม
 function bindDrag() {
   let el = null, x0 = 0, y0 = 0, moved = false;
   addEventListener('pointerdown', e => {
@@ -332,7 +326,7 @@ function celebrateStreak() {
     setTimeout(() => burst(r.left + r.width * .25, r.top + 60, ['🎉', '✨', '🔥']), 220);
     setTimeout(() => burst(r.left + r.width * .75, r.top + 60, ['🎉', '💖', '🔥']), 420);
     const p = $('.peek-body');
-    if (p) { bindPig.greeted = true; showBubble(p, `จดติดกัน ${n} วันแล้ว! เก่งที่สุด 🎉`); }
+    if (p) { bindMascot.greeted = true; showBubble(p, `จดติดกัน ${n} วันแล้ว! เก่งที่สุด 🎉`); }
     navigator.vibrate?.([20, 40, 20]);
   }, 700);
 }
@@ -348,7 +342,7 @@ function showBubble(anchor, text) {
   showBubble.t = setTimeout(() => b.classList.add('out'), 2600);
   setTimeout(() => b.remove(), 3000);
 }
-function bindPig(root) {
+function bindMascot(root) {
   bindSquish(root);
   root.querySelectorAll('.lover').forEach(l => {
     const img = l.querySelector('img');
@@ -367,16 +361,16 @@ function bindPig(root) {
       p.classList.remove('boing'); void p.offsetWidth; p.classList.add('boing');
       const r = p.getBoundingClientRect();
       burst(r.left + r.width / 2, r.top + r.height * .45);
-      showBubble(p, pigSay(p.dataset.mood));
+      showBubble(p, mascotSay(p.dataset.mood));
       navigator.vibrate?.(12);
     };
   });
   // ทักทายครั้งเดียวตอนเปิดหน้า
   const first = root.querySelector('.peek-body');
-  if (first && !bindPig.greeted) {
-    bindPig.greeted = true;
+  if (first && !bindMascot.greeted) {
+    bindMascot.greeted = true;
     const mood = first.dataset.mood;
-    setTimeout(() => showBubble(first, state.streak > 1 && mood !== 'angry' ? `จดติดกัน ${state.streak} วันแล้ว 🔥` : pigSay(mood)), 900);
+    setTimeout(() => showBubble(first, state.streak > 1 && mood !== 'angry' ? `จดติดกัน ${state.streak} วันแล้ว 🔥` : mascotSay(mood)), 900);
   }
 }
 
@@ -774,6 +768,7 @@ function periodWord() {
 // ---------- render ----------
 async function render(quiet) {
   $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === state.page));
+  bindRope.show?.();
   moveBlob();
   $('#pageTitle').textContent = TITLES[state.page];
   $('#period').classList.toggle('hide', ['settings', 'debts', 'admin'].includes(state.page));
@@ -854,17 +849,17 @@ function catRows(map, total, cls) {
   }).join('');
 }
 
-const emptyEntries = `<div class="empty">${pig('sleep', 'nap')}<div>ยังไม่มีรายการ</div><button class="btn" data-add>+ เพิ่ม</button></div>`;
+const emptyEntries = `<div class="empty">${mascot('sleep', 'nap')}<div>ยังไม่มีรายการ</div><button class="btn" data-add>+ เพิ่ม</button></div>`;
 
 function homeHTML(d) {
   const net = d.ti - d.te, zero = !d.ti && !d.te, profit = net >= 0;
   const streak = state.mode === 'day' && state.date === todayISO() && state.streak > 1 ? `<span class="streak">🔥 ${state.streak} วัน</span>` : '';
   const us = isUs();
-  // 💑 ของเรา: หมู 2 ตัวอยู่ด้วยกัน (ยอดเป็นบวก = ดีใจด้วยกัน มีหัวใจลอย) · ไม่มีการเทียบว่าใครใช้มากกว่า
+  // 💑 ของเรา: รูปเราสองคนอยู่ด้วยกัน (ยอดเป็นบวก = ดีใจด้วยกัน มีหัวใจลอย) · ไม่มีการเทียบว่าใครใช้มากกว่า
   const mood = zero ? (us ? 'wink' : 'angry') : profit ? 'happy' : 'sad';
-  const pigs = us ? loversHTML() : pigPeek(mood);
+  const mascots = us ? loversHTML() : mascotPeek(mood);
   const label = us ? `${esc(periodWord())}ของเรา 💕` : esc(periodWord());
-  const hero = `<div class="hero-wrap ${us ? 'us' : ''}">${pigs}<i class="hero-shadow"></i><div class="card hero tilt ${us ? 'love' : ''} ${zero ? '' : profit ? 'profit' : 'loss'}">
+  const hero = `<div class="hero-wrap ${us ? 'us' : ''}">${mascots}<i class="hero-shadow"></i><div class="card hero tilt ${us ? 'love' : ''} ${zero ? '' : profit ? 'profit' : 'loss'}">
     <i class="spark s1">✦</i><i class="spark s2">✦</i><i class="spark s3">✦</i><i class="glare"></i><i class="spec"></i>
     <div class="hero-top"><span class="hero-label">${label} ${streak}</span><span class="badge">${zero ? '—' : profit ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${!zero && !profit ? '-' : ''}<span data-count="${Math.abs(net)}">0</span><small>บาท</small></div>
@@ -882,7 +877,7 @@ function homeHTML(d) {
         <small>${MONTHS[i].replace('.', '').slice(0, 3)}</small></div>`).join('')}</div>
       <div class="legend"><span><i style="background:var(--income)"></i>รายรับ</span><span><i style="background:var(--expense)"></i>รายจ่าย</span></div></div>`;
   } else if (d.archived) {
-    middle = `<div class="card empty archived">${pig('sleep', 'nap')}<div>📦 ${d.archived === 'dayTotals' ? 'เก่ากว่า 7 วัน รวมเป็นยอดตามหมวดแล้ว<br><small>ดูยอดด้านล่างได้ แต่แก้รายการย่อยไม่ได้</small>' : 'ข้อมูลเก่ารวมเป็นยอดตามหมวดแล้ว'}</div>
+    middle = `<div class="card empty archived">${mascot('sleep', 'nap')}<div>📦 ${d.archived === 'dayTotals' ? 'เก่ากว่า 7 วัน รวมเป็นยอดตามหมวดแล้ว<br><small>ดูยอดด้านล่างได้ แต่แก้รายการย่อยไม่ได้</small>' : 'ข้อมูลเก่ารวมเป็นยอดตามหมวดแล้ว'}</div>
       ${d.archived === 'day' ? '<button class="btn" data-month-view>ดูยอดรายเดือน</button>' : ''}</div>`;
   } else {
     const isDay = state.mode === 'day';
@@ -901,7 +896,7 @@ function homeHTML(d) {
   </div>`;
 }
 
-// รูปโปรไฟล์วงกลม (ไม่มีรูป → น้องหมู)
+// รูปโปรไฟล์วงกลม (ไม่มีรูป → มินเนี่ยน)
 const face = (pic, cls = '') => (pic ? `<img class="face ${cls}" src="${esc(pic)}" alt="" referrerpolicy="no-referrer">` : `<i class="face ${cls}">🐷</i>`);
 const myPic = () => store.get('user')?.pic || '';
 const duoHTML = () => `<span class="duo">${face(myPic())}${face(state.couple?.pic, 'p2')}</span>`;
@@ -932,7 +927,7 @@ function listHTML(d) {
   if (!d.entries.length) return `<div class="card">${emptyEntries}</div>`;
   const net = d.ti - d.te;
   const us = isUs(), lm = net >= 0 ? 'happy' : 'sad';
-  const top = `<div class="hero-wrap small ${us ? 'us' : ''}">${us ? loversHTML(true) : pigPeek(lm, true)}<i class="hero-shadow"></i><div class="card hero mini tilt ${us ? 'love' : ''} ${net >= 0 ? 'profit' : 'loss'}"><i class="spec"></i>
+  const top = `<div class="hero-wrap small ${us ? 'us' : ''}">${us ? loversHTML(true) : mascotPeek(lm, true)}<i class="hero-shadow"></i><div class="card hero mini tilt ${us ? 'love' : ''} ${net >= 0 ? 'profit' : 'loss'}"><i class="spec"></i>
     <div class="hero-top"><span class="hero-label">${esc(periodWord())}${us ? 'ของเรา' : ''} · ${d.entries.length} รายการ</span><span class="badge">${net >= 0 ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${net < 0 ? '-' : ''}${fmt(Math.abs(net))}<small>บาท</small></div>
     <div class="split"><div class="pill"><span><i>💰</i>รายรับ</span><b>+${fmt(d.ti)}</b></div><div class="pill"><span><i>💸</i>รายจ่าย</span><b>-${fmt(d.te)}</b></div></div></div></div>`;
@@ -1010,7 +1005,7 @@ function bindView() {
   const view = $('#view');
   bindTilt(view);
   bindHeroDepth.reset?.();
-  bindPig(view);
+  bindMascot(view);
   $$('.entry', view).forEach(b => b.onclick = async () => {
     if (b.hasAttribute('data-partner')) return toast('รายการของแฟน แก้ได้เฉพาะเจ้าของนะ 💕');
     const list = await getMonth(b.dataset.ym);
@@ -1114,7 +1109,7 @@ async function renderAdmin(view, quiet) {
   let d;
   try { d = await adminApi('GET'); } catch (e) {
     const why = { not_admin: 'บัญชีนี้ไม่ใช่เจ้าของระบบ', no_admin_uid: 'ยังไม่ได้ใส่ ADMIN_UID ใน Vercel<br>พิมพ์ "ไอดีของฉัน" ในแชท แล้วนำไปใส่' }[e.message] || esc(e.message);
-    view.innerHTML = `<div class="card empty gate">${pig('angry')}<b>เข้าหลังบ้านไม่ได้ 🔒</b><br>${why}</div>`;
+    view.innerHTML = `<div class="card empty gate">${mascot('angry')}<b>เข้าหลังบ้านไม่ได้ 🔒</b><br>${why}</div>`;
     return;
   }
   if (state.page !== 'admin') return;
@@ -1137,7 +1132,7 @@ function adminHTML(d) {
     return '';
   };
   return `<div class="grid two">
-    <div class="hero-wrap">${pigPeek(pct >= 90 ? 'wow' : 'happy')}<div class="card hero profit">
+    <div class="hero-wrap">${mascotPeek(pct >= 90 ? 'wow' : 'happy')}<div class="card hero profit">
       <div class="hero-top"><span class="hero-label">👥 ผู้ใช้ทั้งหมด</span><span class="hero-label">📋 รอคิว ${d.waitlist.length}</span></div>
       <div class="hero-amount">${d.count}<small style="font-size:.45em;opacity:.85"> / ${d.limit} คน</small></div>
       <div class="a-bar"><i style="width:${pct}%"></i></div>
@@ -1216,7 +1211,7 @@ function settingsHTML() {
   const theme = store.get('theme') || 'auto';
   return `<div class="grid two">
     <div class="card">
-      <div class="corner-pig">${pig('wink')}</div><h2 class="section-title">🗂️ หมวดหมู่</h2>
+      <div class="corner-mascot">${mascot('avatar')}</div><h2 class="section-title">🗂️ หมวดหมู่</h2>
 
       <div class="sub">หมวดที่สร้างเอง</div>
       ${state.custom.length ? state.custom.map(c => `
@@ -1278,7 +1273,7 @@ function settingsHTML() {
     <div class="card span">
       <h2 class="section-title">🎨 หน้าตา</h2>
       <button class="priv ${store.get('fun') !== false ? 'on' : ''}" id="funToggle" type="button" style="margin:10px 0 12px">
-        <span>🐷</span><div><b>ลูกเล่นมินเนี่ยน</b><small>${store.get('fun') !== false ? 'นานๆ น้องจะโผล่มาเซอร์ไพรส์ · รีบอยู่น้องไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
+        <span>🐷</span><div><b>ลูกเล่นมินเนี่ยน</b><small>${store.get('fun') !== false ? 'นานๆ มินเนี่ยนจะโผล่มาเซอร์ไพรส์ · รีบอยู่ไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
       <div class="seg" style="max-width:none;margin-top:10px">
         ${[['light', 'สว่าง'], ['dark', 'มืด'], ['auto', 'ตามเครื่อง']].map(([v, l]) => `<button data-themeopt="${v}" class="${theme === v ? 'active' : ''}">${l}</button>`).join('')}
         <span class="seg-pill" style="transform:translateX(${['light', 'dark', 'auto'].indexOf(theme) * 100}%)"></span>
@@ -1524,7 +1519,7 @@ function openEntry(entry) {
         syncBg(() => p, () => applyLocal(neu, null), 'บันทึก');
       }
       closeSheet();
-      if (rush || !funOn()) toast(`${isEdit ? 'แก้ไขแล้ว' : 'บันทึกแล้ว'} ✓`);
+      if (rush || !funOn()) toast(`${isEdit ? 'แก้แล้วครับบอส' : 'รับทราบครับบอส! บันทึกแล้ว'} ✓`);
       // พาไปดูรายวันของวันนั้น
       state.mode = 'day'; state.date = data.date; state.highlight = id;
       if (state.page === 'settings') state.page = 'home';
@@ -1682,9 +1677,9 @@ async function initLiff() {
 }
 
 async function boot() {
-  document.body.classList.toggle('calm', !funOn()); // ปิดลูกเล่น = พื้นหลัง/น้องหมูนิ่ง
+  document.body.classList.toggle('calm', !funOn()); // ปิดลูกเล่น = พื้นหลัง/มินเนี่ยนนิ่ง
   bindChrome();
-  bindPull();
+  bindRope();
   bindDrag();
   bindNavDrag();
   bindSheetSwipe();
@@ -1749,7 +1744,7 @@ async function boot() {
     if (e.message === 'login') return;
     if (e.message === 'not_member' || e.message === 'no_consent') { // ยังไม่ได้รับเข้า / ยังไม่กดยอมรับ / ลบข้อมูลไปแล้ว
       try { Object.keys(localStorage).filter(k => k.startsWith('ie:') && k !== 'ie:theme').forEach(k => localStorage.removeItem(k)); } catch {}
-      $('#view').innerHTML = `<div class="card empty gate">${pig(e.message === 'no_consent' ? 'wink' : 'sleep')}
+      $('#view').innerHTML = `<div class="card empty gate">${mascot(e.message === 'no_consent' ? 'wink' : 'sleep')}
         <b>${e.message === 'no_consent' ? 'กดยอมรับในแชทก่อนนะ 📄' : 'ยังไม่ได้เริ่มใช้งาน 🐷'}</b><br>
         ${e.message === 'no_consent' ? 'แตะ 💖 ยอมรับ ในแชท LINE แล้วกลับมาที่นี่' : 'ทักแชท LINE ก่อน บอทจะพาเริ่มใช้งาน'}<br>
         <a class="btn" href="https://line.me/R/ti/p/@514ddese">💬 ไปที่แชท</a> <a class="btn ghost" href="/privacy.html">📄 นโยบายข้อมูล</a></div>`;
