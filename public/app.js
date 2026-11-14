@@ -981,10 +981,21 @@ function bindHeroDepth() {
     heroes.forEach(h => {
       h.style.setProperty('--dy', `${(-p * 7 + k * 4).toFixed(2)}px`);
       h.style.setProperty('--sx', `${(-35 + p * 70 + k * 30).toFixed(1)}%`);
+      // (ข) Sticky stage: เลื่อนลง → การ์ดยอดย่อ 1→0.92 ถอยขึ้น 12px จางลง ให้รายการด้านล่างลอยขึ้นมาทับเหมือนชั้นกระดาษ
+      const w = h.closest('.hero-wrap'), q = off ? 0 : Math.max(0, Math.min(1, y / 260));
+      if (w) { w.style.translate = q ? `0 ${(-12 * q).toFixed(1)}px` : ''; w.style.scale = q ? (1 - .08 * q).toFixed(3) : ''; w.style.opacity = q ? (1 - .4 * q).toFixed(2) : ''; }
       const sh = h.previousElementSibling;
       if (sh?.classList.contains('hero-shadow')) sh.style.transform = `translate3d(0, ${(p * 4).toFixed(1)}px, 0) scale(${(1 + Math.abs(k) * .14).toFixed(3)}, 1)`, sh.style.opacity = (.85 - Math.abs(k) * .4 - p * .2).toFixed(2);
     });
     if (!off && Math.abs(v) > .004) raf = requestAnimationFrame(frame); // ยังแกว่งอยู่ → หน่วงต่อจนนิ่ง
+  };
+  // (ข) รายการที่กำลังเลื่อนเข้าจอ ค่อยๆ ขยาย 0.96→1 และชัดขึ้นทีละแถว
+  const io = 'IntersectionObserver' in window && new IntersectionObserver(list => list.forEach(x => x.target.classList.toggle('far', !x.isIntersecting)), { rootMargin: '0px 0px -12% 0px' });
+  bindHeroDepth.rows = root => {
+    if (!io) return;
+    io.disconnect();
+    if (still.matches || !funOn()) return;
+    $$('.entry, .day-head', root).forEach(el => io.observe(el));
   };
   bindHeroDepth.kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
   addEventListener('scroll', bindHeroDepth.kick, { passive: true });
@@ -1005,6 +1016,7 @@ function bindView() {
   const view = $('#view');
   bindTilt(view);
   bindHeroDepth.kick?.();
+  bindHeroDepth.rows?.(view);
   bindPig(view);
   $$('.entry', view).forEach(b => b.onclick = async () => {
     if (b.hasAttribute('data-partner')) return toast('รายการของแฟน แก้ได้เฉพาะเจ้าของนะ 💕');

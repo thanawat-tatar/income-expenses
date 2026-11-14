@@ -792,8 +792,8 @@ body { background: var(--bg) !important; background-attachment: scroll !importan
 body::before {
   background:
     radial-gradient(38% 32% at 22% 18%, rgba(255, 209, 0, .30), transparent 70%),
-    radial-gradient(34% 30% at 82% 30%, rgba(255, 190, 160, .26), transparent 70%),
-    radial-gradient(40% 34% at 50% 85%, rgba(255, 110, 170, .16), transparent 70%),
+    radial-gradient(34% 30% at 82% 30%, rgba(120, 170, 220, .22), transparent 70%),
+    radial-gradient(40% 34% at 50% 85%, rgba(255, 226, 102, .2), transparent 70%),
     radial-gradient(color-mix(in srgb, var(--accent) 12%, transparent) 1.2px, transparent 1.3px) 0 0 / 22px 22px !important;
   transform: translateZ(0);
 }
@@ -841,3 +841,13 @@ body.scrolling::before, body.scrolling .glare::after, body.scrolling .lover-ring
 .hero-wrap.small .hero-shadow { bottom: -12px; height: 22px; }
 body.calm .hero > .spec::before { translate: -35% 0; }
 @media (prefers-reduced-motion: reduce) { .hero.tilt > * { translate: none !important; } }
+
+/* (ข) Sticky stage + รายการค่อยๆ ชัด: ใช้ translate/scale/opacity แยกจาก transform เดิม (ไม่ชนการเอียงการ์ดและแอนิเมชันเข้า) */
+.hero-wrap { transform-origin: 50% 0; will-change: translate, scale, opacity; }
+.entry, .day-head { transition: transform .15s, background .2s, scale .5s cubic-bezier(.22, 1, .36, 1); }
+.entry > *, .day-head > * { transition: opacity .5s cubic-bezier(.22, 1, .36, 1); }
+.entry.far, .day-head.far { scale: .96; }
+.entry.far > *, .day-head.far > * { opacity: .35; }
+body.calm .entry.far, body.calm .day-head.far { scale: none; }
+body.calm .entry.far > *, body.calm .day-head.far > * { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .entry.far, .day-head.far { scale: none; } .entry.far > *, .day-head.far > * { opacity: 1; } .hero-wrap { translate: none !important; scale: none !important; opacity: 1 !important; } }
