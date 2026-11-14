@@ -968,36 +968,30 @@ function bindDeviceTilt() {
 // ✨ การ์ดยอดเงิน 2.5D: เลื่อนจอ → ตัวเลขลอยเยื้องจากพื้นกระจก + เส้นแสงขอบวิ่งตาม + เงาใต้การ์ดยืด/จางตามความเร็ว
 // หยุดนิ้วแล้วค่อยๆ หน่วงกลับนิ่ง · ขยับแค่ transform/translate · ปิดลูกเล่นหรือเครื่องตั้งลดการเคลื่อนไหว = นิ่ง
 function bindHeroDepth() {
+  // เบาที่สุด: ไม่มีลูปค้าง ไม่คิดความเร็ว · คำนวณเฉพาะช่วงบนสุดของจอ (เลื่อนเกิน 260px = ตั้งค่าสุดท้ายครั้งเดียวแล้วหยุด)
+  // เลื่อนลง → การ์ดยอดย่อ/ถอย และจางหายไว (หมดที่ ~120px) ก่อนรายการเลื่อนขึ้นมาทับ แล้วซ่อนทิ้ง ไม่ให้ Safari คิดกระจกซ้อน
   const still = matchMedia('(prefers-reduced-motion: reduce)');
-  let lastY = scrollY, lastT = performance.now(), v = 0, raf = 0;
+  let raf = 0, done = false;
   const frame = () => {
     raf = 0;
-    const heroes = $$('.hero.tilt');
-    if (!heroes.length) return;
-    const now = performance.now(), y = scrollY, dt = Math.max(8, now - lastT);
-    v = v * .82 + ((y - lastY) / dt) * .18; lastY = y; lastT = now;
+    const y = scrollY;
+    if (y > 260 && done) return;
+    done = y > 260;
     const off = still.matches || !funOn();
-    const p = off ? 0 : Math.max(0, Math.min(1, y / 320)), k = off ? 0 : Math.max(-1, Math.min(1, v / 1.6));
-    heroes.forEach(h => {
-      h.style.setProperty('--dy', `${(-p * 7 + k * 4).toFixed(2)}px`);
-      h.style.setProperty('--sx', `${(-35 + p * 70 + k * 30).toFixed(1)}%`);
-      // (ข) Sticky stage: เลื่อนลง → การ์ดยอดย่อ 1→0.92 ถอยขึ้น 12px จางลง ให้รายการด้านล่างลอยขึ้นมาทับเหมือนชั้นกระดาษ
-      const w = h.closest('.hero-wrap'), q = off ? 0 : Math.max(0, Math.min(1, y / 260));
-      if (w) { w.style.translate = q ? `0 ${(-12 * q).toFixed(1)}px` : ''; w.style.scale = q ? (1 - .08 * q).toFixed(3) : ''; w.style.opacity = q ? (1 - .4 * q).toFixed(2) : ''; }
-      const sh = h.previousElementSibling;
-      if (sh?.classList.contains('hero-shadow')) sh.style.transform = `translate3d(0, ${(p * 4).toFixed(1)}px, 0) scale(${(1 + Math.abs(k) * .14).toFixed(3)}, 1)`, sh.style.opacity = (.85 - Math.abs(k) * .4 - p * .2).toFixed(2);
+    const p = off ? 0 : Math.min(1, y / 260), q = off ? 0 : Math.min(1, y / 120);
+    $$('.hero.tilt').forEach(h => {
+      h.style.setProperty('--dy', `${(-p * 7).toFixed(1)}px`);
+      h.style.setProperty('--sx', `${(-35 + p * 70).toFixed(0)}%`);
+      const w = h.closest('.hero-wrap');
+      if (!w) return;
+      w.style.translate = q ? `0 ${(-12 * q).toFixed(1)}px` : '';
+      w.style.scale = q ? (1 - .08 * q).toFixed(3) : '';
+      w.style.opacity = q ? (1 - q).toFixed(2) : '';
+      w.style.visibility = q >= 1 ? 'hidden' : '';
     });
-    if (!off && Math.abs(v) > .004) raf = requestAnimationFrame(frame); // ยังแกว่งอยู่ → หน่วงต่อจนนิ่ง
-  };
-  // (ข) รายการที่กำลังเลื่อนเข้าจอ ค่อยๆ ขยาย 0.96→1 และชัดขึ้นทีละแถว
-  const io = 'IntersectionObserver' in window && new IntersectionObserver(list => list.forEach(x => x.target.classList.toggle('far', !x.isIntersecting)), { rootMargin: '0px 0px -12% 0px' });
-  bindHeroDepth.rows = root => {
-    if (!io) return;
-    io.disconnect();
-    if (still.matches || !funOn()) return;
-    $$('.entry, .day-head', root).forEach(el => io.observe(el));
   };
   bindHeroDepth.kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
+  bindHeroDepth.reset = () => { done = false; bindHeroDepth.kick(); };
   addEventListener('scroll', bindHeroDepth.kick, { passive: true });
 }
 
@@ -1015,8 +1009,7 @@ function bindTilt(root) {
 function bindView() {
   const view = $('#view');
   bindTilt(view);
-  bindHeroDepth.kick?.();
-  bindHeroDepth.rows?.(view);
+  bindHeroDepth.reset?.();
   bindPig(view);
   $$('.entry', view).forEach(b => b.onclick = async () => {
     if (b.hasAttribute('data-partner')) return toast('รายการของแฟน แก้ได้เฉพาะเจ้าของนะ 💕');

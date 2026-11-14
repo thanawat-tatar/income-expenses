@@ -837,17 +837,11 @@ body.scrolling::before, body.scrolling .glare::after, body.scrolling .lover-ring
 .hero > .spec::before { content: ""; position: absolute; inset: -80% -110%; will-change: translate; translate: var(--sx, -35%) 0;
   background: linear-gradient(115deg, rgba(255, 255, 255, .22) 36%, #FFF4C2 47%, #FFFFFF 50%, #FFD100 53%, rgba(255, 255, 255, .22) 64%); }
 .hero-shadow { position: absolute; left: 9%; right: 9%; bottom: -16px; height: 30px; z-index: 0; pointer-events: none; border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(30, 53, 80, .38), transparent); filter: blur(5px); will-change: transform, opacity; opacity: .85; }
+  background: radial-gradient(closest-side, rgba(30, 53, 80, .38), transparent); filter: blur(5px); opacity: .85; }
 .hero-wrap.small .hero-shadow { bottom: -12px; height: 22px; }
 body.calm .hero > .spec::before { translate: -35% 0; }
 @media (prefers-reduced-motion: reduce) { .hero.tilt > * { translate: none !important; } }
 
-/* (ข) Sticky stage + รายการค่อยๆ ชัด: ใช้ translate/scale/opacity แยกจาก transform เดิม (ไม่ชนการเอียงการ์ดและแอนิเมชันเข้า) */
-.hero-wrap { transform-origin: 50% 0; will-change: translate, scale, opacity; }
-.entry, .day-head { transition: transform .15s, background .2s, scale .5s cubic-bezier(.22, 1, .36, 1); }
-.entry > *, .day-head > * { transition: opacity .5s cubic-bezier(.22, 1, .36, 1); }
-.entry.far, .day-head.far { scale: .96; }
-.entry.far > *, .day-head.far > * { opacity: .35; }
-body.calm .entry.far, body.calm .day-head.far { scale: none; }
-body.calm .entry.far > *, body.calm .day-head.far > * { opacity: 1; }
-@media (prefers-reduced-motion: reduce) { .entry.far, .day-head.far { scale: none; } .entry.far > *, .day-head.far > * { opacity: 1; } .hero-wrap { translate: none !important; scale: none !important; opacity: 1 !important; } }
+/* (ข) Sticky stage: การ์ดยอดย่อ/ถอย/จางตอนเลื่อน (รายการแสดงนิ่งเต็มขนาดตลอด ไม่มีแอนิเมชันตอนไถ) */
+.hero-wrap { transform-origin: 50% 0; }
+@media (prefers-reduced-motion: reduce) { .hero-wrap { translate: none !important; scale: none !important; opacity: 1 !important; visibility: visible !important; } }
