@@ -13,7 +13,7 @@ const TITLES_I18N = {
   admin: ['หลังบ้าน', 'Admin', '管理', '관리', '管理'],
 };
 const HW_FONTS = ['Mali', 'Mali', 'Yomogi', 'Gaegu', 'Ma Shan Zheng'];
-function handTitle(page) {
+function _handTitle(page) {
   const h = $('#pageTitle');
   clearTimeout(handTitle.t);
   const words = TITLES_I18N[page] || [TITLES[page]];
@@ -42,22 +42,23 @@ const LIFF_SDK = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
 const ICON_ROCKET = '<svg viewBox="0 0 24 24"><path d="M12 2c3 2 5 6 4.5 11l-2 3h-5l-2-3C7 8 9 4 12 2z"/><circle cx="12" cy="9" r="1.8"/><path d="M9.5 16l-2.5 3M14.5 16l2.5 3M12 18v3"/></svg>';
 const ICON_TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>';
 
-// ---------- น้องลูกเจี๊ยบ (รูปพื้นใสที่เจ้าของวางเองใน public/assets/ · ยังไม่มีไฟล์ = กรอบจำลองขนาด) ----------
-const ASSET = { rope: 'space-chick-tether.svg?v=2', peek: 'space-chick-crew.svg?v=2', flash: 'space-chick-scout.svg?v=2', avatar: 'space-chick-avatar.svg?v=2', couple: 'space-chick-couple.svg?v=2' };
+// ---------- น้องไก่อวกาศ (SVG พื้นใสใน public/assets/) ----------
+const ASSET = { rope: 'space-chick-tether.svg?v=3', peek: 'space-chick-crew.svg?v=3', flash: 'space-chick-scout.svg?v=3', avatar: 'space-chick-avatar.svg?v=3', couple: 'space-chick-couple.svg?v=3' };
 const assetUrl = kind => `/assets/${ASSET[kind]}`;
 const isNight = () => { const h = new Date().getHours(); return h >= 20 || h < 6; };
+// 🛡️ เอฟเฟกต์ทุกตัววิ่งในกล่องกันพัง: เอฟเฟกต์พลาดแค่ไหน การจด/แก้/ลบ/ซิงก์ก็ไม่ค้าง
+const fx = f => function guarded(...a) { try { return f.apply(this, a); } catch (e) { console.warn('effect skipped:', e?.message); } };
+const [handTitle, burst, confettiPop, bindSquish, bindRope, sparkle, celebrateStreak, showBubble, bindMascot, countUp, rocketFx, starBurst, bindShootingStars, savedFx, tossFx, setTilt, bindHeroDepth, bindTilt, bindScrollChrome] =
+  [_handTitle, _burst, _confettiPop, _bindSquish, _bindRope, _sparkle, _celebrateStreak, _showBubble, _bindMascot, _countUp, _rocketFx, _starBurst, _bindShootingStars, _savedFx, _tossFx, _setTilt, _bindHeroDepth, _bindTilt, _bindScrollChrome].map(fx);
 // mood: happy | sad | angry | wink | wow | sleep(=ถือไฟฉาย) | avatar
 function mascot(mood = 'happy', cls = '') {
   const kind = ASSET[mood] ? mood : mood === 'sleep' ? 'flash' : 'peek';
   return `<img class="mascot m-${kind} ${cls}" src="${assetUrl(kind)}" alt="" draggable="false" data-kind="${kind}">`;
 }
-// รูปยังไม่ได้วาง → เปลี่ยนเป็นกรอบเส้นประบอกชื่อไฟล์ (ขนาดเท่าจริง)
+// รูปโหลดไม่ได้ (เน็ตหลุด) → ซ่อนไว้เงียบๆ ไม่ให้ขึ้นไอคอนรูปเสีย
 addEventListener('error', e => {
   const img = e.target;
-  if (!(img instanceof HTMLImageElement) || !img.classList.contains('mascot')) return;
-  const s = document.createElement('span');
-  s.className = img.className + ' missing'; s.dataset.file = ASSET[img.dataset.kind].split('?')[0];
-  img.replaceWith(s);
+  if (img instanceof HTMLImageElement && img.classList.contains('mascot')) img.style.visibility = 'hidden';
 }, true);
 
 // น้องลูกเจี๊ยบเกาะหลังการ์ด (กลางคืน 20:00–06:00 = ตัวถือไฟฉาย ส่องแสงขึ้นไปที่ตัวเลข)
@@ -93,7 +94,7 @@ function mascotSay(mood) {
   lastLine = mascotQueue[mood].pop();
   return lastLine;
 }
-function burst(x, y, emojis = ['💖', '✨', '🪙', '💕', '🌸']) {
+function _burst(x, y, emojis = ['💖', '✨', '🪙', '💕', '🌸']) {
   for (let i = 0; i < 10; i++) {
     const s = document.createElement('span');
     s.className = 'particle';
@@ -114,20 +115,8 @@ const rushing = () => Date.now() - lastSaveAt < RUSH_MS;
 // ?fun=1 = โผล่ทุกครั้ง (ไว้ทดสอบ)
 const lucky = () => funOn() && !rushing() && (params.get('fun') === '1' || Math.random() < FUN_CHANCE);
 
-// น้องลูกเจี๊ยบจิ๋วชะโงกจากหลังปุ่ม แล้วผลุบกลับ (จ๊ะเอ๋)
-function peekaboo(el) {
-  if (!el || $('.boo')) return;
-  const r = el.getBoundingClientRect();
-  const b = document.createElement('span');
-  b.className = 'boo'; b.innerHTML = mascot('wink');
-  b.style.cssText = `left:${Math.round(r.right - 150)}px;top:${Math.round(r.top - 43)}px`;
-  document.body.appendChild(b);
-  const hide = () => { if (b.classList.contains('out')) return; b.classList.add('out'); setTimeout(() => b.remove(), 400); };
-  setTimeout(hide, 2600);
-  addEventListener('pointerdown', hide, { once: true }); // แตะตรงไหนก็ผลุบกลับ ไม่ขวางการใช้งาน
-}
 // ดาวกระจายพุ่งจากปุ่ม 0.5 วินาที
-function confettiPop(el) {
+function _confettiPop(el) {
   if (!el) return;
   const r = el.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
   const bits = ['✦', '★', '♥', '✧', '●'];
@@ -142,7 +131,7 @@ function confettiPop(el) {
   }
 }
 // น้องลูกเจี๊ยบนุ่มเด้ง: กดแล้วยุบ ปล่อยแล้วเด้งคืน
-function bindSquish(root) {
+function _bindSquish(root) {
   root.querySelectorAll('.peek-body, .corner-mascot').forEach(p => {
     p.onpointerdown = () => { if (funOn()) p.classList.add('squish'); };
     p.onpointerup = p.onpointerleave = p.onpointercancel = () => p.classList.remove('squish');
@@ -152,7 +141,7 @@ function bindSquish(root) {
 // 🪢 น้องลูกเจี๊ยบห้อยเชือกจากขอบบน: ไถจอแล้วเหวี่ยงตามแรง (คิดเฉพาะช่วงบนสุด scrollY < 120 · พ้นจอแล้วหยุดคิดทันที)
 // แตะ = เด้ง + แซว · ลากตัวน้องลูกเจี๊ยบลง = รีเฟรช (หนืดแบบ iOS · ถึงระยะแล้วหมุนตัว) · ลากเฉพาะตัวมันเท่านั้น ไม่ชนการปัดปิด LINE
 const ROPE_QUIPS = ['พร้อมลุยครับบอส! 👋', '🛰️ รับทราบครับบอส!', 'บอสจะไปไหนครับ?', 'รับทราบครับบอส!', 'ปล่อยลูกสมุนลงไปหน่อย~', 'ดึงลงมาสิบอส รีเฟรชให้ 🔄'];
-function bindRope() {
+function _bindRope() {
   const el = document.createElement('div');
   el.className = 'rope'; el.setAttribute('aria-hidden', 'true');
   el.innerHTML = `<div class="rope-arm"><i class="rope-line"></i><span class="rope-body">${mascot('rope')}</span></div>`;
@@ -212,14 +201,13 @@ function bindRope() {
 }
 
 // ---------- เอฟเฟกต์เพิ่ม ----------
-// น้องลูกเจี๊ยบตัวเล็กเกาะขอบการ์ด (pose: hang = นั่งห้อยขา · eyes = โผล่แค่ตา · lie = นอนพาด)
-const perch = (mood, pose) => (isUs() ? '' : `<span class="perch ${pose}" data-mood="${mood}" aria-hidden="true">${mascot(mood)}</span>`);
 
 // 💑 รูปคู่รักใหญ่ๆ กลางการ์ด: เรา (ซ้าย) ❤ แฟน (ขวา) · หัวใจเต้น หัวใจลอย วงแสงหมุน · แตะแล้วหัวใจระเบิด
 const initial = name => esc([...String(name || '?').trim()][0] || '?');
 const loverFace = (pic, name, cls) => `<button class="lover ${cls}" aria-label="${esc(name)}"><span class="lover-ring"></span>${pic
   ? `<img src="${esc(pic)}" alt="" referrerpolicy="no-referrer" data-initial="${initial(name)}">`
   : `<b>${initial(name)}</b>`}<small>${esc(name)}</small></button>`;
+const flyIn = () => { const f = state.flyIn; state.flyIn = false; return f; };
 function loversHTML(small) {
   const me = store.get('user') || {};
   return `<div class="lovers ${small ? 'small' : ''}">
@@ -227,12 +215,12 @@ function loversHTML(small) {
     <i class="lheart">❤</i>
     ${loverFace(state.couple?.pic, state.couple?.name || 'แฟน', 'you')}
     <span class="floaty f1">💕</span><span class="floaty f2">✨</span><span class="floaty f3">💖</span><span class="floaty f4">⭐</span>
-    ${small ? '' : `<span class="couple-mascot">${mascot('couple')}</span>`}
+    ${small ? '' : `<span class="couple-mascot${flyIn() ? ' fly' : ''}">${mascot('couple')}</span>`}
   </div>`;
 }
 
 // แตะแล้ววิ้งเล็กๆ
-function sparkle(el) {
+function _sparkle(el) {
   if (!funOn() || !el) return;
   el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
   const r = el.getBoundingClientRect();
@@ -314,7 +302,7 @@ function bindNavDrag() {
 function bindDrag() {
   let el = null, x0 = 0, y0 = 0, moved = false;
   addEventListener('pointerdown', e => {
-    const t = e.target.closest?.('.peek-body, .perch, .lover');
+    const t = e.target.closest?.('.peek-body, .lover');
     if (!t || e.button > 0) return;
     el = t; x0 = e.clientX; y0 = e.clientY; moved = false;
     el.classList.remove('spring');
@@ -344,7 +332,7 @@ function bindDrag() {
 
 
 // จดติดกันครบ 3 / 7 / 14 / 30 / 60 / 100 วัน → ฉลองใหญ่ครั้งเดียว (แบบ Duolingo)
-function celebrateStreak() {
+function _celebrateStreak() {
   const n = state.streak;
   if (!funOn() || isUs() || state.page !== 'home' || state.mode !== 'day' || state.date !== todayISO()) return;
   if (![3, 7, 14, 30, 60, 100].includes(n) || (store.get('cel') || 0) >= n) return;
@@ -364,7 +352,7 @@ function celebrateStreak() {
   }, 700);
 }
 
-function showBubble(anchor, text) {
+function _showBubble(anchor, text) {
   const wrap = anchor.closest('.hero-wrap') || anchor.parentElement;
   wrap.querySelector('.bubble')?.remove();
   const b = document.createElement('div');
@@ -375,7 +363,7 @@ function showBubble(anchor, text) {
   showBubble.t = setTimeout(() => b.classList.add('out'), 2600);
   setTimeout(() => b.remove(), 3000);
 }
-function bindMascot(root) {
+function _bindMascot(root) {
   bindSquish(root);
   root.querySelectorAll('.lover').forEach(l => {
     const img = l.querySelector('img');
@@ -490,7 +478,7 @@ function toast(msg) {
   isl.classList.remove('show'); void isl.offsetWidth; isl.classList.add('show');
   clearTimeout(toast.t); toast.t = setTimeout(() => isl.classList.remove('show'), bad ? 3200 : 1900);
 }
-function countUp(el, to) {
+function _countUp(el, to) {
   const start = performance.now(), dur = 700;
   const step = now => {
     const p = Math.min(1, (now - start) / dur), e = 1 - Math.pow(1 - p, 3);
@@ -516,8 +504,6 @@ document.addEventListener('touchstart', () => {}, { passive: true });
 
 // ---------- ธีม ----------
 function applyTheme() { // โหมดมืดอวกาศอย่างเดียว · ปุ่มมุมขวาบน = เปิด/ปิดลูกเล่นอวกาศ
-  document.documentElement.dataset.theme = 'dark';
-  $('meta[name="theme-color"]').content = '#06070B';
   $('#themeBtn').innerHTML = ICON_ROCKET;
   $('#themeBtn').setAttribute('aria-pressed', String(funOn()));
 }
@@ -677,9 +663,8 @@ function syncBg(task, undo, what) {
     undo(); toast(`${what}ไม่สำเร็จ ลองใหม่นะ (${err.message})`); render(true);
   });
 }
-// เอฟเฟกต์หลังบันทึก (ไม่ขวางการใช้งาน): เหรียญตกใส่การ์ดยอดเงิน
 // 🚀 จรวดจิ๋วพุ่งจากล่างจอ + ประกายดาว (ทอง / ชมพูในโหมดคู่รัก)
-function rocketFx() {
+function _rocketFx() {
   if (!funOn()) return;
   const x = innerWidth * (.3 + Math.random() * .4);
   const r = document.createElement('span');
@@ -695,7 +680,7 @@ function rocketFx() {
   }, i * 90);
 }
 // ✨ ประกายดาวกระจายจากแถวที่ถูกลบ
-function starBurst(el) {
+function _starBurst(el) {
   const r = el.getBoundingClientRect();
   for (let i = 0; i < 9; i++) {
     const s = document.createElement('span');
@@ -705,18 +690,21 @@ function starBurst(el) {
     document.body.appendChild(s); setTimeout(() => s.remove(), 650);
   }
 }
+// ⏸️ หยุดแอนิเมชันฉากหลังชั่วคราว: ไถจอ / เปิดหน้าต่าง / สลับไปแอปอื่น (กลับมาแล้วเล่นต่อเอง)
+const fxPaused = () => document.hidden || /\b(scrolling|sheet-open)\b/.test(document.body.className);
+document.addEventListener('visibilitychange', () => document.body.classList.toggle('bg-hidden', document.hidden));
 // 🌠 ดาวตกพาดฟ้าทุกๆ ~7 วิ (หยุดเมื่อปิดลูกเล่น/แท็บไม่ได้เปิดอยู่)
-function bindShootingStars() {
-  setInterval(() => {
-    if (!funOn() || document.hidden || document.body.classList.contains('scrolling')) return;
+function _bindShootingStars() {
+  setInterval(fx(() => {
+    if (!funOn() || fxPaused()) return;
     const s = document.createElement('i');
     s.className = 'shoot';
     s.style.cssText = `left:${Math.round(innerWidth * (.2 + Math.random() * .7))}px;top:${Math.round(innerHeight * Math.random() * .35)}px`;
     $('#space')?.appendChild(s);
     setTimeout(() => s.remove(), 1300);
-  }, 7000);
+  }), 7000);
 }
-function savedFx(data, pop) {
+function _savedFx(data, pop) {
   const hero = $('.hero');
   if (!hero || !funOn()) return;
   if (pop) confettiPop(hero.querySelector('.hero-amount') || hero);
@@ -725,7 +713,7 @@ function savedFx(data, pop) {
   navigator.vibrate?.(10);
 }
 // ลบ: ไอคอนม้วนลงถังขยะ (ลอยบนจอ ไม่ขวางการใช้งาน)
-function tossFx(icon) {
+function _tossFx(icon) {
   if (!funOn()) return;
   const w = document.createElement('div');
   w.className = 'toss-fx';
@@ -951,7 +939,7 @@ function homeHTML(d) {
   return `<div class="grid home">
     <div class="grid">${hero}${middle}</div>
     <div class="grid">
-      <div class="card perched">${perch('wink', 'eyes')}<h3>💸 รายจ่าย <small>${fmt(d.te)} ฿</small></h3>${catRows(d.exp, d.te, 'out')}</div>
+      <div class="card"><h3>💸 รายจ่าย <small>${fmt(d.te)} ฿</small></h3>${catRows(d.exp, d.te, 'out')}</div>
       <div class="card"><h3>💰 รายรับ <small>${fmt(d.ti)} ฿</small></h3>${catRows(d.inc, d.ti, 'in')}</div>
     </div>
   </div>`;
@@ -1003,14 +991,14 @@ function listHTML(d) {
 }
 
 // เอียงการ์ด + แสงวิ้งวิ่งตาม (x, y = -0.5 ถึง 0.5)
-function setTilt(el, x, y) {
+function _setTilt(el, x, y) {
   el.style.setProperty('--ry', `${x * 12}deg`); el.style.setProperty('--rx', `${-y * 12}deg`);
   el.style.setProperty('--gx', `${50 + x * 90}%`); el.style.setProperty('--gy', `${50 + y * 90}%`);
 }
 
 // ✨ การ์ดยอดเงิน 2.5D: เลื่อนจอ → ตัวเลขลอยเยื้องจากพื้นกระจก + เส้นแสงขอบวิ่งตาม + เงาใต้การ์ดยืด/จางตามความเร็ว
 // หยุดนิ้วแล้วค่อยๆ หน่วงกลับนิ่ง · ขยับแค่ transform/translate · ปิดลูกเล่นหรือเครื่องตั้งลดการเคลื่อนไหว = นิ่ง
-function bindHeroDepth() {
+function _bindHeroDepth() {
   // เบาที่สุด: ไม่มีลูปค้าง ไม่คิดความเร็ว · คำนวณเฉพาะช่วงบนสุดของจอ (เลื่อนเกิน 260px = ตั้งค่าสุดท้ายครั้งเดียวแล้วหยุด)
   // เลื่อนลง → การ์ดยอดย่อ/ถอย และจางหายไว (หมดที่ ~120px) ก่อนรายการเลื่อนขึ้นมาทับ แล้วซ่อนทิ้ง ไม่ให้ Safari คิดกระจกซ้อน
   const still = matchMedia('(prefers-reduced-motion: reduce)');
@@ -1047,7 +1035,7 @@ function bindHeroDepth() {
   addEventListener('scroll', () => { document.body.classList.add('scrolling'); clearTimeout(still2); still2 = setTimeout(() => document.body.classList.remove('scrolling'), 160); }, { passive: true });
 }
 
-function bindTilt(root) {
+function _bindTilt(root) {
   $$('.tilt', root).forEach(el => {
     el.onpointermove = e => {
       const r = el.getBoundingClientRect();
@@ -1236,7 +1224,7 @@ function adminHTML(d) {
   </div>`;
 }
 
-function bindAdmin(d) {
+function bindAdmin() {
   $('#aSave').onclick = async () => {
     const n = Number($('#aLimit').value);
     if (!(n >= 1)) return toast('ใส่ตัวเลขก่อนนะ');
@@ -1465,8 +1453,8 @@ function bindDebts(view) {
 }
 
 // ---------- sheet เพิ่ม/แก้ไข ----------
-function openSheetEl() { const s = $('#sheet'); s.style.transform = ''; $('#sheetBg').style.opacity = ''; $('#sheetBg').classList.add('open'); s.classList.add('open'); }
-function closeSheet() { const s = $('#sheet'); s.style.transform = ''; $('#sheetBg').style.opacity = ''; s.classList.remove('open'); $('#sheetBg').classList.remove('open'); }
+function openSheetEl() { document.body.classList.add('sheet-open'); const s = $('#sheet'); s.style.transform = ''; $('#sheetBg').style.opacity = ''; $('#sheetBg').classList.add('open'); s.classList.add('open'); }
+function closeSheet() { document.body.classList.remove('sheet-open'); const s = $('#sheet'); s.style.transform = ''; $('#sheetBg').style.opacity = ''; s.classList.remove('open'); $('#sheetBg').classList.remove('open'); }
 // ปัดหน้าต่างลงเพื่อปิด (แบบ iPhone) · ลากจากแถบด้านบน หรือจากหัวหน้าต่างตอนเลื่อนอยู่บนสุด
 function bindSheetSwipe() {
   const sheet = $('#sheet'), bg = $('#sheetBg');
@@ -1503,13 +1491,13 @@ function openEntry(entry) {
   const draw = () => {
     const cats = state.categories.filter(c => c.type === e.type);
     if (!cats.some(c => c.id === e.category)) e.category = cats[0]?.id;
-    sheet.innerHTML = `<div class="grab"></div><h2>${isEdit ? 'แก้ไขรายการ' : 'เพิ่มรายการ'}</h2>
+    sheet.innerHTML = `<div class="grab"></div><h2 class="sheet-title">${mascot('avatar', 'sheet-chick')}${isEdit ? 'แก้ไขรายการ' : 'เพิ่มรายการ'}</h2>
       <div class="type-toggle has-pill" data-on="${e.type}">
         <span class="tt-pill"></span>
         <button class="expense ${e.type === 'expense' ? 'on' : ''}" data-type="expense">รายจ่าย</button>
         <button class="income ${e.type === 'income' ? 'on' : ''}" data-type="income">รายรับ</button>
       </div>
-      <input class="amount-input" id="fAmount" type="number" inputmode="decimal" placeholder="0" min="0" step="0.01" value="${esc(e.amount)}"
+      <input class="amount-input amt-${e.type}" id="fAmount" type="number" inputmode="decimal" placeholder="0" min="0" step="0.01" value="${esc(e.amount)}"
         style="color:var(--${e.type === 'income' ? 'income' : 'expense'})">
       <span class="label">หมวด</span>
       <div class="chips">${cats.map(c => `<button class="chip ${c.id === e.category ? 'on' : ''}" data-cat="${esc(c.id)}">${esc(c.icon)} ${esc(c.name)}</button>`).join('')}</div>
@@ -1565,7 +1553,11 @@ function openEntry(entry) {
       } else {
         const p = api('POST', 'add', { entry: data }).then(r => {
           const real = r.entries?.[0]?.id;
-          if (real) applyLocal(neu, { ...neu, id: real });
+          if (real) {
+            applyLocal(neu, { ...neu, id: real });
+            // แถวบนจอยังถือรหัสชั่วคราว → เปลี่ยนเป็นรหัสจริง (แตะแก้ได้ทันทีโดยไม่ต้องรีเฟรช)
+            $$(`.entry[data-id="${CSS.escape(id)}"]`).forEach(el => { el.dataset.id = real; });
+          }
           return real;
         });
         pendingIds.set(id, p);
@@ -1584,7 +1576,6 @@ function openEntry(entry) {
   draw();
   openSheetEl();
   if (!isEdit) setTimeout(() => $('#fAmount')?.focus(), 350);
-  if (lucky()) setTimeout(() => $('#sheet').classList.contains('open') && peekaboo($('#sheet')), 900); // ชะโงกจากขอบบนของหน้าต่าง
 }
 
 
@@ -1614,7 +1605,7 @@ async function refreshQuiet() {
 // ปุ่มสลับทุกอัน: กดค้างแล้วลากกระจกไปมาได้แบบ iOS · ปล่อยตรงไหนเลือกอันนั้น · แตะปกติยังใช้ได้
 const GLASS_SEGS = [
   { box: '.scope', pill: '.scope-pill', btn: 'button[data-scope]' },
-  { box: '.seg', pill: '.seg-pill', btn: 'button[data-mode], button[data-themeopt]' },
+  { box: '.seg', pill: '.seg-pill', btn: 'button[data-mode]' },
   { box: '.type-toggle.has-pill', pill: '.tt-pill', btn: 'button[data-type]' },
 ];
 function bindGlassSegs() {
@@ -1657,7 +1648,7 @@ function bindGlassSegs() {
   document.addEventListener('pointerup', end); document.addEventListener('pointercancel', end);
 }
 
-function bindScrollChrome() {
+function _bindScrollChrome() {
   let lastY = scrollY, raf = 0;
   addEventListener('scroll', () => {
     if (raf) return;
@@ -1681,7 +1672,7 @@ function bindChrome() {
   $$('.seg button[data-mode]').forEach(b => b.onclick = () => { state.mode = b.dataset.mode; state.date = todayISO(); render(); });
   $$('#scope button').forEach(b => b.onclick = () => {
     if (state.scope === b.dataset.scope) return;
-    state.anim = b.dataset.scope === 'us' ? 'l' : 'r'; state.scope = b.dataset.scope; render();
+    state.anim = b.dataset.scope === 'us' ? 'l' : 'r'; state.flyIn = b.dataset.scope === 'us'; state.scope = b.dataset.scope; render();
     if (b.dataset.scope === 'us') { const r = b.getBoundingClientRect(); burst(r.left + r.width / 2, r.top, ['💕', '💖', '🐥', '✨']); }
   });
   $('#prev').onclick = () => { state.anim = 'r'; state.date = shiftDate(state.date, state.mode, -1); render(); };
@@ -1697,7 +1688,6 @@ function bindChrome() {
     if (document.hidden) hiddenAt = Date.now();
     else if (state.ready && Date.now() - hiddenAt > 3000) refreshQuiet();
   });
-  matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme(store.get('theme')));
 }
 
 function applyProfile(p) {
@@ -1742,7 +1732,7 @@ async function boot() {
   bindGlassSegs();
   bindHeroDepth();
   addEventListener('resize', () => moveBlob(true));
-  applyTheme(store.get('theme'));
+  applyTheme();
   const ym = ymOf(todayISO());
   let shown = false;
 
@@ -1798,7 +1788,7 @@ async function boot() {
   } catch (e) {
     if (e.message === 'login') return;
     if (e.message === 'not_member' || e.message === 'no_consent') { // ยังไม่ได้รับเข้า / ยังไม่กดยอมรับ / ลบข้อมูลไปแล้ว
-      try { Object.keys(localStorage).filter(k => k.startsWith('ie:') && k !== 'ie:theme').forEach(k => localStorage.removeItem(k)); } catch {}
+      try { Object.keys(localStorage).filter(k => k.startsWith('ie:')).forEach(k => localStorage.removeItem(k)); } catch {}
       $('#view').innerHTML = `<div class="card empty gate">${mascot(e.message === 'no_consent' ? 'wink' : 'sleep')}
         <b>${e.message === 'no_consent' ? 'กดยอมรับในแชทก่อนนะ 📄' : 'ยังไม่ได้เริ่มใช้งาน 🐥'}</b><br>
         ${e.message === 'no_consent' ? 'แตะ 💖 ยอมรับ ในแชท LINE แล้วกลับมาที่นี่' : 'ทักแชท LINE ก่อน บอทจะพาเริ่มใช้งาน'}<br>
