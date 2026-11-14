@@ -1,13 +1,13 @@
-/* ---------- สี (โหมดสว่าง) ธีมน้องลูกเจี๊ยบ: เหลือง + น้ำเงินชุดเอี๊ยม ---------- */
+/* ---------- สี (โหมดสว่าง) ครีมนวลสไตล์ iOS + เหลืองทอง/น้ำเงินกรมท่าเฉพาะจุดเน้น ---------- */
 :root {
-  --bg: #FFF8D6; --surface: #FFFFFF; --surface-2: #FFF1B8; --text: #1E3550; --muted: #5E7590; --faint: #A3B2C2; --line: #FBE7A1;
-  --accent: #FFD100; --accent-text: #2B5B84; --accent-2: #FFE266; --accent-soft: #FFF3BF; --on-accent: #1E3550; --accent-edge: #E0AE00;
+  --bg: #FAF9F6; --surface: rgba(255, 255, 255, .85); --surface-2: #F2F0EB; --text: #1D1D1F; --muted: #6E6E73; --faint: #A1A1A6; --line: #E8E5DE;
+  --accent: #FFCC00; --accent-text: #1E3A5F; --accent-2: #F5A623; --accent-soft: #FFF4D1; --on-accent: #1D1D1F; --accent-edge: #E0A800;
   --income: #12A594; --income-soft: #DAF6F1; --expense: #F0455A; --expense-soft: #FFE3E7;
-  --hero-profit: linear-gradient(160deg, #4A82B5 0%, #2B5B84 55%, #234B6E 100%);
-  --hero-loss: linear-gradient(160deg, #2B4A66 0%, #1E3550 60%, #152639 100%);
-  --hero-zero: linear-gradient(160deg, #6C9AC4 0%, #3E6E99 100%);
-  --hero-edge: #1B3A57; --card-edge: #F6DF8A;
-  --shadow: 0 3px 0 var(--card-edge), 0 12px 26px rgba(43, 91, 132, .12);
+  --hero-profit: linear-gradient(160deg, #2F5683 0%, #1E3A5F 60%, #152A45 100%);
+  --hero-loss: linear-gradient(160deg, #26364A 0%, #1A2636 60%, #111A26 100%);
+  --hero-zero: linear-gradient(160deg, #3D6A9C 0%, #2F5683 100%);
+  --hero-edge: #10223A; --card-edge: #ECE8DF;
+  --shadow: 0 1px 0 var(--card-edge), 0 10px 28px rgba(29, 29, 31, .07);
   --font: "Mali", "Sukhumvit Set", "Noto Sans Thai", system-ui, sans-serif;
   --radius: 20px;
   --nav-h: 68px;
@@ -16,25 +16,25 @@
 }
 /* ---------- สี (โหมดมืด) ---------- */
 :root[data-theme="dark"] {
-  --bg: #0F1A26; --surface: #172636; --surface-2: #1F3247; --text: #FFF6D6; --muted: #B8C6D6; --faint: #6F849A; --line: #2A4058;
-    --accent: #FFD100; --accent-text: #FFD100; --accent-2: #FFE266; --accent-soft: #3A3410; --on-accent: #1E3550; --accent-edge: #B38F00;
+  --bg: #0D0D0F; --surface: #1C1C1E; --surface-2: #2C2C2E; --text: #F5F5F7; --muted: #A1A1A6; --faint: #6E6E73; --line: #2C2C2E;
+    --accent: #FFCC00; --accent-text: #FFCC00; --accent-2: #F5A623; --accent-soft: #332A0A; --on-accent: #1D1D1F; --accent-edge: #B38F00;
     --income: #3FE0C5; --income-soft: #10352F; --expense: #FF7A8A; --expense-soft: #451A24;
-    --hero-profit: linear-gradient(160deg, #3E74A6 0%, #2B5B84 55%, #1F4566 100%);
-    --hero-loss: linear-gradient(160deg, #24405C 0%, #172C42 100%);
-    --hero-zero: linear-gradient(160deg, #35618A 0%, #24405C 100%);
-    --hero-edge: #0B1622; --card-edge: #0B1622;
+    --hero-profit: linear-gradient(160deg, #2F5683 0%, #1E3A5F 60%, #132640 100%);
+    --hero-loss: linear-gradient(160deg, #2A2A2E 0%, #1C1C1E 100%);
+    --hero-zero: linear-gradient(160deg, #2F5683 0%, #1E3A5F 100%);
+    --hero-edge: #000000; --card-edge: #000000;
   --shadow: 0 3px 0 var(--card-edge), 0 12px 26px rgba(0, 0, 0, .35);
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0F1A26; --surface: #172636; --surface-2: #1F3247; --text: #FFF6D6; --muted: #B8C6D6; --faint: #6F849A; --line: #2A4058;
-    --accent: #FFD100; --accent-text: #FFD100; --accent-2: #FFE266; --accent-soft: #3A3410; --on-accent: #1E3550; --accent-edge: #B38F00;
+    --bg: #0D0D0F; --surface: #1C1C1E; --surface-2: #2C2C2E; --text: #F5F5F7; --muted: #A1A1A6; --faint: #6E6E73; --line: #2C2C2E;
+    --accent: #FFCC00; --accent-text: #FFCC00; --accent-2: #F5A623; --accent-soft: #332A0A; --on-accent: #1D1D1F; --accent-edge: #B38F00;
     --income: #3FE0C5; --income-soft: #10352F; --expense: #FF7A8A; --expense-soft: #451A24;
-    --hero-profit: linear-gradient(160deg, #3E74A6 0%, #2B5B84 55%, #1F4566 100%);
-    --hero-loss: linear-gradient(160deg, #24405C 0%, #172C42 100%);
-    --hero-zero: linear-gradient(160deg, #35618A 0%, #24405C 100%);
-    --hero-edge: #0B1622; --card-edge: #0B1622;
+    --hero-profit: linear-gradient(160deg, #2F5683 0%, #1E3A5F 60%, #132640 100%);
+    --hero-loss: linear-gradient(160deg, #2A2A2E 0%, #1C1C1E 100%);
+    --hero-zero: linear-gradient(160deg, #2F5683 0%, #1E3A5F 100%);
+    --hero-edge: #000000; --card-edge: #000000;
     --shadow: 0 3px 0 var(--card-edge), 0 12px 26px rgba(0, 0, 0, .35);
     color-scheme: dark;
   }
@@ -340,7 +340,7 @@ body {
   box-shadow: 0 3px 0 var(--card-edge), inset 0 1px 0 rgba(255, 255, 255, .7);
 }
 .seg { background: var(--surface-2); box-shadow: inset 0 2px 3px rgba(0, 0, 0, .05); }
-.seg-pill { box-shadow: 0 3px 0 var(--card-edge), 0 4px 10px rgba(43, 91, 132, .15); }
+.seg-pill { box-shadow: 0 3px 0 var(--card-edge), 0 4px 10px rgba(30, 58, 95, .15); }
 .stepper, .icon-btn { box-shadow: var(--shadow); }
 .entry { box-shadow: 0 2px 0 var(--card-edge); }
 .card .entry { box-shadow: none; }
@@ -349,7 +349,7 @@ body {
 .bar { box-shadow: inset 0 1px 2px rgba(0, 0, 0, .06); }
 .bar.out i { background: linear-gradient(90deg, var(--accent-2), var(--expense)); }
 .bar.in i { background: linear-gradient(90deg, #7FE7D6, var(--income)); }
-.load-ava { box-shadow: 0 5px 0 var(--card-edge), 0 14px 30px rgba(43, 91, 132, .25); }
+.load-ava { box-shadow: 0 5px 0 var(--card-edge), 0 14px 30px rgba(30, 58, 95, .25); }
 .ring { border-top-color: var(--accent-text); border-right-color: var(--accent-2); }
 
 /* ---------- แก้ตัวหนังสือทับกัน (ฟอนต์ Mali สูงกว่าปกติ) ---------- */
@@ -404,7 +404,7 @@ body { line-height: 1.6; }
 
 /* ลูกโป่งคำพูด */
 .bubble { position: absolute; right: 150px; top: -86px; z-index: 3; max-width: 200px; padding: 9px 14px; border-radius: 18px 18px 4px 18px;
-  background: var(--surface); color: var(--text); font-size: 14px; font-weight: 700; box-shadow: 0 3px 0 var(--card-edge), 0 10px 22px rgba(43, 91, 132, .22);
+  background: var(--surface); color: var(--text); font-size: 14px; font-weight: 700; box-shadow: 0 3px 0 var(--card-edge), 0 10px 22px rgba(47, 86, 131, .14);
   animation: bubbleIn .45s var(--ease) both; }
 .bubble.small { right: 116px; top: -66px; }
 .bubble.out { animation: bubbleOut .35s ease-in forwards; }
@@ -452,13 +452,13 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .scope button { position: relative; z-index: 1; padding: 9px 0; font-size: 15px; font-weight: 600; color: var(--muted); transition: color .25s; }
 .scope button.active { color: var(--accent-text); }
 .scope[data-scope="us"] button.active { color: #fff; }
-.scope-pill { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 2); border-radius: 11px; background: var(--surface); box-shadow: 0 3px 0 var(--card-edge), 0 4px 10px rgba(43, 91, 132, .15); transition: transform .4s var(--ease), background .4s; }
-.scope[data-scope="us"] .scope-pill { transform: translateX(100%); background: linear-gradient(135deg, #2B5B84, #4A82B5); box-shadow: 0 3px 0 #C9A200, 0 6px 14px rgba(255, 209, 0, .35); }
+.scope-pill { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 2); border-radius: 11px; background: var(--surface); box-shadow: 0 3px 0 var(--card-edge), 0 4px 10px rgba(30, 58, 95, .15); transition: transform .4s var(--ease), background .4s; }
+.scope[data-scope="us"] .scope-pill { transform: translateX(100%); background: linear-gradient(135deg, #1E3A5F, #2F5683); box-shadow: 0 3px 0 #C9A200, 0 6px 14px rgba(255, 204, 0, .35); }
 
 /* พื้นหลังเปลี่ยนเป็นชมพูอมม่วงเมื่ออยู่ในโหมดของเรา */
 
 
-.hero.love, .hero.love.profit { background: linear-gradient(150deg, #5B8FC0 0%, #2B5B84 42%, #FFD100 100%); box-shadow: 0 12px 30px rgba(255, 209, 0, .4); }
+.hero.love, .hero.love.profit { background: linear-gradient(150deg, #3D6A9C 0%, #1E3A5F 42%, #FFCC00 100%); box-shadow: 0 12px 30px rgba(255, 204, 0, .4); }
 .hero.love.loss { background: linear-gradient(150deg, #D9468F 0%, #A8286E 45%, #6B45B8 100%); }
 .hero-wrap.us { margin-top: 70px; }
 .hero-wrap.us .hero-top, .hero-wrap.us .hero.mini .hero-top { padding-right: 0; margin-top: 16px; }
@@ -482,12 +482,12 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .priv small { display: block; font-size: 12px; color: var(--muted); }
 .priv > i { width: 44px; height: 26px; border-radius: 999px; background: var(--line); position: relative; flex: none; transition: background .25s; }
 .priv > i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); transition: transform .3s var(--ease); }
-.priv.on { background: color-mix(in srgb, #FFD100 22%, var(--surface-2)); }
-.priv.on > i { background: linear-gradient(135deg, #2B5B84, #FFD100); }
+.priv.on { background: color-mix(in srgb, #FFCC00 22%, var(--surface-2)); }
+.priv.on > i { background: linear-gradient(135deg, #1E3A5F, #FFCC00); }
 .priv.on > i::after { transform: translateX(18px); }
 
 /* การ์ดคู่ของฉันในหน้าตั้งค่า */
-.couple-card { background-image: linear-gradient(135deg, rgba(43, 91, 132, .08), rgba(255, 209, 0, .14)); }
+.couple-card { background-image: linear-gradient(135deg, rgba(30, 58, 95, .08), rgba(255, 204, 0, .14)); }
 .couple-row { display: flex; align-items: center; gap: 14px; margin: 12px 0; }
 .couple-row .face { width: 44px; height: 44px; font-size: 22px; }
 .couple-row .duo .face + .face { margin-left: -12px; }
@@ -518,8 +518,8 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 @keyframes booDown { from { transform: translateY(6%); } to { transform: translateY(105%); } }
 
 /* ดาวกระจายตอนบันทึก */
-.confetti { position: fixed; z-index: 90; pointer-events: none; font-size: 15px; line-height: 1; color: #2B5B84; filter: hue-rotate(var(--h)) drop-shadow(0 1px 0 rgba(255, 255, 255, .8)); animation: confetti .5s cubic-bezier(.15, .8, .3, 1) forwards; }
-.confetti:nth-child(3n) { color: #FFD100; }
+.confetti { position: fixed; z-index: 90; pointer-events: none; font-size: 15px; line-height: 1; color: #1E3A5F; filter: hue-rotate(var(--h)) drop-shadow(0 1px 0 rgba(255, 255, 255, .8)); animation: confetti .5s cubic-bezier(.15, .8, .3, 1) forwards; }
+.confetti:nth-child(3n) { color: #FFCC00; }
 .confetti:nth-child(3n+1) { color: #FFC24B; }
 @keyframes confetti { from { transform: translate(-50%, -50%) scale(.3); opacity: 1; } 70% { opacity: 1; } to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(var(--r)); opacity: 0; } }
 
@@ -535,14 +535,14 @@ html, body { overscroll-behavior-y: contain; }
 body::before, body::after { content: ""; position: fixed; inset: -12%; z-index: -1; pointer-events: none; }
 body::before { will-change: transform; }
 body::before {
-  background: radial-gradient(38% 32% at 22% 18%, rgba(255, 209, 0, .30), transparent 70%),
-              radial-gradient(34% 30% at 82% 30%, rgba(120, 170, 220, .26), transparent 70%),
-              radial-gradient(40% 34% at 50% 85%, rgba(255, 226, 102, .22), transparent 70%);
+  background: radial-gradient(38% 32% at 22% 18%, rgba(255, 204, 0, .10), transparent 70%),
+              radial-gradient(34% 30% at 82% 30%, rgba(30, 58, 95, .06), transparent 70%),
+              radial-gradient(40% 34% at 50% 85%, rgba(245, 166, 35, .07), transparent 70%);
   animation: aurora 26s ease-in-out infinite alternate;
 }
 body::after {
-  background: radial-gradient(40% 34% at 18% 20%, rgba(255, 209, 0, .34), transparent 70%),
-              radial-gradient(36% 30% at 85% 40%, rgba(43, 91, 132, .22), transparent 70%);
+  background: radial-gradient(40% 34% at 18% 20%, rgba(255, 204, 0, .08), transparent 70%),
+              radial-gradient(36% 30% at 85% 40%, rgba(47, 86, 131, .14), transparent 70%);
   opacity: 0; transition: opacity .6s ease;
 }
 body.us::after { opacity: 1; }
@@ -647,8 +647,8 @@ body.calm::before, body.calm::after, body.calm .glare, body.calm .perch .mascot,
 .lovers.small .lover { width: 82px; height: 82px; }
 .lover.me { animation: loverL 3.2s ease-in-out infinite; z-index: 1; }
 .lover.you { margin-left: -16px; animation: loverR 3.2s ease-in-out infinite; }
-.lover-ring { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, #2B5B84, #FFE680, #FFD100, #5B8FC0, #2B5B84); animation: ringSpin 4s linear infinite; box-shadow: 0 10px 26px rgba(30, 68, 102, .35); }
-.lover img, .lover b { position: relative; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #fff; display: grid; place-items: center; font-size: 38px; font-weight: 700; color: #fff; background: linear-gradient(150deg, #5B8FC0, #FFD100); }
+.lover-ring { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, #1E3A5F, #FFE680, #FFCC00, #3D6A9C, #1E3A5F); animation: ringSpin 4s linear infinite; box-shadow: 0 10px 26px rgba(30, 68, 102, .35); }
+.lover img, .lover b { position: relative; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #fff; display: grid; place-items: center; font-size: 38px; font-weight: 700; color: #fff; background: linear-gradient(150deg, #3D6A9C, #FFCC00); }
 .lovers.small .lover b { font-size: 30px; }
 .lover small { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); max-width: 96px; padding: 1px 9px; border-radius: 999px; background: #fff; color: var(--accent-text); font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 2px 0 var(--card-edge); }
 .lover.you small { color: #C9A200; }
@@ -713,7 +713,7 @@ input, textarea { -webkit-user-select: text; user-select: text; }
   transform: translateX(-50%) translateY(-70px) scale(.6); opacity: 0;
   transition: transform .5s cubic-bezier(.3, 1.45, .45, 1), width .55s cubic-bezier(.3, 1.35, .45, 1), opacity .25s; }
 #island.show { width: var(--w); transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
-#island .isl-ico { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; background: linear-gradient(135deg, #2B5B84, #FFD100); }
+#island .isl-ico { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; background: linear-gradient(135deg, #1E3A5F, #FFCC00); }
 #island.bad .isl-ico { background: #F0455A; }
 #island .isl-txt { overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity .2s .18s; }
 #island.show .isl-txt { opacity: 1; }
@@ -765,9 +765,9 @@ body.scrolled .avatar { transform: scale(.8); }
 body { background: var(--bg) !important; background-attachment: scroll !important; }
 body::before {
   background:
-    radial-gradient(38% 32% at 22% 18%, rgba(255, 209, 0, .30), transparent 70%),
-    radial-gradient(34% 30% at 82% 30%, rgba(120, 170, 220, .22), transparent 70%),
-    radial-gradient(40% 34% at 50% 85%, rgba(255, 226, 102, .2), transparent 70%),
+    radial-gradient(38% 32% at 22% 18%, rgba(255, 204, 0, .10), transparent 70%),
+    radial-gradient(34% 30% at 82% 30%, rgba(30, 58, 95, .06), transparent 70%),
+    radial-gradient(40% 34% at 50% 85%, rgba(245, 166, 35, .06), transparent 70%),
     radial-gradient(color-mix(in srgb, var(--accent) 12%, transparent) 1.2px, transparent 1.3px) 0 0 / 22px 22px !important;
   transform: translateZ(0);
 }
@@ -777,9 +777,9 @@ body.scrolling::before, body.scrolling .glare::after, body.scrolling .lover-ring
 .scope, .seg, .type-toggle.has-pill { touch-action: pan-y; }
 .scope-pill, .seg-pill, .tt-pill { transition: transform .5s cubic-bezier(.32, 1.35, .5, 1), scale .3s cubic-bezier(.3, 1.6, .5, 1), box-shadow .3s, background .3s; will-change: transform; }
 .lens { scale: 1.1 1.16; transition: scale .3s cubic-bezier(.3, 1.6, .5, 1), box-shadow .3s !important;
-  box-shadow: 0 8px 22px rgba(30, 68, 102, .25), inset 0 1px 1px rgba(255, 255, 255, .95), inset 0 -2px 6px rgba(43, 91, 132, .15) !important;
+  box-shadow: 0 8px 22px rgba(30, 68, 102, .25), inset 0 1px 1px rgba(255, 255, 255, .95), inset 0 -2px 6px rgba(30, 58, 95, .15) !important;
   background: linear-gradient(160deg, rgba(255, 255, 255, .85), rgba(255, 255, 255, .45)) !important; -webkit-backdrop-filter: blur(4px) saturate(1.8); backdrop-filter: blur(4px) saturate(1.8); }
-.scope[data-scope="us"] .scope-pill.lens { background: linear-gradient(135deg, rgba(43, 91, 132, .85), rgba(255, 209, 0, .85)) !important; }
+.scope[data-scope="us"] .scope-pill.lens { background: linear-gradient(135deg, rgba(30, 58, 95, .85), rgba(255, 204, 0, .85)) !important; }
 .dragging button.hover { color: var(--accent-text); }
 .dragging button { transition: color .15s; }
 
@@ -809,7 +809,7 @@ body.scrolling::before, body.scrolling .glare::after, body.scrolling .lover-ring
 .hero > .spec { position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: inherit; padding: 1.2px; overflow: hidden;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
 .hero > .spec::before { content: ""; position: absolute; inset: -80% -110%; will-change: translate; translate: var(--sx, -35%) 0;
-  background: linear-gradient(115deg, rgba(255, 255, 255, .22) 36%, #FFF4C2 47%, #FFFFFF 50%, #FFD100 53%, rgba(255, 255, 255, .22) 64%); }
+  background: linear-gradient(115deg, rgba(255, 255, 255, .22) 36%, #FFF4C2 47%, #FFFFFF 50%, #FFCC00 53%, rgba(255, 255, 255, .22) 64%); }
 .hero-shadow { position: absolute; left: 9%; right: 9%; bottom: -16px; height: 30px; z-index: 0; pointer-events: none; border-radius: 50%;
   background: radial-gradient(closest-side, rgba(30, 53, 80, .38), transparent); filter: blur(5px); opacity: .85; }
 .hero-wrap.small .hero-shadow { bottom: -12px; height: 22px; }
@@ -876,3 +876,12 @@ body.calm button:active, body.calm .chip:active, body.calm .entry:active { scale
 .peek-body.night { top: -98px; }
 .peek-body.small.night { top: -78px; }
 .peek-body.small.night .mascot { height: 80px; }
+
+/* Apple-style scroll: การ์ดยอดเอียง 3D ตอนเลื่อน (คิดเฉพาะช่วงบน) · ลูกเจี๊ยบเกาะการ์ดเยื้อง+เอียงรับแรงเฉื่อยแล้วเด้งกลับ */
+.peek-body { transition: rotate .55s cubic-bezier(.34, 1.56, .64, 1); transform-origin: 50% 100%; }
+/* ดึงเชือก: ลูกเจี๊ยบดิ้นกระพือเบาๆ ระหว่างลาก · ปล่อยแล้วดีดสปริง */
+.rope.held .rope-body { animation: flap .16s ease-in-out infinite alternate; transform-origin: 50% 20%; }
+@keyframes flap { from { rotate: -3deg; scale: 1.02 .98; } to { rotate: 3deg; scale: .98 1.02; } }
+.m-rope { aspect-ratio: 120 / 180; }
+.rope-line { bottom: calc(100% - 14px); }
+@media (prefers-reduced-motion: reduce) { .rope.held .rope-body { animation: none; } }

@@ -1,25 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 170" width="120" height="170"><defs>
-  <radialGradient id="cb" cx="38%" cy="30%" r="78%"><stop offset="0" stop-color="#FFF6B8"/><stop offset=".5" stop-color="#FFD100"/><stop offset="1" stop-color="#F0AE00"/></radialGradient>
-  <linearGradient id="hat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4A82B5"/><stop offset="1" stop-color="#2B5B84"/></linearGradient>
-  <radialGradient id="bl"><stop offset="0" stop-color="#FF8FA0" stop-opacity=".7"/><stop offset="1" stop-color="#FF8FA0" stop-opacity="0"/></radialGradient>
-  <linearGradient id="beam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FFF6C8" stop-opacity=".95"/><stop offset="1" stop-color="#FFE680" stop-opacity="0"/></linearGradient>
-  <pattern id="rp" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="6" height="6" fill="#9A6A3A"/><rect width="3" height="6" fill="#C08A52"/></pattern>
-  <pattern id="knit" width="7" height="7" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="none"/><path d="M0 7 L3.5 0 L7 7" stroke="#fff" stroke-opacity=".18" stroke-width="1.4" fill="none"/></pattern>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 180" width="120" height="180"><defs>
+  <radialGradient id="body" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#FFF8D2"/><stop offset=".35" stop-color="#FFE15A"/><stop offset=".75" stop-color="#FFC81E"/><stop offset="1" stop-color="#EBA400"/></radialGradient>
+  <radialGradient id="belly" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#FFF6C4" stop-opacity=".95"/><stop offset="1" stop-color="#FFF6C4" stop-opacity="0"/></radialGradient>
+  <radialGradient id="rim" cx="50%" cy="50%" r="50%"><stop offset=".78" stop-color="#C98A00" stop-opacity="0"/><stop offset="1" stop-color="#C98A00" stop-opacity=".45"/></radialGradient>
+  <linearGradient id="wing" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD43A"/><stop offset="1" stop-color="#E9A100"/></linearGradient>
+  <linearGradient id="beak" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC266"/><stop offset="1" stop-color="#FF9F2E"/></linearGradient>
+  <linearGradient id="hat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3D6A9C"/><stop offset="1" stop-color="#1E3A5F"/></linearGradient>
+  <radialGradient id="pom" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E6DCC4"/></radialGradient>
+  <radialGradient id="cheek"><stop offset="0" stop-color="#FF8FA3" stop-opacity=".75"/><stop offset="1" stop-color="#FF8FA3" stop-opacity="0"/></radialGradient>
+  <radialGradient id="eye" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#3A4A66"/><stop offset="1" stop-color="#121A2A"/></radialGradient>
+  <radialGradient id="shadow"><stop offset="0" stop-color="#5A3C00" stop-opacity=".28"/><stop offset="1" stop-color="#5A3C00" stop-opacity="0"/></radialGradient>
+  <linearGradient id="beam" x1="1" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FFF4C8" stop-opacity=".95"/><stop offset=".6" stop-color="#FFE38A" stop-opacity=".35"/><stop offset="1" stop-color="#FFE38A" stop-opacity="0"/></linearGradient>
+  <linearGradient id="basket" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D9A262"/><stop offset="1" stop-color="#9A6430"/></linearGradient>
+  <pattern id="rp" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="6" height="6" fill="#8A5A2B"/><rect width="3" height="6" fill="#B98549"/></pattern>
+  <pattern id="knit" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 8 L4 1 L8 8" stroke="#fff" stroke-opacity=".22" stroke-width="1.6" fill="none"/></pattern>
+  <pattern id="weave" width="10" height="8" patternUnits="userSpaceOnUse"><path d="M0 4 q2.5 -4 5 0 t5 0" stroke="#7A4A1E" stroke-opacity=".5" stroke-width="1.4" fill="none"/></pattern>
+  <clipPath id="bodyClip"><path d="M-40 6 C-40 -32 -20 -44 0 -44 C20 -44 40 -32 40 6 C40 33 22 44 0 44 C-22 44 -40 33 -40 6z"/></clipPath>
 </defs>
-  <rect x="57.5" y="0" width="5" height="58" fill="url(#rp)" rx="2"/>
-  <g transform="translate(60 118) rotate(0) scale(1)">
-    <path d="M-14 38 v8 m-5 0 h10 M14 38 v8 m-5 0 h10" stroke="#FF9A2E" stroke-width="4.5" stroke-linecap="round" fill="none"/>
-    <g transform="translate(-32 -4) rotate(-32)"><ellipse cx="0" cy="-14" rx="9" ry="17" fill="#F5BE00"/><ellipse cx="2" cy="-18" rx="3.5" ry="7" fill="#fff" opacity=".25"/></g><g transform="translate(32 -4) rotate(32)"><ellipse cx="0" cy="-14" rx="9" ry="17" fill="#F5BE00"/><ellipse cx="-2" cy="-18" rx="3.5" ry="7" fill="#fff" opacity=".25"/></g>
-    <path d="M-40 4 C-40 -34 -18 -44 0 -44 C18 -44 40 -34 40 4 C40 32 22 42 0 42 C-22 42 -40 32 -40 4z" fill="url(#cb)"/>
-    <path d="M-26 -26 q10 -12 26 -12" stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none" opacity=".55"/>
-    <circle cx="-25" cy="8" r="8" fill="url(#bl)"/><circle cx="25" cy="8" r="8" fill="url(#bl)"/>
-    <ellipse cx="-13" cy="-4" rx="5.4" ry="6.6" fill="#1E3550"/><ellipse cx="13" cy="-4" rx="5.4" ry="6.6" fill="#1E3550"/>
-       <circle cx="-11" cy="-7" r="2.2" fill="#fff"/><circle cx="15" cy="-7" r="2.2" fill="#fff"/><circle cx="-15" cy="-1" r="1" fill="#fff"/><circle cx="11" cy="-1" r="1" fill="#fff"/><path d="M-7 6 q7 -5 14 0 q-7 4 -14 0z" fill="#FF9A2E"/><path d="M-6 8 q6 9 12 0 z" fill="#E5761A"/><path d="M-30 16 q30 14 60 0 l1 9 q-31 15 -62 0z" fill="#2B5B84"/><path d="M-30 16 q30 14 60 0" stroke="#fff" stroke-opacity=".25" stroke-width="2" fill="none"/>
-    <path d="M14 22 q14 12 18 26 l9 -2 q8 -14 -3 -24z" fill="#1E3550"/>
-    <path d="M19 48 l3 5 M23 47 l3 5 M27 46 l3 5" stroke="#1E3550" stroke-width="2" stroke-linecap="round"/>
-    <g><path d="M-34 -22 C-32 -52 32 -52 34 -22 z" fill="url(#hat)"/><path d="M-34 -22 C-32 -52 32 -52 34 -22 z" fill="url(#knit)"/>
-      <rect x="-36" y="-27" width="72" height="11" rx="5.5" fill="#1E3550"/>
-      <path d="M-28 -27 v11 M-20 -27 v11 M-12 -27 v11 M-4 -27 v11 M4 -27 v11 M12 -27 v11 M20 -27 v11 M28 -27 v11" stroke="#fff" stroke-opacity=".15" stroke-width="2"/>
-      <circle cx="0" cy="-49" r="8" fill="#FFF3BF"/><circle cx="-2" cy="-51" r="3" fill="#fff"/></g>
+  <rect x="57.5" y="0" width="5" height="40" fill="url(#rp)" rx="2"/>
+  <circle cx="60" cy="40" r="4" fill="#8A5A2B"/>
+  <path d="M60 40 L16 118 M60 40 L104 118" stroke="url(#rp)" stroke-width="3.5" stroke-linecap="round"/>
+  <g transform="translate(60 104) scale(0.92)">
+    
+    <path d="M-40 6 C-40 -32 -20 -44 0 -44 C20 -44 40 -32 40 6 C40 33 22 44 0 44 C-22 44 -40 33 -40 6z" fill="url(#body)"/>
+    <g clip-path="url(#bodyClip)"><ellipse cx="0" cy="20" rx="26" ry="22" fill="url(#belly)"/><path d="M-40 6 C-40 -32 -20 -44 0 -44 C20 -44 40 -32 40 6 C40 33 22 44 0 44 C-22 44 -40 33 -40 6z" fill="url(#rim)"/>
+      <path d="M-30 30 q4 -4 8 0 M22 32 q4 -4 8 0 M-6 38 q4 -4 8 0" stroke="#D69A00" stroke-opacity=".45" stroke-width="1.4" fill="none"/></g>
+    <path d="M-28 -24 q10 -13 26 -14" stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none" opacity=".55"/>
+    <circle cx="-24" cy="9" r="8.5" fill="url(#cheek)"/><circle cx="24" cy="9" r="8.5" fill="url(#cheek)"/>
+    <ellipse cx="-13" cy="-3" rx="6" ry="7.4" fill="url(#eye)"/><circle cx="-10.8" cy="-6.2" r="2.5" fill="#fff"/><circle cx="-15.2" cy="0.6" r="1.2" fill="#fff" opacity=".9"/><ellipse cx="13" cy="-3" rx="6" ry="7.4" fill="url(#eye)"/><circle cx="15.2" cy="-6.2" r="2.5" fill="#fff"/><circle cx="10.8" cy="0.6" r="1.2" fill="#fff" opacity=".9"/><path d="M-7 7 q7 -6 14 0 q-7 3 -14 0z" fill="url(#beak)"/><path d="M-6 8.5 q6 8 12 0z" fill="#E07A12"/><path d="M-3 10 q3 3 6 0" fill="#FF6F7D"/><path d="M-33 15 q33 15 66 0 l2 10 q-35 16 -70 0z" fill="#1E3A5F"/><path d="M-33 15 q33 15 66 0 l2 10 q-35 16 -70 0z" fill="url(#knit)"/>
+    <path d="M-32 18 q32 13 64 0" stroke="#fff" stroke-opacity=".2" stroke-width="1.5" fill="none"/>
+    <path d="M12 24 h11 l1 22 h-12z" fill="#2F5683"/><path d="M12 24 h11 l1 22 h-12z" fill="url(#knit)"/><path d="M13 46 v5 M17 46 v5 M21 46 v5" stroke="#2F5683" stroke-width="2.2" stroke-linecap="round"/><g transform="translate(-36 -4) rotate(-20)"><ellipse cx="0" cy="-12" rx="9.5" ry="18" fill="url(#wing)"/><path d="M2 -20 q-5 6 0 16" stroke="#C98A00" stroke-opacity=".5" stroke-width="1.4" fill="none"/><ellipse cx="3" cy="-18" rx="3" ry="6" fill="#fff" opacity=".3"/></g><g transform="translate(36 -4) rotate(20)"><ellipse cx="0" cy="-12" rx="9.5" ry="18" fill="url(#wing)"/><path d="M-2 -20 q5 6 0 16" stroke="#C98A00" stroke-opacity=".5" stroke-width="1.4" fill="none"/><ellipse cx="-3" cy="-18" rx="3" ry="6" fill="#fff" opacity=".3"/></g><path d="M-35 -21 C-34 -54 34 -54 35 -21z" fill="url(#hat)"/><path d="M-35 -21 C-34 -54 34 -54 35 -21z" fill="url(#knit)"/>
+    <path d="M-20 -46 q20 -10 40 0" stroke="#fff" stroke-opacity=".2" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <rect x="-37" y="-27" width="74" height="12" rx="6" fill="#1E3A5F"/>
+    <g stroke="#fff" stroke-opacity=".18" stroke-width="2.2"><path d="M-30 -25.5 v9"/><path d="M-22.5 -25.5 v9"/><path d="M-15 -25.5 v9"/><path d="M-7.5 -25.5 v9"/><path d="M0 -25.5 v9"/><path d="M7.5 -25.5 v9"/><path d="M15 -25.5 v9"/><path d="M22.5 -25.5 v9"/><path d="M30 -25.5 v9"/></g>
+    <circle cx="0" cy="-51" r="8.5" fill="url(#pom)"/><circle cx="-2.5" cy="-54" r="2.6" fill="#fff"/>
+    <path d="M-7 -15 q3.5 8 7 0 q3.5 8 7 0" fill="#FFD43A" stroke="#E0A500" stroke-width=".8"/>
   </g>
-  <path d="M60 56 q-9 3 -5 9 q5 3 10 0 q4 -6 -5 -9z" fill="none" stroke="url(#rp)" stroke-width="4"/></svg>
+  <path d="M12 116 h96 l-10 44 q-38 10 -76 0z" fill="url(#basket)"/><path d="M12 116 h96 l-10 44 q-38 10 -76 0z" fill="url(#weave)"/>
+  <rect x="9" y="111" width="102" height="10" rx="5" fill="#B57A3C"/><rect x="9" y="111" width="102" height="4" rx="2" fill="#E3B57A" opacity=".7"/>
+  <ellipse cx="60" cy="174" rx="34" ry="4" fill="url(#shadow)"/></svg>

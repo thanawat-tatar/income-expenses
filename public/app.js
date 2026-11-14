@@ -489,7 +489,7 @@ const isDark = () => {
 function applyTheme(t) {
   const root = document.documentElement;
   if (t === 'light' || t === 'dark') root.dataset.theme = t; else root.removeAttribute('data-theme');
-  $('meta[name="theme-color"]').content = isDark() ? '#0F1A26' : '#FFF8D6';
+  $('meta[name="theme-color"]').content = isDark() ? '#0D0D0F' : '#FAF9F6';
   $('#themeBtn').innerHTML = isDark() ? ICON_SUN : ICON_MOON;
 }
 function setTheme(t) { store.set('theme', t); applyTheme(t); }
@@ -970,6 +970,7 @@ function bindHeroDepth() {
   // เลื่อนลง → การ์ดยอดย่อ/ถอย และจางหายไว (หมดที่ ~120px) ก่อนรายการเลื่อนขึ้นมาทับ แล้วซ่อนทิ้ง ไม่ให้ Safari คิดกระจกซ้อน
   const still = matchMedia('(prefers-reduced-motion: reduce)');
   let raf = 0, done = false;
+  let prevY = scrollY, settle = 0;
   const frame = () => {
     raf = 0;
     const y = scrollY;
@@ -979,14 +980,19 @@ function bindHeroDepth() {
     const p = off ? 0 : Math.min(1, y / 260), q = off ? 0 : Math.min(1, y / 120);
     $$('.hero.tilt').forEach(h => {
       h.style.setProperty('--dy', `${(-p * 7).toFixed(1)}px`);
+      if (!h.matches(':hover')) h.style.setProperty('--rx', `${(p * 6).toFixed(2)}deg`); // เอียง 3D ตามการเลื่อน (ไม่ทับตอนนิ้วกดเอียงอยู่)
       h.style.setProperty('--sx', `${(-35 + p * 70).toFixed(0)}%`);
       const w = h.closest('.hero-wrap');
       if (!w) return;
+      const pk = w.querySelector('.peek-body');
+      if (pk) { pk.style.translate = p ? `0 ${(-10 * p).toFixed(1)}px` : ''; pk.style.rotate = off ? '' : `${Math.max(-4, Math.min(4, (y - prevY) * .4)).toFixed(2)}deg`; }
       w.style.translate = q ? `0 ${(-12 * q).toFixed(1)}px` : '';
       w.style.scale = q ? (1 - .08 * q).toFixed(3) : '';
       w.style.opacity = q ? (1 - q).toFixed(2) : '';
       w.style.visibility = q >= 1 ? 'hidden' : '';
     });
+    prevY = y;
+    clearTimeout(settle); settle = setTimeout(() => $$('.peek-body').forEach(pk => { pk.style.rotate = ''; }), 140); // หยุดไถ → เด้งกลับตั้งตรง
   };
   bindHeroDepth.kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
   bindHeroDepth.reset = () => { done = false; bindHeroDepth.kick(); };
