@@ -4,6 +4,38 @@ const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 const MONTHS_FULL = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
 const DOW = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
+// ✍️ หัวข้อเขียนมือวน 5 ภาษา: ไทย → อังกฤษ → ญี่ปุ่น → เกาหลี → จีน
+const TITLES_I18N = {
+  home: ['ภาพรวม', 'Overview', '概要', '개요', '总览'],
+  list: ['รายการ', 'Entries', '明細', '내역', '明细'],
+  settings: ['ตั้งค่า', 'Settings', '設定', '설정', '设置'],
+  debts: ['สมุดหนี้', 'Debts', '貸し借り', '빌려준 돈', '借款'],
+  admin: ['หลังบ้าน', 'Admin', '管理', '관리', '管理'],
+};
+const HW_FONTS = ['Mali', 'Mali', 'Yomogi', 'Gaegu', 'Ma Shan Zheng'];
+function handTitle(page) {
+  const h = $('#pageTitle');
+  clearTimeout(handTitle.t);
+  const words = TITLES_I18N[page] || [TITLES[page]];
+  if (!funOn()) { h.textContent = TITLES[page]; h.removeAttribute('data-hw'); return; }
+  h.dataset.hw = '1';
+  h.innerHTML = '<svg class="hw" aria-hidden="true"><defs><mask id="hwm" maskUnits="userSpaceOnUse"><rect class="hw-wipe" x="0" y="-20" width="100%" height="200" fill="#fff"/></mask></defs><text class="hw-t" x="2" y="1.05em" mask="url(#hwm)"></text></svg><span class="sr">' + esc(TITLES[page]) + '</span>';
+  const t = h.querySelector('.hw-t'), svg = h.querySelector('svg');
+  let i = 0;
+  const write = () => {
+    t.textContent = words[i]; t.style.fontFamily = `"${HW_FONTS[i]}", var(--font)`;
+    svg.classList.remove('done', 'out', 'go'); void svg.getBoundingClientRect();
+    svg.classList.add('go');                                    // ลากเส้น + ไล่จากซ้ายไปขวา
+    handTitle.t = setTimeout(() => {
+      svg.classList.add('done');                                // เติมสีเต็มตัว
+      handTitle.t = setTimeout(() => {
+        svg.classList.add('out');                               // จางหาย แล้วเขียนภาษาถัดไป
+        handTitle.t = setTimeout(() => { i = (i + 1) % words.length; write(); }, 520);
+      }, 2600);
+    }, 1700);
+  };
+  write();
+}
 const TITLES = { home: 'ภาพรวม', list: 'รายการ', settings: 'ตั้งค่า', debts: '📒 สมุดหนี้', admin: 'หลังบ้าน 👑' };
 const EMOJIS = '🏷️ 🍼 👶 🎓 📚 🏥 💊 🐶 🐱 🎮 🎬 🎁 💄 👕 👟 🛒 🧴 🧺 🚌 🚕 🅿️ 🛵 ⛽ 🔧 📱 💡 💧 🏠 💳 🏦 💸 💼 🛍️ ☕ 🍜 🍺 🚬 🙏 🎉 ✈️ 🏋️ 💇 🧾 💰'.split(' ');
 const LIFF_SDK = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
@@ -11,7 +43,7 @@ const ICON_ROCKET = '<svg viewBox="0 0 24 24"><path d="M12 2c3 2 5 6 4.5 11l-2 3
 const ICON_TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>';
 
 // ---------- น้องลูกเจี๊ยบ (รูปพื้นใสที่เจ้าของวางเองใน public/assets/ · ยังไม่มีไฟล์ = กรอบจำลองขนาด) ----------
-const ASSET = { rope: 'space-chick-tether.svg', peek: 'space-chick-crew.svg', flash: 'space-chick-scout.svg', avatar: 'space-chick-avatar.svg', couple: 'space-chick-couple.svg' };
+const ASSET = { rope: 'space-chick-tether.svg?v=2', peek: 'space-chick-crew.svg?v=2', flash: 'space-chick-scout.svg?v=2', avatar: 'space-chick-avatar.svg?v=2', couple: 'space-chick-couple.svg?v=2' };
 const assetUrl = kind => `/assets/${ASSET[kind]}`;
 const isNight = () => { const h = new Date().getHours(); return h >= 20 || h < 6; };
 // mood: happy | sad | angry | wink | wow | sleep(=ถือไฟฉาย) | avatar
@@ -24,7 +56,7 @@ addEventListener('error', e => {
   const img = e.target;
   if (!(img instanceof HTMLImageElement) || !img.classList.contains('mascot')) return;
   const s = document.createElement('span');
-  s.className = img.className + ' missing'; s.dataset.file = ASSET[img.dataset.kind];
+  s.className = img.className + ' missing'; s.dataset.file = ASSET[img.dataset.kind].split('?')[0];
   img.replaceWith(s);
 }, true);
 
@@ -655,12 +687,23 @@ function rocketFx() {
   r.style.cssText = `left:${x}px;--dx:${Math.round(Math.random() * 80 - 40)}px`;
   document.body.appendChild(r);
   setTimeout(() => r.remove(), 1200);
-  for (let i = 0; i < 6; i++) setTimeout(() => {
+  for (let i = 0; i < 10; i++) setTimeout(() => {
     const s = document.createElement('span');
     s.className = 'star-fx'; s.textContent = i % 2 ? '✦' : '★';
     s.style.cssText = `left:${x + Math.random() * 60 - 30}px;top:${innerHeight * (.9 - i * .12)}px`;
     document.body.appendChild(s); setTimeout(() => s.remove(), 750);
-  }, i * 110);
+  }, i * 90);
+}
+// 🌠 ดาวตกพาดฟ้าทุกๆ ~7 วิ (หยุดเมื่อปิดลูกเล่น/แท็บไม่ได้เปิดอยู่)
+function bindShootingStars() {
+  setInterval(() => {
+    if (!funOn() || document.hidden || document.body.classList.contains('scrolling')) return;
+    const s = document.createElement('i');
+    s.className = 'shoot';
+    s.style.cssText = `left:${Math.round(innerWidth * (.2 + Math.random() * .7))}px;top:${Math.round(innerHeight * Math.random() * .35)}px`;
+    $('#space')?.appendChild(s);
+    setTimeout(() => s.remove(), 1300);
+  }, 7000);
 }
 function savedFx(data, pop) {
   const hero = $('.hero');
@@ -778,7 +821,7 @@ async function render(quiet) {
   $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === state.page));
   bindRope.show?.();
   moveBlob();
-  $('#pageTitle').textContent = TITLES[state.page];
+  if (handTitle.page !== state.page || handTitle.fun !== funOn()) { handTitle.page = state.page; handTitle.fun = funOn(); handTitle(state.page); }
   $('#period').classList.toggle('hide', ['settings', 'debts', 'admin'].includes(state.page));
   const sc = $('#scope');
   sc.hidden = !state.couple || ['settings', 'debts', 'admin'].includes(state.page);
@@ -888,11 +931,10 @@ function homeHTML(d) {
     middle = `<div class="card empty archived">${mascot('sleep', 'nap')}<div>📦 ${d.archived === 'dayTotals' ? 'เก่ากว่า 7 วัน รวมเป็นยอดตามหมวดแล้ว<br><small>ดูยอดด้านล่างได้ แต่แก้รายการย่อยไม่ได้</small>' : 'ข้อมูลเก่ารวมเป็นยอดตามหมวดแล้ว'}</div>
       ${d.archived === 'day' ? '<button class="btn" data-month-view>ดูยอดรายเดือน</button>' : ''}</div>`;
   } else {
-    const isDay = state.mode === 'day';
-    const list = isDay ? d.entries : d.entries.slice(0, 5);
-    middle = `<div class="card perched">${perch(d.entries.length ? 'happy' : 'sleep', 'hang')}<h3>🧾 ${isDay ? 'รายการ' : 'ล่าสุด'}${us ? 'ของเรา' : ''} ${!isDay && d.entries.length > 5 ? '<button class="link" data-go="list">ดูทั้งหมด</button>' : ''}</h3>
-      ${list.length ? list.map(entryHTML).join('') : emptyEntries}
-      </div>`;
+    // หน้าหลักไม่โชว์รายการ (อยู่หน้า "รายการ" อย่างเดียว) · มีแค่ปุ่มลัดไปดู
+    middle = d.entries.length
+      ? `<button class="card go-list" data-go="list" type="button"><span>🧾 ${d.entries.length} รายการ${us ? 'ของเรา' : ''}</span><b>ดูรายละเอียด ›</b></button>`
+      : `<div class="card">${emptyEntries}</div>`;
   }
 
   return `<div class="grid home">
@@ -1681,6 +1723,7 @@ async function boot() {
   document.body.classList.toggle('calm', !funOn()); // ปิดลูกเล่น = พื้นหลัง/น้องลูกเจี๊ยบนิ่ง
   bindChrome();
   bindRope();
+  bindShootingStars();
   bindDrag();
   bindNavDrag();
   bindSheetSwipe();
