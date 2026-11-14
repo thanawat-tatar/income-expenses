@@ -11,9 +11,9 @@ const ICON_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path 
 const ICON_MOON = '<svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
 const ICON_TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>';
 
-// ---------- มินเนี่ยน (รูปพื้นใสที่เจ้าของวางเองใน public/assets/ · ยังไม่มีไฟล์ = กรอบจำลองขนาด) ----------
-const ASSET = { rope: 'minion-rope', peek: 'minion-peek', flash: 'minion-flashlight', avatar: 'minion-avatar', banner: 'minion-banner' };
-const assetUrl = kind => `/assets/${ASSET[kind]}.webp`;
+// ---------- น้องเหรียญ (รูปพื้นใสที่เจ้าของวางเองใน public/assets/ · ยังไม่มีไฟล์ = กรอบจำลองขนาด) ----------
+const ASSET = { rope: 'coin-rope.svg', peek: 'coin-peek.svg', flash: 'coin-flash.svg', avatar: 'coin-avatar.svg' };
+const assetUrl = kind => `/assets/${ASSET[kind]}`;
 const isNight = () => { const h = new Date().getHours(); return h >= 20 || h < 6; };
 // mood: happy | sad | angry | wink | wow | sleep(=ถือไฟฉาย) | avatar
 function mascot(mood = 'happy', cls = '') {
@@ -25,33 +25,33 @@ addEventListener('error', e => {
   const img = e.target;
   if (!(img instanceof HTMLImageElement) || !img.classList.contains('mascot')) return;
   const s = document.createElement('span');
-  s.className = img.className + ' missing'; s.dataset.file = ASSET[img.dataset.kind] + '.webp';
+  s.className = img.className + ' missing'; s.dataset.file = ASSET[img.dataset.kind];
   img.replaceWith(s);
 }, true);
 
-// มินเนี่ยนเกาะหลังการ์ด (กลางคืน 20:00–06:00 = ตัวถือไฟฉาย ส่องแสงขึ้นไปที่ตัวเลข)
+// น้องเหรียญเกาะหลังการ์ด (กลางคืน 20:00–06:00 = ตัวถือไฟฉาย ส่องแสงขึ้นไปที่ตัวเลข)
 function mascotPeek(mood, small, extra = '') {
   const night = isNight() && !extra;
-  return `<button class="peek-body ${small ? 'small' : ''} ${night ? 'night' : ''} ${extra}" data-mood="${mood}" aria-label="มินเนี่ยน">${night ? '<i class="beam"></i>' : ''}${mascot(night ? 'sleep' : mood)}</button>`;
+  return `<button class="peek-body ${small ? 'small' : ''} ${night ? 'night' : ''} ${extra}" data-mood="${mood}" aria-label="น้องเหรียญ">${mascot(night ? 'sleep' : mood)}</button>`;
 }
 
-// ---------- คำพูดมินเนี่ยน (ลูกสมุนคุยกับบอส: ชม ให้กำลังใจ ชวนจดต่อ) ----------
-const MINION_LINES = {
+// ---------- คำพูดน้องเหรียญ (ลูกสมุนคุยกับบอส: ชม ให้กำลังใจ ชวนจดต่อ) ----------
+const MASCOT_LINES = {
   // กำไร: ชม
-  happy: ['Bello บอส! กำไรแล้ว 🍌', 'บอสเก่งที่สุดในโลก! 🎉', 'Banana! เงินเข้า เงินเก็บ 💰', 'รับทราบครับบอส ออมต่อ! ✊', 'จดครบแบบนี้ รวยแน่บอส ✨',
-    'ลูกสมุนภูมิใจในตัวบอส 🥹', 'บอสสุดยอด! ปาร์ตี้กล้วย 🍌🍌', 'ให้รางวัลตัวเองหน่อยครับบอส 🍰', 'บอสคนเก่ง 💛', 'พรุ่งนี้กำไรอีกนะบอส ✌️'],
+  happy: ['พร้อมลุยครับบอส! กำไรแล้ว 🪙', 'บอสเก่งที่สุดในโลก! 🎉', 'เยี่ยม! เงินเข้า เงินเก็บ 💰', 'รับทราบครับบอส ออมต่อ! ✊', 'จดครบแบบนี้ รวยแน่บอส ✨',
+    'ลูกสมุนภูมิใจในตัวบอส 🥹', 'บอสสุดยอด! ฉลองเลย 🪙🪙', 'ให้รางวัลตัวเองหน่อยครับบอส 🍰', 'บอสคนเก่ง 💛', 'พรุ่งนี้กำไรอีกนะบอส ✌️'],
   // ขาดทุน: ให้กำลังใจ
-  sad: ['ไม่เป็นไรครับบอส พรุ่งนี้เอาคืน 💪', 'ใจเย็นๆ บอส ค่อยๆ ออม 🍌', 'ลูกสมุนอยู่ข้างๆ บอสเสมอ 🫶', 'ลองดูหมวดไหนจ่ายเยอะสุดครับบอส 👀', 'ขาดทุนนิดหน่อย ไม่เป็นไรบอส 🥺',
+  sad: ['ไม่เป็นไรครับบอส พรุ่งนี้เอาคืน 💪', 'ใจเย็นๆ บอส ค่อยๆ ออม 🪙', 'ลูกสมุนอยู่ข้างๆ บอสเสมอ 🫶', 'ลองดูหมวดไหนจ่ายเยอะสุดครับบอส 👀', 'ขาดทุนนิดหน่อย ไม่เป็นไรบอส 🥺',
     'พรุ่งนี้ลดของไม่จำเป็นกันนะบอส ✂️', 'จดไว้แบบนี้ เดี๋ยวก็รู้ว่าเงินรั่วตรงไหน 🔍', 'สู้ๆ ครับบอส! 🤗', 'บอสเหนื่อยไหม พักบ้างนะ 💛', 'เก็บทีละนิด เดี๋ยวก็กลับมาบวกครับบอส 📈'],
   // ยังไม่จด (0 บาท): ชวนมาจด
-  angry: ['บอส! ยังไม่จดเลยนะ 😤', 'ลูกสมุนหิว… ขอรายการหน่อยบอส 🍌', 'วันนี้บอสใช้เงินไปกับอะไรครับ? 🤔', 'ไม่จด = เงินรั่วนะบอส! 💸', 'พิมพ์ในแชท LINE แค่ "ข้าว 50" ก็พอครับบอส ✍️',
-    'ลูกสมุนรออยู่นะบอส… 🙄', 'จดวันละนิด รวยวันละหน่อย 💛', 'กดปุ่ม + ด้านล่างเลยบอส! 👇', 'Bello? บอสอยู่ไหม 👀', 'จดเดี๋ยวนี้เลยครับบอส! 🍌'],
+  angry: ['บอส! ยังไม่จดเลยนะ 😤', 'ลูกสมุนหิว… ขอรายการหน่อยบอส 🪙', 'วันนี้บอสใช้เงินไปกับอะไรครับ? 🤔', 'ไม่จด = เงินรั่วนะบอส! 💸', 'พิมพ์ในแชท LINE แค่ "ข้าว 50" ก็พอครับบอส ✍️',
+    'ลูกสมุนรออยู่นะบอส… 🙄', 'จดวันละนิด รวยวันละหน่อย 💛', 'กดปุ่ม + ด้านล่างเลยบอส! 👇', 'บอสครับ อยู่ไหม 👀', 'จดเดี๋ยวนี้เลยครับบอส! 🪙'],
 };
 // สุ่มแบบไม่ซ้ำ: ครบ 10 ประโยคก่อนค่อยวนใหม่
 const mascotQueue = {};
 let lastLine = '';
 function mascotSay(mood) {
-  const pool = MINION_LINES[mood] || MINION_LINES.happy;
+  const pool = MASCOT_LINES[mood] || MASCOT_LINES.happy;
   if (!mascotQueue[mood]?.length) {
     const q = [...pool];
     if (state.streak > 1 && mood !== 'angry') q.push(`จดติดกัน ${state.streak} วันแล้ว 🔥`);
@@ -83,7 +83,7 @@ const rushing = () => Date.now() - lastSaveAt < RUSH_MS;
 // ?fun=1 = โผล่ทุกครั้ง (ไว้ทดสอบ)
 const lucky = () => funOn() && !rushing() && (params.get('fun') === '1' || Math.random() < FUN_CHANCE);
 
-// มินเนี่ยนจิ๋วชะโงกจากหลังปุ่ม แล้วผลุบกลับ (จ๊ะเอ๋)
+// น้องเหรียญจิ๋วชะโงกจากหลังปุ่ม แล้วผลุบกลับ (จ๊ะเอ๋)
 function peekaboo(el) {
   if (!el || $('.boo')) return;
   const r = el.getBoundingClientRect();
@@ -110,7 +110,7 @@ function confettiPop(el) {
     setTimeout(() => s.remove(), 520);
   }
 }
-// มินเนี่ยนนุ่มเด้ง: กดแล้วยุบ ปล่อยแล้วเด้งคืน
+// น้องเหรียญนุ่มเด้ง: กดแล้วยุบ ปล่อยแล้วเด้งคืน
 function bindSquish(root) {
   root.querySelectorAll('.peek-body, .corner-mascot').forEach(p => {
     p.onpointerdown = () => { if (funOn()) p.classList.add('squish'); };
@@ -118,9 +118,9 @@ function bindSquish(root) {
   });
 }
 
-// 🪢 มินเนี่ยนห้อยเชือกจากขอบบน: ไถจอแล้วเหวี่ยงตามแรง (คิดเฉพาะช่วงบนสุด scrollY < 120 · พ้นจอแล้วหยุดคิดทันที)
-// แตะ = เด้ง + แซว · ลากตัวมินเนี่ยนลง = รีเฟรช (หนืดแบบ iOS · ถึงระยะแล้วหมุนตัว) · ลากเฉพาะตัวมันเท่านั้น ไม่ชนการปัดปิด LINE
-const ROPE_QUIPS = ['Bello บอส! 👋', 'Banana! 🍌', 'บอสจะไปไหนครับ?', 'รับทราบครับบอส!', 'ปล่อยลูกสมุนลงไปหน่อย~', 'ดึงลงมาสิบอส รีเฟรชให้ 🔄'];
+// 🪢 น้องเหรียญห้อยเชือกจากขอบบน: ไถจอแล้วเหวี่ยงตามแรง (คิดเฉพาะช่วงบนสุด scrollY < 120 · พ้นจอแล้วหยุดคิดทันที)
+// แตะ = เด้ง + แซว · ลากตัวน้องเหรียญลง = รีเฟรช (หนืดแบบ iOS · ถึงระยะแล้วหมุนตัว) · ลากเฉพาะตัวมันเท่านั้น ไม่ชนการปัดปิด LINE
+const ROPE_QUIPS = ['พร้อมลุยครับบอส! 👋', 'เหรียญมาแล้วครับ 🪙', 'บอสจะไปไหนครับ?', 'รับทราบครับบอส!', 'ปล่อยลูกสมุนลงไปหน่อย~', 'ดึงลงมาสิบอส รีเฟรชให้ 🔄'];
 function bindRope() {
   const el = document.createElement('div');
   el.className = 'rope'; el.setAttribute('aria-hidden', 'true');
@@ -168,7 +168,7 @@ function bindRope() {
     if (go) {
       navigator.vibrate?.(10);
       el.classList.add('spin'); setTimeout(() => el.classList.remove('spin'), 700);
-      toast('Banana! กำลังรีเฟรชครับบอส 🍌');
+      toast('กำลังรีเฟรชครับบอส 🪙');
       clearCache(); render(true).then(() => toast('รับทราบครับบอส! อัปเดตแล้ว ✨'));
     } else if (!moved) {
       kick(9 * (Math.random() < .5 ? -1 : 1));
@@ -181,7 +181,7 @@ function bindRope() {
 }
 
 // ---------- เอฟเฟกต์เพิ่ม ----------
-// มินเนี่ยนตัวเล็กเกาะขอบการ์ด (pose: hang = นั่งห้อยขา · eyes = โผล่แค่ตา · lie = นอนพาด)
+// น้องเหรียญตัวเล็กเกาะขอบการ์ด (pose: hang = นั่งห้อยขา · eyes = โผล่แค่ตา · lie = นอนพาด)
 const perch = (mood, pose) => (isUs() ? '' : `<span class="perch ${pose}" data-mood="${mood}" aria-hidden="true">${mascot(mood)}</span>`);
 
 // 💑 รูปคู่รักใหญ่ๆ กลางการ์ด: เรา (ซ้าย) ❤ แฟน (ขวา) · หัวใจเต้น หัวใจลอย วงแสงหมุน · แตะแล้วหัวใจระเบิด
@@ -278,7 +278,7 @@ function bindNavDrag() {
   addEventListener('pointerup', end); addEventListener('pointercancel', end);
 }
 
-// ลากมินเนี่ยนได้: ยืดตามนิ้ว ปล่อยแล้วเด้งดึ๋งกลับที่เดิม
+// ลากน้องเหรียญได้: ยืดตามนิ้ว ปล่อยแล้วเด้งดึ๋งกลับที่เดิม
 function bindDrag() {
   let el = null, x0 = 0, y0 = 0, moved = false;
   addEventListener('pointerdown', e => {
@@ -899,8 +899,8 @@ function homeHTML(d) {
   </div>`;
 }
 
-// รูปโปรไฟล์วงกลม (ไม่มีรูป → มินเนี่ยน)
-const face = (pic, cls = '') => (pic ? `<img class="face ${cls}" src="${esc(pic)}" alt="" referrerpolicy="no-referrer">` : `<i class="face ${cls}">🍌</i>`);
+// รูปโปรไฟล์วงกลม (ไม่มีรูป → น้องเหรียญ)
+const face = (pic, cls = '') => (pic ? `<img class="face ${cls}" src="${esc(pic)}" alt="" referrerpolicy="no-referrer">` : `<i class="face ${cls}">🪙</i>`);
 const myPic = () => store.get('user')?.pic || '';
 const duoHTML = () => `<span class="duo">${face(myPic())}${face(state.couple?.pic, 'p2')}</span>`;
 
@@ -1162,7 +1162,7 @@ function adminHTML(d) {
     <div class="card span">
       <h2 class="section-title">👥 ผู้ใช้ <small>${d.count} คน · ไม่แสดงยอดเงินของใคร</small></h2>
       ${users.map(u => `<div class="item-row a-user">
-        <div class="cat-ico">${u.id === d.me ? '👑' : u.consentAt ? '🍌' : '💌'}</div>
+        <div class="cat-ico">${u.id === d.me ? '👑' : u.consentAt ? '🪙' : '💌'}</div>
         <div class="grow">${esc(u.name || 'ไม่มีชื่อ')} ${badge(u)}
           <small>เข้า ${dmy(u.joinedAt)} · ใช้ล่าสุด ${ago(u.lastActive, now)}${u.consentBy === 'owner' ? ' · ผู้ใช้เดิม' : ''}${u.words ? ` · สอนคำ ${u.words}` : ''}${u.couple ? ' · 💑 มีคู่' : ''}</small></div>
         ${u.id === d.me ? '' : `<button class="del-btn" data-auser="${esc(u.id)}" aria-label="ลบผู้ใช้">${ICON_TRASH}</button>`}
@@ -1276,7 +1276,7 @@ function settingsHTML() {
     <div class="card span">
       <h2 class="section-title">🎨 หน้าตา</h2>
       <button class="priv ${store.get('fun') !== false ? 'on' : ''}" id="funToggle" type="button" style="margin:10px 0 12px">
-        <span>🍌</span><div><b>ลูกเล่นมินเนี่ยน</b><small>${store.get('fun') !== false ? 'นานๆ มินเนี่ยนจะโผล่มาเซอร์ไพรส์ · รีบอยู่ไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
+        <span>🪙</span><div><b>ลูกเล่นน้องเหรียญ</b><small>${store.get('fun') !== false ? 'นานๆ น้องเหรียญจะโผล่มาเซอร์ไพรส์ · รีบอยู่ไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
       <div class="seg" style="max-width:none;margin-top:10px">
         ${[['light', 'สว่าง'], ['dark', 'มืด'], ['auto', 'ตามเครื่อง']].map(([v, l]) => `<button data-themeopt="${v}" class="${theme === v ? 'active' : ''}">${l}</button>`).join('')}
         <span class="seg-pill" style="transform:translateX(${['light', 'dark', 'auto'].indexOf(theme) * 100}%)"></span>
@@ -1634,7 +1634,7 @@ function bindChrome() {
   $$('#scope button').forEach(b => b.onclick = () => {
     if (state.scope === b.dataset.scope) return;
     state.anim = b.dataset.scope === 'us' ? 'l' : 'r'; state.scope = b.dataset.scope; render();
-    if (b.dataset.scope === 'us') { const r = b.getBoundingClientRect(); burst(r.left + r.width / 2, r.top, ['💕', '💖', '🍌', '✨']); }
+    if (b.dataset.scope === 'us') { const r = b.getBoundingClientRect(); burst(r.left + r.width / 2, r.top, ['💕', '💖', '🪙', '✨']); }
   });
   $('#prev').onclick = () => { state.anim = 'r'; state.date = shiftDate(state.date, state.mode, -1); render(); };
   $('#next').onclick = () => { state.anim = 'l'; state.date = shiftDate(state.date, state.mode, 1); render(); };
@@ -1657,7 +1657,7 @@ function applyProfile(p) {
 }
 function setUser(u) {
   if (!u) return;
-  $('#hello').textContent = `สวัสดี ${u.name || ''} 🍌`;
+  $('#hello').textContent = `สวัสดี ${u.name || ''} 🪙`;
   if (u.pic) { $('#avatar').src = u.pic; $('#avatar').hidden = false; }
 }
 const hideLoader = () => $('#loader').classList.add('hide');
@@ -1683,7 +1683,7 @@ async function initLiff() {
 }
 
 async function boot() {
-  document.body.classList.toggle('calm', !funOn()); // ปิดลูกเล่น = พื้นหลัง/มินเนี่ยนนิ่ง
+  document.body.classList.toggle('calm', !funOn()); // ปิดลูกเล่น = พื้นหลัง/น้องเหรียญนิ่ง
   bindChrome();
   bindRope();
   bindDrag();
@@ -1751,7 +1751,7 @@ async function boot() {
     if (e.message === 'not_member' || e.message === 'no_consent') { // ยังไม่ได้รับเข้า / ยังไม่กดยอมรับ / ลบข้อมูลไปแล้ว
       try { Object.keys(localStorage).filter(k => k.startsWith('ie:') && k !== 'ie:theme').forEach(k => localStorage.removeItem(k)); } catch {}
       $('#view').innerHTML = `<div class="card empty gate">${mascot(e.message === 'no_consent' ? 'wink' : 'sleep')}
-        <b>${e.message === 'no_consent' ? 'กดยอมรับในแชทก่อนนะ 📄' : 'ยังไม่ได้เริ่มใช้งาน 🍌'}</b><br>
+        <b>${e.message === 'no_consent' ? 'กดยอมรับในแชทก่อนนะ 📄' : 'ยังไม่ได้เริ่มใช้งาน 🪙'}</b><br>
         ${e.message === 'no_consent' ? 'แตะ 💖 ยอมรับ ในแชท LINE แล้วกลับมาที่นี่' : 'ทักแชท LINE ก่อน บอทจะพาเริ่มใช้งาน'}<br>
         <a class="btn" href="https://line.me/R/ti/p/@514ddese">💬 ไปที่แชท</a> <a class="btn ghost" href="/privacy.html">📄 นโยบายข้อมูล</a></div>`;
       return;

@@ -1,4 +1,4 @@
-/* ---------- สี (โหมดสว่าง) ธีมมินเนี่ยน: เหลือง + น้ำเงินชุดเอี๊ยม ---------- */
+/* ---------- สี (โหมดสว่าง) ธีมน้องเหรียญ: เหลือง + น้ำเงินชุดเอี๊ยม ---------- */
 :root {
   --bg: #FFF8D6; --surface: #FFFFFF; --surface-2: #FFF1B8; --text: #1E3550; --muted: #5E7590; --faint: #A3B2C2; --line: #FBE7A1;
   --accent: #FFD100; --accent-text: #2B5B84; --accent-2: #FFE266; --accent-soft: #FFF3BF; --on-accent: #1E3550; --accent-edge: #E0AE00;
@@ -386,7 +386,7 @@ body { line-height: 1.6; }
 .hero-wrap .hero.mini .hero-top { padding-right: 80px; }
 
 /* =========================================================
-   มินเนี่ยน: ตัวใหญ่ มีรายละเอียด แตะแล้วตอบสนอง
+   น้องเหรียญ: ตัวใหญ่ มีรายละเอียด แตะแล้วตอบสนอง
    ========================================================= */
 .hero-wrap { position: relative; margin-top: 78px; }
 .hero-wrap.small { margin-top: 62px; }
@@ -505,12 +505,12 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .btn:active, .nav-add:active { transition-duration: .08s; transform: translateY(3px) scale(.97, .93); }
 .chip:active { transition-duration: .08s; transform: scale(.94); }
 
-/* มินเนี่ยนนุ่มนิ่ม กดแล้วยุบ */
+/* น้องเหรียญนุ่มนิ่ม กดแล้วยุบ */
 .peek-body, .corner-mascot { touch-action: manipulation; }
 .peek-body.squish .mascot, .corner-mascot.squish .mascot { animation: none; transform: scale(1.14, .82) translateY(10%); transition: transform .1s ease-out; }
 .peek-body .mascot, .corner-mascot .mascot { transition: transform .45s cubic-bezier(.3, 2.2, .45, 1); }
 
-/* จ๊ะเอ๋: มินเนี่ยนจิ๋วชะโงกจากหลังปุ่ม */
+/* จ๊ะเอ๋: น้องเหรียญจิ๋วชะโงกจากหลังปุ่ม */
 .boo { position: fixed; z-index: 55; width: 64px; height: 44px; overflow: hidden; pointer-events: none; }
 .boo .mascot { width: 64px; display: block; animation: booUp .45s cubic-bezier(.3, 1.7, .5, 1) both; }
 .boo.out .mascot { animation: booDown .35s ease-in both; }
@@ -523,7 +523,7 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .confetti:nth-child(3n+1) { color: #FFC24B; }
 @keyframes confetti { from { transform: translate(-50%, -50%) scale(.3); opacity: 1; } 70% { opacity: 1; } to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(var(--r)); opacity: 0; } }
 
-/* (เดิม) ดึงลงเพื่อรีเฟรช — ย้ายไปที่มินเนี่ยนห้อยเชือก */
+/* (เดิม) ดึงลงเพื่อรีเฟรช — ย้ายไปที่น้องเหรียญห้อยเชือก */
 html, body { overscroll-behavior-y: contain; }
 @keyframes wiggle { 0%, 100% { rotate: -8deg; } 50% { rotate: 8deg; } }
 @media (prefers-reduced-motion: reduce) { .boo, .confetti { display: none !important; } }
@@ -576,7 +576,7 @@ body.us::after { opacity: 1; }
 .hero.glow { animation: heroGlow 1.6s ease-in-out 2; }
 @keyframes heroGlow { 50% { box-shadow: 0 6px 0 var(--hero-edge), 0 0 0 6px rgba(255, 210, 120, .55), 0 18px 40px rgba(255, 170, 60, .5); } }
 
-/* มินเนี่ยนตัวเล็กเกาะขอบการ์ด */
+/* น้องเหรียญตัวเล็กเกาะขอบการ์ด */
 .card.perched { position: relative; overflow: visible; z-index: 2; margin-top: 10px; }
 .perch { position: absolute; z-index: 2; width: 58px; pointer-events: auto; touch-action: none; cursor: grab; }
 .perch .mascot { width: 100%; display: block; }
@@ -592,7 +592,7 @@ body.us::after { opacity: 1; }
 @keyframes snooze { 0%, 100% { scale: 1; } 50% { scale: 1.04 .97; } }
 .card.perched > h3 { padding-right: 70px; }
 
-/* ลากมินเนี่ยน: ยืดตามนิ้ว ปล่อยแล้วเด้งกลับ */
+/* ลากน้องเหรียญ: ยืดตามนิ้ว ปล่อยแล้วเด้งกลับ */
 .peek-body { touch-action: none; cursor: grab; }
 .peek-body.held, .perch.held { z-index: 40; cursor: grabbing; transition: none; filter: drop-shadow(0 10px 12px rgba(30, 68, 102, .35)); }
 .peek-body.held .mascot, .perch.held .mascot { animation-play-state: paused; }
@@ -820,37 +820,37 @@ body.calm .hero > .spec::before { translate: -35% 0; }
 .hero-wrap { transform-origin: 50% 0; }
 @media (prefers-reduced-motion: reduce) { .hero-wrap { translate: none !important; scale: none !important; opacity: 1 !important; visibility: visible !important; } }
 
-/* 🍌 มินเนี่ยน (รูปพื้นใสใน public/assets/) · ยังไม่มีไฟล์ = กรอบเส้นประบอกชื่อไฟล์ */
+/* 🪙 น้องเหรียญ (รูปพื้นใสใน public/assets/) · ยังไม่มีไฟล์ = กรอบเส้นประบอกชื่อไฟล์ */
 .mascot { display: block; user-select: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
 .mascot.missing { box-sizing: border-box; border: 2px dashed color-mix(in srgb, var(--accent-text) 55%, transparent); border-radius: 14px;
   background: color-mix(in srgb, var(--accent) 22%, transparent); position: relative; }
 .mascot.missing::after { content: attr(data-file); position: absolute; inset: 0; display: grid; place-items: center; padding: 4px; text-align: center;
   font-size: 9px; line-height: 1.2; font-weight: 600; color: var(--accent-text); word-break: break-all; }
-.m-peek { height: 100px; width: auto; aspect-ratio: 9 / 16; }
-.m-flash { height: 100px; width: auto; aspect-ratio: 3 / 4; }
+.m-peek { height: 100px; width: auto; aspect-ratio: 120 / 170; }
+.m-flash { height: 100px; width: auto; aspect-ratio: 140 / 190; }
 .m-avatar { width: 100%; height: auto; aspect-ratio: 1; border-radius: 22px; }
-.m-rope { width: 66px; height: auto; aspect-ratio: 1 / 1.3; }
+.m-rope { width: 66px; height: auto; aspect-ratio: 120 / 150; }
 .peek-body { width: auto; top: -96px; }
 .peek-body.small { width: auto; top: -76px; }
 .peek-body.small .mascot { height: 80px; }
 .peek-body .mascot { width: auto; }
-.perch .mascot { width: 100%; height: auto; aspect-ratio: 9 / 16; }
+.perch .mascot { width: 100%; height: auto; aspect-ratio: 120 / 170; }
 .perch.eyes .mascot { margin-top: 0; }
-.boo .mascot { width: 64px; height: auto; aspect-ratio: 9 / 16; }
-.corner-mascot .mascot { border-radius: 22px; box-shadow: 0 3px 0 var(--card-edge); }
+.boo .mascot { width: 64px; height: auto; aspect-ratio: 120 / 170; }
+.corner-mascot .mascot { border-radius: 50%; box-shadow: 0 3px 0 var(--card-edge); }
 .nap.mascot, .empty .mascot { margin: 0 auto 6px; }
 /* กลางคืน: ไฟฉายส่องลำแสงขึ้นไปหาตัวเลข */
 .peek-body.night .beam { position: absolute; left: 50%; bottom: 62%; width: 150px; height: 170px; translate: -70% 0; pointer-events: none; z-index: -1;
   background: conic-gradient(from 150deg at 60% 100%, transparent 0deg, rgba(255, 236, 140, .55) 18deg, rgba(255, 250, 210, .7) 30deg, rgba(255, 236, 140, .45) 42deg, transparent 60deg);
   filter: blur(6px); opacity: .8; animation: beamFlicker 4s ease-in-out infinite; }
 @keyframes beamFlicker { 0%, 100% { opacity: .75; } 50% { opacity: .95; } }
-/* 🪢 มินเนี่ยนห้อยเชือก (เลื่อนไปกับหน้า · พ้นจอ = ไม่คิดฟิสิกส์) */
+/* 🪢 น้องเหรียญห้อยเชือก (เลื่อนไปกับหน้า · พ้นจอ = ไม่คิดฟิสิกส์) */
 .rope { position: absolute; top: 0; left: 58%; z-index: 30; width: 66px; pointer-events: none; }
 .rope[hidden] { display: none; }
 .rope-arm { position: relative; transform-origin: 50% -160px; padding-top: 0; will-change: transform; pointer-events: auto; touch-action: none; cursor: grab; }
 .rope-line { position: absolute; left: 50%; bottom: calc(100% - 24px); width: 3px; height: 400px; margin-left: -1.5px;
   background: repeating-linear-gradient(170deg, #9A6A3A 0 4px, #C08A52 4px 7px); border-radius: 2px; }
-.rope-body { display: block; padding-top: 10px; position: relative; }
+.rope-body { display: block; padding-top: 0; position: relative; }
 .rope.held .rope-arm { cursor: grabbing; }
 .rope-arm.snap { transition: transform .55s cubic-bezier(.34, 1.56, .64, 1); }
 .rope.ready .rope-body { animation: wiggle .3s ease-in-out infinite; }
@@ -872,3 +872,4 @@ button:not(.btn):not(.nav-add):not(.entry):not(.nav-item):active, .chip:active {
 @keyframes slipOut { 0% { transform: none; opacity: 1; } 25% { transform: translateX(-4%) rotate(-3deg); } 100% { transform: translateX(120%) rotate(15deg); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { button:active, .chip:active, .entry:active { scale: none; } }
 body.calm button:active, body.calm .chip:active, body.calm .entry:active { scale: none; }
+.corner-mascot .mascot { clip-path: circle(50%); }
