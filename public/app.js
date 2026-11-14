@@ -4,7 +4,7 @@ const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 const MONTHS_FULL = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
 const DOW = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
-const TITLES = { home: 'ภาพรวม', list: 'รายการ', settings: 'ตั้งค่า', admin: 'หลังบ้าน 👑' };
+const TITLES = { home: 'ภาพรวม', list: 'รายการ', settings: 'ตั้งค่า', debts: '📒 สมุดหนี้', admin: 'หลังบ้าน 👑' };
 const EMOJIS = '🏷️ 🍼 👶 🎓 📚 🏥 💊 🐶 🐱 🎮 🎬 🎁 💄 👕 👟 🛒 🧴 🧺 🚌 🚕 🅿️ 🛵 ⛽ 🔧 📱 💡 💧 🏠 💳 🏦 💸 💼 🛍️ ☕ 🍜 🍺 🚬 🙏 🎉 ✈️ 🏋️ 💇 🧾 💰'.split(' ');
 const LIFF_SDK = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
 const ICON_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
@@ -163,7 +163,7 @@ function bindPull() {
   const NEED = 80;
   let y0 = null, dist = 0;
   const scrollTop = () => document.scrollingElement.scrollTop;
-  const ok = () => state.ready && !['settings', 'admin'].includes(state.page) && !$('#sheet').classList.contains('open') && !$('.picker');
+  const ok = () => state.ready && !['settings', 'debts', 'admin'].includes(state.page) && !$('#sheet').classList.contains('open') && !$('.picker');
   addEventListener('touchstart', e => { y0 = e.touches.length === 1 && scrollTop() <= 0 && ok() && !e.target.closest?.('.peek-body, .perch, .lover') ? e.touches[0].clientY : null; dist = 0; }, { passive: true });
   addEventListener('touchmove', e => {
     if (y0 === null) return;
@@ -390,13 +390,14 @@ const store = {
 };
 
 const state = {
-  page: ['home', 'list', 'settings', 'admin'].includes(params.get('page')) ? params.get('page') : 'home',
+  page: ['home', 'list', 'settings', 'debts', 'admin'].includes(params.get('page')) ? params.get('page') : 'home',
   mode: 'day',
   date: todayISO(),
   categories: [], custom: [], keywords: [],
   monthCache: {}, yearCache: {},
   newCat: { type: 'expense', icon: '🏷️' },
   highlight: null, ready: false,
+  debts: null, debtOpen: null, // 📒 สมุดหนี้ (ซ่อนในตั้งค่า)
   couple: null,   // 💑 { name, pic, since } ถ้าจับคู่แล้ว (คนโสด = null ไม่เห็นอะไรเพิ่ม)
   scope: 'me',    // 'me' = ของฉัน · 'us' = ของเรา
   usCats: {},     // หมวดที่แฟนสร้างเอง (ใช้แสดงผลอย่างเดียว)
@@ -775,9 +776,9 @@ async function render(quiet) {
   $$('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === state.page));
   moveBlob();
   $('#pageTitle').textContent = TITLES[state.page];
-  $('#period').classList.toggle('hide', state.page === 'settings' || state.page === 'admin');
+  $('#period').classList.toggle('hide', ['settings', 'debts', 'admin'].includes(state.page));
   const sc = $('#scope');
-  sc.hidden = !state.couple || state.page === 'settings' || state.page === 'admin';
+  sc.hidden = !state.couple || ['settings', 'debts', 'admin'].includes(state.page);
   sc.dataset.scope = isUs() ? 'us' : 'me';
   sc.querySelector('.scope-pill').style.transform = ''; // ให้กระจกไปตามสถานะจริง (หลังลาก)
   $$('#scope button').forEach(b => b.classList.toggle('active', b.dataset.scope === sc.dataset.scope));
@@ -796,6 +797,7 @@ async function render(quiet) {
     if (!quiet) restartAnim();
     view.innerHTML = settingsHTML(); bindSettings(); return;
   }
+  if (state.page === 'debts') { if (!quiet) restartAnim(); return renderDebts(view); }
   if (state.page === 'admin') { if (!quiet) restartAnim(); return renderAdmin(view, quiet); }
 
   const key = `${state.page}|${state.mode}|${state.date}|${state.scope}`;
@@ -1239,6 +1241,10 @@ function settingsHTML() {
     </div>
 
     <div class="card span">
+      <button class="priv" id="debtsOpen" type="button" style="margin:0"><span>📒</span><div><b>สมุดหนี้</b><small>จดว่าใครติดเงินเราอยู่เท่าไหร่ · เห็นแค่คุณคนเดียว</small></div><em style="font-style:normal;color:var(--faint)">›</em></button>
+    </div>
+
+    <div class="card span">
       <h2 class="section-title">🎨 หน้าตา</h2>
       <button class="priv ${store.get('fun') !== false ? 'on' : ''}" id="funToggle" type="button" style="margin:10px 0 12px">
         <span>🐷</span><div><b>ลูกเล่นน้องหมู</b><small>${store.get('fun') !== false ? 'นานๆ น้องจะโผล่มาเซอร์ไพรส์ · รีบอยู่น้องไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
@@ -1300,6 +1306,7 @@ function bindSettings() {
     saveProfile({ keywords }, 'ลบคำแล้ว');
   }, 'ลบ?'));
 
+  $('#debtsOpen').onclick = () => { state.page = 'debts'; state.anim = 'l'; render(); window.scrollTo({ top: 0 }); };
   $('#funToggle').onclick = () => { store.set('fun', store.get('fun') === false); document.body.classList.toggle('calm', !funOn()); render(true); };
   bindSquish($('#view'));
   $('#cOpen') && ($('#cOpen').onclick = () => { state.scope = 'us'; go('home'); });
@@ -1309,6 +1316,75 @@ function bindSettings() {
   }, 'แตะอีกครั้งเพื่อเลิกคู่');
 
   $$('[data-themeopt]').forEach(b => b.onclick = () => { setTheme(b.dataset.themeopt === 'auto' ? null : b.dataset.themeopt); render(true); });
+}
+
+// ---------- 📒 สมุดหนี้ (ไว้จำว่าใครติดเงินเรา · ซ่อนในตั้งค่า · ไม่ปนกับรายรับรายจ่าย · ไม่แชร์ให้แฟน) ----------
+const debtDay = ts => { const d = new Date(ts + 7 * 3600e3).toISOString().slice(0, 10); return thaiDay(d); };
+function debtsHTML() {
+  const list = state.debts || [];
+  const total = list.reduce((a, d) => a + d.balance, 0);
+  const row = d => {
+    const open = state.debtOpen === d.id, done = d.balance <= 0;
+    return `<div class="debt ${done ? 'done' : ''}">
+      <button class="item-row debt-head" data-debtopen="${esc(d.id)}" type="button">
+        <div class="cat-ico">${done ? '✅' : '🙋'}</div>
+        <div class="grow">${esc(d.name)}<small>${done ? 'จ่ายครบแล้ว' : 'ยังติดอยู่'}</small></div>
+        <b>${done ? '' : fmt(d.balance) + ' ฿'}</b></button>
+      ${open ? `<div class="debt-body">
+        <div class="form-row"><input class="input" id="dAmt" type="number" inputmode="decimal" min="0" placeholder="จำนวนเงิน"></div>
+        <div class="form-row"><button class="btn" data-dmove="${esc(d.id)}" data-repay="1">− คืนมา</button><button class="btn ghost" data-dmove="${esc(d.id)}">+ ยืมเพิ่ม</button></div>
+        <div class="sub">ประวัติ</div>
+        ${[...(d.log || [])].reverse().map(l => `<div class="item-row"><div class="grow">${l.d > 0 ? 'ยืม' : 'คืนมา'}<small>${debtDay(l.ts)}</small></div><b class="${l.d > 0 ? 'neg' : 'pos'}">${l.d > 0 ? '+' : '−'}${fmt(Math.abs(l.d))}</b></div>`).join('')}
+        <button class="btn ghost danger-text" data-ddel="${esc(d.id)}" type="button">ลบคนนี้ออกจากสมุด</button>
+      </div>` : ''}</div>`;
+  };
+  return `<div class="grid two">
+    <div class="card span">
+      <button class="btn ghost" id="debtBack" type="button" style="margin-bottom:10px">‹ กลับไปตั้งค่า</button>
+      <h2 class="section-title">📒 คนที่ติดเงินเรา</h2>
+      <div class="debt-total"><small>รวมที่ยังไม่ได้คืน</small><b>${fmt(total)} ฿</b></div>
+      ${list.length ? list.map(row).join('') : '<p class="hint">ยังไม่มีใคร เพิ่มด้านล่างได้เลย</p>'}
+    </div>
+    <div class="card span">
+      <h2 class="section-title">+ เพิ่มคนที่ติดเงิน</h2>
+      <div class="form">
+        <input class="input" id="dName" placeholder="ชื่อ เช่น แม่, ยาย, แฟน" maxlength="30">
+        <input class="input" id="dNew" type="number" inputmode="decimal" min="0" placeholder="ติดอยู่เท่าไหร่ (บาท)">
+        <button class="btn" id="dAdd" type="button">+ จดไว้</button>
+      </div>
+      <p class="hint" style="margin-top:10px">แยกจากรายรับรายจ่าย · ไม่แชร์ให้แฟน · ลบได้ทุกเมื่อ</p>
+    </div>
+  </div>`;
+}
+async function renderDebts(view) {
+  if (!state.debts) view.innerHTML = '<div class="card"><div class="skeleton" style="width:40%"></div><div class="skeleton" style="height:42px;margin:12px 0;width:70%"></div></div>';
+  try { if (!state.debts) state.debts = (await api('GET', 'debts')).debts; } catch (e) {
+    if (e.message !== 'login') view.innerHTML = `<div class="card empty">โหลดไม่สำเร็จ<br>${esc(e.message)}<br><button class="btn" id="retry">ลองใหม่</button></div>`;
+    $('#retry') && ($('#retry').onclick = () => render());
+    return;
+  }
+  if (state.page !== 'debts') return;
+  view.innerHTML = debtsHTML(); bindDebts(view);
+}
+function bindDebts(view) {
+  const redraw = () => { view.innerHTML = debtsHTML(); bindDebts(view); };
+  const apply = d => { state.debts = [d, ...(state.debts || []).filter(x => x.id !== d.id)].sort((a, b) => (b.balance > 0) - (a.balance > 0) || b.ts - a.ts); };
+  $('#debtBack').onclick = () => { state.page = 'settings'; state.anim = 'r'; render(); };
+  $$('[data-debtopen]', view).forEach(b => b.onclick = () => { state.debtOpen = state.debtOpen === b.dataset.debtopen ? null : b.dataset.debtopen; redraw(); });
+  $('#dAdd').onclick = async () => {
+    const name = $('#dName').value.trim(), amount = Number($('#dNew').value);
+    if (!name) { $('#dName').focus(); return toast('กรุณาใส่ชื่อ'); }
+    if (!(amount > 0)) { $('#dNew').focus(); return toast('กรุณาใส่จำนวนเงิน'); }
+    try { const r = await api('POST', 'debtAdd', { name, amount }); apply(r.debt); toast('จดแล้ว ✓'); redraw(); } catch (e) { toast(e.message); }
+  };
+  $$('[data-dmove]', view).forEach(b => b.onclick = async () => {
+    const amount = Number($('#dAmt').value);
+    if (!(amount > 0)) { $('#dAmt').focus(); return toast('กรุณาใส่จำนวนเงิน'); }
+    try { const r = await api('POST', 'debtMove', { id: b.dataset.dmove, amount, repay: !!b.dataset.repay }); apply(r.debt); toast(b.dataset.repay ? 'บันทึกการคืนแล้ว ✓' : 'จดเพิ่มแล้ว ✓'); redraw(); } catch (e) { toast(e.message); }
+  });
+  $$('[data-ddel]', view).forEach(b => armDelete(b, async () => {
+    try { await api('POST', 'debtDel', { id: b.dataset.ddel }); state.debts = state.debts.filter(x => x.id !== b.dataset.ddel); state.debtOpen = null; toast('ลบแล้ว'); redraw(); } catch (e) { toast(e.message); redraw(); }
+  }, 'แตะอีกครั้งเพื่อลบ'));
 }
 
 // ---------- sheet เพิ่ม/แก้ไข ----------
@@ -1715,6 +1791,11 @@ function demoApi(method, action, body) {
   if (action === 'update') Object.assign(db.entries.find(e => e.id === body.id), body.entry);
   if (action === 'delete') db.entries = db.entries.filter(e => e.id !== body.id);
   if (action === 'unpair') db.unpaired = true;
+  const dd = db.debts ||= [{ id: 'm1', name: 'แม่', balance: 6000, ts: Date.now(), log: [{ d: 6000, ts: Date.now() - 20 * 86400e3 }] }, { id: 'g1', name: 'ยาย', balance: 5000, ts: Date.now() - 1e3, log: [{ d: 5000, ts: Date.now() - 30 * 86400e3 }] }, { id: 'f1', name: 'แฟน', balance: 1106, ts: Date.now() - 2e3, log: [{ d: 1106, ts: Date.now() - 5 * 86400e3 }] }];
+  if (action === 'debts') return wait({ debts: dd });
+  if (action === 'debtAdd') { const n = { id: 'x' + Date.now(), name: body.name, balance: body.amount, ts: Date.now(), log: [{ d: body.amount, ts: Date.now() }] }; dd.push(n); return wait({ debt: n }); }
+  if (action === 'debtMove') { const d = dd.find(x => x.id === body.id), v = body.repay ? -body.amount : body.amount; d.balance = Math.max(0, d.balance + v); d.ts = Date.now(); d.log.push({ d: v, ts: Date.now() }); return wait({ debt: d }); }
+  if (action === 'debtDel') { db.debts = dd.filter(x => x.id !== body.id); return wait({ deleted: true }); }
   if (action === 'profile') { if (body.categories) db.custom = body.categories; if (body.keywords) db.keywords = body.keywords; return wait(profile()); }
   return wait({ ok: true });
 }

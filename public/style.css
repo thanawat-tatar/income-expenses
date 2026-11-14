@@ -816,3 +816,16 @@ body.scrolling::before, body.scrolling .glare::after, body.scrolling .lover-ring
 .tt-pill { position: absolute; z-index: 0; top: 0; bottom: 0; left: 0; width: calc((100% - 8px) / 2); border-radius: 12px; background: var(--expense-soft); box-shadow: 0 3px 0 color-mix(in srgb, var(--expense) 25%, transparent); }
 .type-toggle.has-pill[data-on="income"] .tt-pill { transform: translateX(calc(100% + 8px)); background: var(--income-soft); box-shadow: 0 3px 0 color-mix(in srgb, var(--income) 25%, transparent); }
 .type-toggle.has-pill button:not(.on) { color: var(--muted); }
+
+/* 📒 สมุดหนี้ (ซ่อนในตั้งค่า) */
+.debt + .debt { border-top: 1px solid var(--line); }
+.debt-head { width: 100%; text-align: left; background: none; }
+.debt-head > b { font-variant-numeric: tabular-nums; }
+.debt.done .debt-head { opacity: .55; }
+.debt-body { padding: 4px 0 12px 8px; }
+.debt-body .form-row { margin-bottom: 8px; }
+.debt-body .btn { flex: 1; }
+.debt-total { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 14px; margin: 6px 0 10px; border-radius: 14px; background: var(--surface-2); }
+.debt-total small { color: var(--muted); font-size: 13px; }
+.debt-total b { font-size: 22px; font-variant-numeric: tabular-nums; }
+.debt .pos { color: var(--income); } .debt .neg { color: var(--expense); }

@@ -6,6 +6,7 @@ import { bkkDate } from '../lib/date.js';
 import {
   getProfile, saveProfile, addEntries, updateEntry, deleteEntries, listEntries, yearSummary, compactOld, keepFrom,
 } from '../lib/store.js';
+import { listDebts, addDebt, moveDebt, deleteDebt, cleanAmount } from '../lib/debts.js';
 import { gate, POLICY_VERSION } from '../lib/access.js';
 import { runCtx, later } from '../lib/ctx.js';
 import { tooMany, tooBig, readJson, validId } from '../lib/guard.js';
@@ -49,6 +50,7 @@ async function get(request) {
     const deny = await allowed(user);
     if (deny) return json({ error: deny }, 403);
     if (action === 'profile') return json({ ...(await getProfile(user.uid)), name: user.name });
+    if (action === 'debts') return json({ debts: await listDebts(user.uid) }); // 📒 สมุดหนี้ (เฉพาะของตัวเอง ไม่แชร์ให้แฟน)
     if (action === 'boot') { // เปิดเว็บครั้งแรก: ดึงหมวด + รายการเดือนนี้ในครั้งเดียว
       const from = url.searchParams.get('from'), to = url.searchParams.get('to');
       if (!okRange(from, to)) return json({ error: 'bad date' }, 400);
@@ -112,6 +114,16 @@ async function post(request) {
     if (action === 'add') return json({ entries: await addEntries(user.uid, [b.entry]) });
     if (action === 'update') return json({ entry: await updateEntry(user.uid, String(b.id), b.entry) });
     if (action === 'delete') return json({ deleted: await deleteEntries(user.uid, [String(b.id)]) });
+    if (action === 'debtAdd') return json({ debt: await addDebt(user.uid, b.name, b.amount) });
+    if (action === 'debtMove') {
+      if (!validId(b.id)) return json({ error: 'bad id' }, 400);
+      const n = cleanAmount(b.amount);
+      return json({ debt: await moveDebt(user.uid, b.id, b.repay ? -n : n) });
+    }
+    if (action === 'debtDel') {
+      if (!validId(b.id)) return json({ error: 'bad id' }, 400);
+      return json({ deleted: await deleteDebt(user.uid, b.id) });
+    }
     if (action === 'unpair') {
       const partner = await unpair(user.uid);
       if (partner) await push(partner, unpairedMessage()).catch(e => console.error('unpair push', e.message));
