@@ -1,40 +1,43 @@
-/* ---------- สี (โหมดสว่าง) ครีมนวลสไตล์ iOS + เหลืองทอง/น้ำเงินกรมท่าเฉพาะจุดเน้น ---------- */
+/* ---------- สี (โหมดสว่าง) โหมดมืดอวกาศเท่านั้น (ไม่มีโหมดสว่าง) ---------- */
 :root {
-  --bg: #FAF9F6; --surface: rgba(255, 255, 255, .85); --surface-2: #F2F0EB; --text: #1D1D1F; --muted: #6E6E73; --faint: #A1A1A6; --line: #E8E5DE;
-  --accent: #FFCC00; --accent-text: #1E3A5F; --accent-2: #F5A623; --accent-soft: #FFF4D1; --on-accent: #1D1D1F; --accent-edge: #E0A800;
-  --income: #12A594; --income-soft: #DAF6F1; --expense: #F0455A; --expense-soft: #FFE3E7;
-  --hero-profit: linear-gradient(160deg, #2F5683 0%, #1E3A5F 60%, #152A45 100%);
-  --hero-loss: linear-gradient(160deg, #26364A 0%, #1A2636 60%, #111A26 100%);
-  --hero-zero: linear-gradient(160deg, #3D6A9C 0%, #2F5683 100%);
-  --hero-edge: #10223A; --card-edge: #ECE8DF;
-  --shadow: 0 1px 0 var(--card-edge), 0 10px 28px rgba(29, 29, 31, .07);
+  --bg: #06070B; --surface: rgba(22, 27, 44, .65); --surface-2: rgba(40, 48, 72, .55); --text: #F5F5F7; --muted: #A1A1AA; --faint: #6B7280; --line: rgba(255, 230, 150, .10);
+  --accent: #FFD60A; --accent-text: #FFD60A; --accent-2: #F59E0B; --accent-soft: rgba(255, 214, 10, .12); --on-accent: #1D1D1F; --accent-edge: #B38F00;
+  --income: #34D399; --income-soft: rgba(52, 211, 153, .14); --expense: #F87171; --expense-soft: rgba(248, 113, 113, .14);
+  --hero-profit: linear-gradient(160deg, #2A4A75 0%, #1E3A5F 55%, #101E33 100%);
+  --hero-loss: linear-gradient(160deg, #2A2E3E 0%, #181B27 100%);
+  --hero-zero: linear-gradient(160deg, #24395A 0%, #162238 100%);
+  --hero-edge: #05080F; --card-edge: transparent;
+  --edge: rgba(255, 230, 150, .18); --glow: rgba(255, 214, 10, .35); --nebula: #38BDF8;
+  --shadow: inset 0 0 0 1px var(--edge), 0 14px 34px rgba(0, 0, 0, .45);
   --font: "Mali", "Sukhumvit Set", "Noto Sans Thai", system-ui, sans-serif;
   --radius: 20px;
   --nav-h: 68px;
   --ease: cubic-bezier(.22, 1, .36, 1); /* iOS: เปิดแผ่น/ขยายการ์ด */
-  color-scheme: light;
+  color-scheme: dark;
 }
 /* ---------- สี (โหมดมืด) ---------- */
 :root[data-theme="dark"] {
-  --bg: #0D0D0F; --surface: #1C1C1E; --surface-2: #2C2C2E; --text: #F5F5F7; --muted: #A1A1A6; --faint: #6E6E73; --line: #2C2C2E;
-    --accent: #FFCC00; --accent-text: #FFCC00; --accent-2: #F5A623; --accent-soft: #332A0A; --on-accent: #1D1D1F; --accent-edge: #B38F00;
-    --income: #3FE0C5; --income-soft: #10352F; --expense: #FF7A8A; --expense-soft: #451A24;
-    --hero-profit: linear-gradient(160deg, #2F5683 0%, #1E3A5F 60%, #132640 100%);
-    --hero-loss: linear-gradient(160deg, #2A2A2E 0%, #1C1C1E 100%);
-    --hero-zero: linear-gradient(160deg, #2F5683 0%, #1E3A5F 100%);
-    --hero-edge: #000000; --card-edge: #000000;
+  --bg: #06070B; --surface: rgba(22, 27, 44, .65); --surface-2: rgba(40, 48, 72, .55); --text: #F5F5F7; --muted: #A1A1AA; --faint: #6B7280; --line: rgba(255, 230, 150, .10);
+    --accent: #FFD60A; --accent-text: #FFD60A; --accent-2: #F59E0B; --accent-soft: rgba(255, 214, 10, .12); --on-accent: #1D1D1F; --accent-edge: #B38F00;
+    --income: #34D399; --income-soft: rgba(52, 211, 153, .14); --expense: #F87171; --expense-soft: rgba(248, 113, 113, .14);
+    --hero-profit: linear-gradient(160deg, #2A4A75 0%, #1E3A5F 55%, #101E33 100%);
+    --hero-loss: linear-gradient(160deg, #2A2E3E 0%, #181B27 100%);
+    --hero-zero: linear-gradient(160deg, #24395A 0%, #162238 100%);
+    --hero-edge: #05080F; --card-edge: transparent;
+    --edge: rgba(255, 230, 150, .18); --glow: rgba(255, 214, 10, .35); --nebula: #38BDF8;
   --shadow: 0 3px 0 var(--card-edge), 0 12px 26px rgba(0, 0, 0, .35);
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0D0D0F; --surface: #1C1C1E; --surface-2: #2C2C2E; --text: #F5F5F7; --muted: #A1A1A6; --faint: #6E6E73; --line: #2C2C2E;
-    --accent: #FFCC00; --accent-text: #FFCC00; --accent-2: #F5A623; --accent-soft: #332A0A; --on-accent: #1D1D1F; --accent-edge: #B38F00;
-    --income: #3FE0C5; --income-soft: #10352F; --expense: #FF7A8A; --expense-soft: #451A24;
-    --hero-profit: linear-gradient(160deg, #2F5683 0%, #1E3A5F 60%, #132640 100%);
-    --hero-loss: linear-gradient(160deg, #2A2A2E 0%, #1C1C1E 100%);
-    --hero-zero: linear-gradient(160deg, #2F5683 0%, #1E3A5F 100%);
-    --hero-edge: #000000; --card-edge: #000000;
+    --bg: #06070B; --surface: rgba(22, 27, 44, .65); --surface-2: rgba(40, 48, 72, .55); --text: #F5F5F7; --muted: #A1A1AA; --faint: #6B7280; --line: rgba(255, 230, 150, .10);
+    --accent: #FFD60A; --accent-text: #FFD60A; --accent-2: #F59E0B; --accent-soft: rgba(255, 214, 10, .12); --on-accent: #1D1D1F; --accent-edge: #B38F00;
+    --income: #34D399; --income-soft: rgba(52, 211, 153, .14); --expense: #F87171; --expense-soft: rgba(248, 113, 113, .14);
+    --hero-profit: linear-gradient(160deg, #2A4A75 0%, #1E3A5F 55%, #101E33 100%);
+    --hero-loss: linear-gradient(160deg, #2A2E3E 0%, #181B27 100%);
+    --hero-zero: linear-gradient(160deg, #24395A 0%, #162238 100%);
+    --hero-edge: #05080F; --card-edge: transparent;
+    --edge: rgba(255, 230, 150, .18); --glow: rgba(255, 214, 10, .35); --nebula: #38BDF8;
     --shadow: 0 3px 0 var(--card-edge), 0 12px 26px rgba(0, 0, 0, .35);
     color-scheme: dark;
   }
@@ -885,3 +888,89 @@ body.calm button:active, body.calm .chip:active, body.calm .entry:active { scale
 .m-rope { aspect-ratio: 120 / 180; }
 .rope-line { bottom: calc(100% - 14px); }
 @media (prefers-reduced-motion: reduce) { .rope.held .rope-body { animation: none; } }
+
+/* ================= 🚀 ธีมอวกาศ (โหมดมืดอย่างเดียว) ================= */
+html { background: #06070B; }
+body { background: transparent !important; }
+body::before { background: radial-gradient(40% 30% at 20% 15%, rgba(56, 189, 248, .08), transparent 70%), radial-gradient(36% 30% at 85% 35%, rgba(255, 214, 10, .06), transparent 70%), radial-gradient(45% 35% at 50% 90%, rgba(30, 58, 95, .35), transparent 70%) !important; }
+body::after { background: radial-gradient(45% 35% at 25% 25%, rgba(255, 107, 157, .16), transparent 70%), radial-gradient(40% 32% at 80% 60%, rgba(244, 114, 182, .10), transparent 70%) !important; }
+/* โหมดคู่รัก: ขอบกระจก/แสงเปลี่ยนเป็นชมพูเนบิวลา-โรสโกลด์ */
+body.us { --edge: rgba(255, 107, 157, .30); --glow: rgba(255, 107, 157, .40); --accent-text: #FF8FB6; }
+.card { background: var(--surface); }
+.hero { box-shadow: inset 0 0 0 1px var(--edge), 0 18px 40px rgba(0, 0, 0, .55), 0 0 30px color-mix(in srgb, var(--glow) 35%, transparent) !important; }
+.hero-amount, .entry b, .pill b { font-variant-numeric: tabular-nums; }
+/* ฉากอวกาศ: ดาว + ของซ่อน (พระจันทร์ ดาวเคราะห์ กลุ่มดาว) · ไฟฉายส่ายเผยให้เห็น · ไถจอ = หยุดชั่วคราว */
+#space { position: fixed; inset: 0; z-index: -2; pointer-events: none; overflow: hidden; background: linear-gradient(180deg, #06070B 0%, #0A0F1C 55%, #0E1322 100%); }
+#space .stars { position: absolute; inset: 0; opacity: .55;
+  background-image: radial-gradient(1.2px 1.2px at 12% 18%, #fff, transparent), radial-gradient(1px 1px at 32% 72%, #fff, transparent), radial-gradient(1.4px 1.4px at 68% 28%, #fff, transparent),
+    radial-gradient(1px 1px at 84% 62%, #fff, transparent), radial-gradient(1.2px 1.2px at 52% 46%, #fff, transparent), radial-gradient(1px 1px at 22% 88%, #fff, transparent),
+    radial-gradient(1px 1px at 92% 12%, #fff, transparent), radial-gradient(1.3px 1.3px at 42% 8%, #fff, transparent), radial-gradient(1px 1px at 6% 52%, #fff, transparent);
+  background-size: 360px 520px; }
+#space .obj { position: absolute; opacity: .22; animation: drift 9s ease-in-out infinite alternate; }
+#space .moon { right: 10%; top: 13%; width: 54px; height: 54px; border-radius: 50%; box-shadow: inset -14px 6px 0 0 #FFF3C4; }
+#space .planet { left: 8%; top: 38%; width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #FFE29A, #F59E0B 60%, #9A5B00); animation-duration: 12s; }
+#space .planet::after { content: ""; position: absolute; left: -12px; right: -12px; top: 11px; height: 8px; border-radius: 50%; border: 2px solid rgba(255, 230, 150, .8); transform: rotate(-18deg); }
+#space .constel { left: 46%; top: 60%; width: 120px; height: 70px; animation-duration: 14s;
+  background: radial-gradient(3px 3px at 6% 70%, #fff, transparent), radial-gradient(3px 3px at 30% 30%, #fff, transparent), radial-gradient(3px 3px at 58% 50%, #fff, transparent), radial-gradient(3px 3px at 90% 12%, #fff, transparent); }
+#space .scout { position: absolute; left: 3%; bottom: 120px; width: 70px; animation: drift 7s ease-in-out infinite alternate; }
+#space .scout img { width: 100%; height: auto; display: block; }
+#space .beam { position: absolute; left: calc(3% + 54px); bottom: calc(120px + 72px); width: 260px; height: 520px; margin-left: -130px; transform-origin: 50% 100%;
+  background: conic-gradient(from -16deg at 50% 100%, rgba(255, 236, 160, .55), rgba(255, 236, 160, 0) 32deg, transparent 328deg, rgba(255, 236, 160, .55));
+  -webkit-mask: linear-gradient(to top, #000 10%, transparent 95%); mask: linear-gradient(to top, #000 10%, transparent 95%);
+  mix-blend-mode: screen; opacity: .55; animation: sweep 10s ease-in-out infinite alternate; will-change: transform; }
+body.us #space .beam { background: conic-gradient(from -16deg at 50% 100%, rgba(255, 160, 200, .55), rgba(255, 160, 200, 0) 32deg, transparent 328deg, rgba(255, 160, 200, .55)); }
+@keyframes sweep { from { transform: rotate(-28deg); } to { transform: rotate(28deg); } }
+@keyframes drift { from { transform: translate3d(0, -6px, 0); } to { transform: translate3d(0, 6px, 0); } }
+body.scrolling #space *, body.scrolling #space { animation-play-state: paused !important; }
+body.calm #space .beam, body.calm #space .scout { display: none; }
+body.calm #space * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { #space * { animation: none !important; } #space .beam { display: none; } }
+/* ตัวเลื่อน (วัน/เดือน/ปี · ของฉัน/คู่รัก): แคปซูลกระจกเรืองแสงทอง / ชมพูในโหมดคู่รัก */
+.seg, .scope { background: rgba(22, 27, 44, .6) !important; box-shadow: inset 0 0 0 1px var(--edge); }
+.seg-pill, .scope-pill { background: linear-gradient(180deg, rgba(255, 214, 10, .22), rgba(255, 214, 10, .10)) !important; box-shadow: inset 0 0 0 1px rgba(255, 214, 10, .45), 0 0 16px rgba(255, 214, 10, .28) !important; }
+body.us .seg-pill, .scope[data-scope="us"] .scope-pill { background: linear-gradient(180deg, rgba(255, 107, 157, .30), rgba(244, 114, 182, .14)) !important; box-shadow: inset 0 0 0 1px rgba(255, 143, 182, .55), 0 0 18px rgba(255, 107, 157, .35) !important; }
+.seg button.active::after { content: " ✦"; font-size: 9px; color: var(--accent-text); }
+.scope[data-scope="us"] button.active { color: #fff; }
+/* กราฟ/แถบ: หลอดแสงนีออนโค้งมน */
+.bar { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .06) !important; }
+.bar i { border-radius: 99px; box-shadow: 0 0 10px currentColor; }
+.bar.in i { color: var(--income); background: linear-gradient(90deg, #10B981, #34D399); }
+.bar.out i { color: #F59E0B; background: linear-gradient(90deg, #F59E0B, #FFD60A); }
+body.us .bar.out i { color: #FF6B9D; background: linear-gradient(90deg, #F472B6, #FFD60A); }
+/* เมนูล่าง: แคปซูลกระจกเข้ม ขอบเรืองแสง · ปุ่ม + = ดาวฤกษ์ทองเรืองแสง */
+.nav { background: rgba(14, 19, 34, .78) !important; box-shadow: inset 0 0 0 1px var(--edge), 0 0 24px color-mix(in srgb, var(--glow) 30%, transparent), 0 12px 30px rgba(0, 0, 0, .55) !important; }
+.nav-add { background: radial-gradient(circle at 35% 30%, #FFF6C2 0%, #FFD60A 45%, #F59E0B 100%) !important; color: #1D1D1F !important;
+  box-shadow: 0 0 0 6px rgba(255, 214, 10, .10), 0 0 26px rgba(255, 214, 10, .55), inset 0 2px 2px rgba(255, 255, 255, .6) !important; }
+body.us .nav-add { background: radial-gradient(circle at 35% 30%, #FFE4F0 0%, #FF8FB6 45%, #DB2777 100%) !important; box-shadow: 0 0 0 6px rgba(255, 107, 157, .12), 0 0 26px rgba(255, 107, 157, .55), inset 0 2px 2px rgba(255, 255, 255, .6) !important; }
+.nav-item.active { color: var(--accent-text); }
+.btn { background: linear-gradient(180deg, #FFE45C, #FFD60A) !important; color: #1D1D1F !important; box-shadow: 0 0 18px rgba(255, 214, 10, .25) !important; }
+.btn.ghost { background: rgba(255, 255, 255, .06) !important; color: var(--text) !important; box-shadow: inset 0 0 0 1px var(--edge) !important; }
+.btn.danger-text { color: var(--expense) !important; }
+/* โหมดคู่รัก: รูป 2 คนในกรอบหมวกนักบิน (ทอง + โรสโกลด์) วงโคจรแสงหมุน */
+.lover-ring { background: conic-gradient(from 0deg, #FFD60A, #FF6B9D, #F472B6, #38BDF8, #FFD60A) !important; box-shadow: 0 0 22px rgba(255, 107, 157, .45) !important; }
+.lover.me .lover-ring { background: conic-gradient(from 0deg, #FFF1A8, #FFD60A, #B38F00, #FFD60A, #FFF1A8) !important; }
+.lover.you .lover-ring { background: conic-gradient(from 0deg, #FFD1E3, #FF6B9D, #B7685A, #F472B6, #FFD1E3) !important; }
+.lover img, .lover b { border: 3px solid rgba(255, 255, 255, .85) !important; box-shadow: inset 0 -8px 16px rgba(56, 189, 248, .25); }
+.lheart { color: #FF6B9D !important; text-shadow: 0 0 14px rgba(255, 107, 157, .7) !important; }
+.couple-mascot { position: absolute; right: -92px; top: 6px; width: 84px; pointer-events: none; animation: drift 6s ease-in-out infinite alternate; }
+.m-couple { width: 100%; height: auto; aspect-ratio: 200 / 160; }
+/* 🚀 จรวดทะยานตอนบันทึก/ฉลอง */
+.rocket-fx { position: fixed; bottom: -40px; z-index: 95; font-size: 34px; pointer-events: none; will-change: transform, opacity;
+  filter: drop-shadow(0 0 10px rgba(255, 214, 10, .8)); animation: launch 1.1s cubic-bezier(.4, 0, .2, 1) forwards; }
+body.us .rocket-fx { filter: drop-shadow(0 0 10px rgba(255, 107, 157, .9)); }
+@keyframes launch { 0% { transform: translate3d(0, 0, 0) rotate(-45deg) scale(.8); opacity: 0; } 12% { opacity: 1; } 100% { transform: translate3d(var(--dx, 0px), -112vh, 0) rotate(-45deg) scale(1.15); opacity: 0; } }
+.star-fx { position: fixed; z-index: 94; pointer-events: none; color: #FFD60A; font-size: 14px; animation: twink .7s ease-out forwards; }
+body.us .star-fx { color: #FF8FB6; }
+/* ปุ่มมุมขวาบน = เปิด/ปิดลูกเล่นอวกาศ */
+#themeBtn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+#themeBtn { color: var(--accent-text); box-shadow: inset 0 0 0 1px var(--edge), 0 0 14px color-mix(in srgb, var(--glow) 40%, transparent); }
+body.calm #themeBtn { color: var(--faint); box-shadow: inset 0 0 0 1px var(--line); }
+/* มาสคอตไก่อวกาศ */
+.m-rope { aspect-ratio: 120 / 190 !important; }
+.m-peek { aspect-ratio: 180 / 130 !important; }
+.perch .mascot, .boo .mascot { aspect-ratio: 180 / 130 !important; }
+.m-flash { aspect-ratio: 130 / 170 !important; }
+.rope-line { bottom: calc(100% - 6px) !important; background: repeating-linear-gradient(180deg, #E2E8F0 0 4px, #1E3A5F 4px 8px) !important; }
+.empty .mascot { filter: drop-shadow(0 0 18px rgba(255, 214, 10, .25)); }
+.hero.love, .hero.love.profit { background: linear-gradient(150deg, #4A2450 0%, #1E3A5F 55%, #5A2240 100%) !important; }
+.lover img, .lover b { background: linear-gradient(150deg, #1E3A5F, #4A2450) !important; }

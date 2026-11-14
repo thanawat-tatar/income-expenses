@@ -92,7 +92,7 @@ async function handle(ev) {
     return reply(t, fullMessage(g.queue));
   }
   const pre = [];
-  if (g.fromQueue) pre.push(noteCard('🎉', 'ถึงคิวคุณแล้ว!', 'จิ๊บๆ พร้อมลุยครับบอส! ยินดีต้อนรับ 🐥'));
+  if (g.fromQueue) pre.push(noteCard('🎉', 'ถึงคิวคุณแล้ว!', '🚀 ยินดีต้อนรับสู่ยานครับบอส!'));
   if (g.back) pre.push(noteCard('🥺', 'หายไปนานเลย คิดถึงนะ', 'ถ้าไม่ใช้ 30 วัน ข้อมูลจะถูกลบ'));
   if (g.user.legacyNotice) { pre.push(legacyNoticeMessage()); await clearLegacyNotice(uid); }
   prefix.set(t, pre);

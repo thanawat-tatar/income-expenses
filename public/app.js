@@ -7,12 +7,11 @@ const DOW = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 const TITLES = { home: 'ภาพรวม', list: 'รายการ', settings: 'ตั้งค่า', debts: '📒 สมุดหนี้', admin: 'หลังบ้าน 👑' };
 const EMOJIS = '🏷️ 🍼 👶 🎓 📚 🏥 💊 🐶 🐱 🎮 🎬 🎁 💄 👕 👟 🛒 🧴 🧺 🚌 🚕 🅿️ 🛵 ⛽ 🔧 📱 💡 💧 🏠 💳 🏦 💸 💼 🛍️ ☕ 🍜 🍺 🚬 🙏 🎉 ✈️ 🏋️ 💇 🧾 💰'.split(' ');
 const LIFF_SDK = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
-const ICON_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
-const ICON_MOON = '<svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+const ICON_ROCKET = '<svg viewBox="0 0 24 24"><path d="M12 2c3 2 5 6 4.5 11l-2 3h-5l-2-3C7 8 9 4 12 2z"/><circle cx="12" cy="9" r="1.8"/><path d="M9.5 16l-2.5 3M14.5 16l2.5 3M12 18v3"/></svg>';
 const ICON_TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>';
 
 // ---------- น้องลูกเจี๊ยบ (รูปพื้นใสที่เจ้าของวางเองใน public/assets/ · ยังไม่มีไฟล์ = กรอบจำลองขนาด) ----------
-const ASSET = { rope: 'chick-rope.svg', peek: 'chick-peek.svg', flash: 'chick-flash.svg', avatar: 'chick-avatar.svg' };
+const ASSET = { rope: 'space-chick-tether.svg', peek: 'space-chick-crew.svg', flash: 'space-chick-scout.svg', avatar: 'space-chick-avatar.svg', couple: 'space-chick-couple.svg' };
 const assetUrl = kind => `/assets/${ASSET[kind]}`;
 const isNight = () => { const h = new Date().getHours(); return h >= 20 || h < 6; };
 // mood: happy | sad | angry | wink | wow | sleep(=ถือไฟฉาย) | avatar
@@ -38,14 +37,14 @@ function mascotPeek(mood, small, extra = '') {
 // ---------- คำพูดน้องลูกเจี๊ยบ (ลูกสมุนคุยกับบอส: ชม ให้กำลังใจ ชวนจดต่อ) ----------
 const MASCOT_LINES = {
   // กำไร: ชม
-  happy: ['จิ๊บๆ พร้อมลุยครับบอส! กำไรแล้ว 🐥', 'บอสเก่งที่สุดในโลก! 🎉', 'เยี่ยม! เงินเข้า เงินเก็บ 💰', 'รับทราบครับบอส ออมต่อ! ✊', 'จดครบแบบนี้ รวยแน่บอส ✨',
-    'ลูกสมุนภูมิใจในตัวบอส 🥹', 'บอสสุดยอด! ฉลองเลย 🐥🐥', 'ให้รางวัลตัวเองหน่อยครับบอส 🍰', 'บอสคนเก่ง 💛', 'พรุ่งนี้กำไรอีกนะบอส ✌️'],
+  happy: ['🚀 พร้อมทะยานครับบอส! กำไรแล้ว', 'บอสเก่งที่สุดในโลก! 🎉', 'เยี่ยม! เงินเข้า เงินเก็บ 💰', 'รับทราบครับบอส ออมต่อ! ✊', 'จดครบแบบนี้ รวยแน่บอส ✨',
+    'ลูกสมุนภูมิใจในตัวบอส 🥹', 'บอสสุดยอด! จรวดพร้อมฉลอง 🚀✨', 'ให้รางวัลตัวเองหน่อยครับบอส 🍰', 'บอสคนเก่ง 💛', 'พรุ่งนี้กำไรอีกนะบอส ✌️'],
   // ขาดทุน: ให้กำลังใจ
   sad: ['ไม่เป็นไรครับบอส พรุ่งนี้เอาคืน 💪', 'ใจเย็นๆ บอส ค่อยๆ ออม 🐥', 'ลูกสมุนอยู่ข้างๆ บอสเสมอ 🫶', 'ลองดูหมวดไหนจ่ายเยอะสุดครับบอส 👀', 'ขาดทุนนิดหน่อย ไม่เป็นไรบอส 🥺',
     'พรุ่งนี้ลดของไม่จำเป็นกันนะบอส ✂️', 'จดไว้แบบนี้ เดี๋ยวก็รู้ว่าเงินรั่วตรงไหน 🔍', 'สู้ๆ ครับบอส! 🤗', 'บอสเหนื่อยไหม พักบ้างนะ 💛', 'เก็บทีละนิด เดี๋ยวก็กลับมาบวกครับบอส 📈'],
   // ยังไม่จด (0 บาท): ชวนมาจด
   angry: ['บอส! ยังไม่จดเลยนะ 😤', 'ลูกสมุนหิว… ขอรายการหน่อยบอส 🐥', 'วันนี้บอสใช้เงินไปกับอะไรครับ? 🤔', 'ไม่จด = เงินรั่วนะบอส! 💸', 'พิมพ์ในแชท LINE แค่ "ข้าว 50" ก็พอครับบอส ✍️',
-    'ลูกสมุนรออยู่นะบอส… 🙄', 'จดวันละนิด รวยวันละหน่อย 💛', 'กดปุ่ม + ด้านล่างเลยบอส! 👇', 'บอสครับ อยู่ไหม 👀', 'จดเดี๋ยวนี้เลยครับบอส! 🐥'],
+    'ลูกสมุนรออยู่นะบอส… 🙄', 'จดวันละนิด รวยวันละหน่อย 💛', 'กดปุ่ม + ด้านล่างเลยบอส! 👇', 'หอบังคับการเรียกบอส 📡', 'จดเดี๋ยวนี้เลยครับบอส! 🐥'],
 };
 // สุ่มแบบไม่ซ้ำ: ครบ 10 ประโยคก่อนค่อยวนใหม่
 const mascotQueue = {};
@@ -120,7 +119,7 @@ function bindSquish(root) {
 
 // 🪢 น้องลูกเจี๊ยบห้อยเชือกจากขอบบน: ไถจอแล้วเหวี่ยงตามแรง (คิดเฉพาะช่วงบนสุด scrollY < 120 · พ้นจอแล้วหยุดคิดทันที)
 // แตะ = เด้ง + แซว · ลากตัวน้องลูกเจี๊ยบลง = รีเฟรช (หนืดแบบ iOS · ถึงระยะแล้วหมุนตัว) · ลากเฉพาะตัวมันเท่านั้น ไม่ชนการปัดปิด LINE
-const ROPE_QUIPS = ['พร้อมลุยครับบอส! 👋', 'จิ๊บๆ รับทราบครับบอส! 🐥', 'บอสจะไปไหนครับ?', 'รับทราบครับบอส!', 'ปล่อยลูกสมุนลงไปหน่อย~', 'ดึงลงมาสิบอส รีเฟรชให้ 🔄'];
+const ROPE_QUIPS = ['พร้อมลุยครับบอส! 👋', '🛰️ รับทราบครับบอส!', 'บอสจะไปไหนครับ?', 'รับทราบครับบอส!', 'ปล่อยลูกสมุนลงไปหน่อย~', 'ดึงลงมาสิบอส รีเฟรชให้ 🔄'];
 function bindRope() {
   const el = document.createElement('div');
   el.className = 'rope'; el.setAttribute('aria-hidden', 'true');
@@ -168,7 +167,7 @@ function bindRope() {
     if (go) {
       navigator.vibrate?.(10);
       el.classList.add('spin'); setTimeout(() => el.classList.remove('spin'), 700);
-      toast('กำลังรีเฟรชครับบอส 🐥');
+      toast('🛰️ กำลังรีเฟรชครับบอส');
       clearCache(); render(true).then(() => toast('รับทราบครับบอส! อัปเดตแล้ว ✨'));
     } else if (!moved) {
       kick(9 * (Math.random() < .5 ? -1 : 1));
@@ -195,7 +194,8 @@ function loversHTML(small) {
     ${loverFace(me.pic, 'ฉัน', 'me')}
     <i class="lheart">❤</i>
     ${loverFace(state.couple?.pic, state.couple?.name || 'แฟน', 'you')}
-    <span class="floaty f1">💕</span><span class="floaty f2">💖</span><span class="floaty f3">💗</span><span class="floaty f4">✨</span>
+    <span class="floaty f1">💕</span><span class="floaty f2">✨</span><span class="floaty f3">💖</span><span class="floaty f4">⭐</span>
+    ${small ? '' : `<span class="couple-mascot">${mascot('couple')}</span>`}
   </div>`;
 }
 
@@ -317,6 +317,7 @@ function celebrateStreak() {
   if (!funOn() || isUs() || state.page !== 'home' || state.mode !== 'day' || state.date !== todayISO()) return;
   if (![3, 7, 14, 30, 60, 100].includes(n) || (store.get('cel') || 0) >= n) return;
   store.set('cel', n);
+  rocketFx();
   const hero = $('.hero');
   if (!hero) return;
   hero.classList.add('glow');
@@ -351,7 +352,7 @@ function bindMascot(root) {
       if (l.dataset.dragged) { delete l.dataset.dragged; return; }
       l.classList.remove('love-pop'); void l.offsetWidth; l.classList.add('love-pop');
       const r = l.getBoundingClientRect();
-      burst(r.left + r.width / 2, r.top + r.height / 2, ['💖', '💕', '💗', '❤️', '✨']);
+      burst(r.left + r.width / 2, r.top + r.height / 2, ['💖', '⭐', '💕', '✨', '🌙']);
       navigator.vibrate?.(12);
     };
   });
@@ -482,17 +483,12 @@ function armDelete(btn, fn, label = 'แตะอีกครั้งเพื�
 document.addEventListener('touchstart', () => {}, { passive: true });
 
 // ---------- ธีม ----------
-const isDark = () => {
-  const t = document.documentElement.dataset.theme;
-  return t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-};
-function applyTheme(t) {
-  const root = document.documentElement;
-  if (t === 'light' || t === 'dark') root.dataset.theme = t; else root.removeAttribute('data-theme');
-  $('meta[name="theme-color"]').content = isDark() ? '#0D0D0F' : '#FAF9F6';
-  $('#themeBtn').innerHTML = isDark() ? ICON_SUN : ICON_MOON;
+function applyTheme() { // โหมดมืดอวกาศอย่างเดียว · ปุ่มมุมขวาบน = เปิด/ปิดลูกเล่นอวกาศ
+  document.documentElement.dataset.theme = 'dark';
+  $('meta[name="theme-color"]').content = '#06070B';
+  $('#themeBtn').innerHTML = ICON_ROCKET;
+  $('#themeBtn').setAttribute('aria-pressed', String(funOn()));
 }
-function setTheme(t) { store.set('theme', t); applyTheme(t); }
 
 // ---------- API ----------
 // บัตรผ่านที่ระบบออกให้ (เปิดเว็บครั้งถัดไปไม่ต้องรอ LINE)
@@ -650,18 +646,27 @@ function syncBg(task, undo, what) {
   });
 }
 // เอฟเฟกต์หลังบันทึก (ไม่ขวางการใช้งาน): เหรียญตกใส่การ์ดยอดเงิน
+// 🚀 จรวดจิ๋วพุ่งจากล่างจอ + ประกายดาว (ทอง / ชมพูในโหมดคู่รัก)
+function rocketFx() {
+  if (!funOn()) return;
+  const x = innerWidth * (.3 + Math.random() * .4);
+  const r = document.createElement('span');
+  r.className = 'rocket-fx'; r.textContent = '🚀';
+  r.style.cssText = `left:${x}px;--dx:${Math.round(Math.random() * 80 - 40)}px`;
+  document.body.appendChild(r);
+  setTimeout(() => r.remove(), 1200);
+  for (let i = 0; i < 6; i++) setTimeout(() => {
+    const s = document.createElement('span');
+    s.className = 'star-fx'; s.textContent = i % 2 ? '✦' : '★';
+    s.style.cssText = `left:${x + Math.random() * 60 - 30}px;top:${innerHeight * (.9 - i * .12)}px`;
+    document.body.appendChild(s); setTimeout(() => s.remove(), 750);
+  }, i * 110);
+}
 function savedFx(data, pop) {
   const hero = $('.hero');
   if (!hero || !funOn()) return;
-  const r = hero.getBoundingClientRect();
   if (pop) confettiPop(hero.querySelector('.hero-amount') || hero);
-  for (let i = 0; i < 6; i++) {
-    const c = document.createElement('span');
-    c.className = 'coin-drop'; c.textContent = data.type === 'income' ? '🪙' : '💸';
-    c.style.cssText = `left:${r.left + r.width * (.2 + Math.random() * .6)}px;top:${r.top - 30}px;--d:${i * 60}ms`;
-    document.body.appendChild(c);
-    setTimeout(() => c.remove(), 900);
-  }
+  rocketFx();
   hero.classList.remove('thump'); void hero.offsetWidth; hero.classList.add('thump');
   navigator.vibrate?.(10);
 }
@@ -949,19 +954,6 @@ function setTilt(el, x, y) {
   el.style.setProperty('--ry', `${x * 12}deg`); el.style.setProperty('--rx', `${-y * 12}deg`);
   el.style.setProperty('--gx', `${50 + x * 90}%`); el.style.setProperty('--gy', `${50 + y * 90}%`);
 }
-// มือถือ Android: เอียงเครื่องแล้วการ์ดเอียงตาม (iPhone ต้องขออนุญาต จึงใช้แสงวิ่งเองแทน)
-function bindDeviceTilt() {
-  if (!('DeviceOrientationEvent' in window) || typeof DeviceOrientationEvent.requestPermission === 'function') return;
-  let raf = 0;
-  addEventListener('deviceorientation', e => {
-    if (raf || e.gamma == null || !funOn()) return;
-    raf = requestAnimationFrame(() => {
-      raf = 0;
-      const x = Math.max(-.5, Math.min(.5, e.gamma / 50)), y = Math.max(-.5, Math.min(.5, (e.beta - 45) / 60));
-      $$('.hero.tilt').forEach(el => setTilt(el, x, y));
-    });
-  });
-}
 
 // ✨ การ์ดยอดเงิน 2.5D: เลื่อนจอ → ตัวเลขลอยเยื้องจากพื้นกระจก + เส้นแสงขอบวิ่งตาม + เงาใต้การ์ดยืด/จางตามความเร็ว
 // หยุดนิ้วแล้วค่อยๆ หน่วงกลับนิ่ง · ขยับแค่ transform/translate · ปิดลูกเล่นหรือเครื่องตั้งลดการเคลื่อนไหว = นิ่ง
@@ -997,6 +989,9 @@ function bindHeroDepth() {
   bindHeroDepth.kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
   bindHeroDepth.reset = () => { done = false; bindHeroDepth.kick(); };
   addEventListener('scroll', bindHeroDepth.kick, { passive: true });
+  // ไถจอ = หยุดแอนิเมชันฉากอวกาศชั่วคราว (ลื่นกว่า) · หยุดนิ้วแล้วขยับต่อ
+  let still2 = 0;
+  addEventListener('scroll', () => { document.body.classList.add('scrolling'); clearTimeout(still2); still2 = setTimeout(() => document.body.classList.remove('scrolling'), 160); }, { passive: true });
 }
 
 function bindTilt(root) {
@@ -1217,7 +1212,6 @@ function settingsHTML() {
   const defaults = state.categories.filter(c => !c.custom);
   const opt = t => state.categories.filter(c => c.type === t).map(c => `<option value="${esc(c.id)}">${esc(c.icon)} ${esc(c.name)}</option>`).join('');
   const nc = state.newCat;
-  const theme = store.get('theme') || 'auto';
   return `<div class="grid two">
     <div class="card">
       <div class="corner-mascot">${mascot('avatar')}</div><h2 class="section-title">🗂️ หมวดหมู่</h2>
@@ -1280,13 +1274,9 @@ function settingsHTML() {
     </div>
 
     <div class="card span">
-      <h2 class="section-title">🎨 หน้าตา</h2>
+      <h2 class="section-title">🚀 หน้าตา</h2>
       <button class="priv ${store.get('fun') !== false ? 'on' : ''}" id="funToggle" type="button" style="margin:10px 0 12px">
-        <span>🐥</span><div><b>ลูกเล่นน้องลูกเจี๊ยบ</b><small>${store.get('fun') !== false ? 'นานๆ น้องลูกเจี๊ยบจะโผล่มาเซอร์ไพรส์ · รีบอยู่ไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
-      <div class="seg" style="max-width:none;margin-top:10px">
-        ${[['light', 'สว่าง'], ['dark', 'มืด'], ['auto', 'ตามเครื่อง']].map(([v, l]) => `<button data-themeopt="${v}" class="${theme === v ? 'active' : ''}">${l}</button>`).join('')}
-        <span class="seg-pill" style="transform:translateX(${['light', 'dark', 'auto'].indexOf(theme) * 100}%)"></span>
-      </div>
+        <span>🐥</span><div><b>ลูกเล่นไก่อวกาศ</b><small>${store.get('fun') !== false ? 'ไฟฉายส่องดาว จรวดตอนบันทึก · รีบอยู่ไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
     </div>
   </div>`;
 }
@@ -1342,7 +1332,7 @@ function bindSettings() {
   }, 'ลบ?'));
 
   $('#debtsOpen').onclick = () => { state.page = 'debts'; state.anim = 'l'; render(); window.scrollTo({ top: 0 }); };
-  $('#funToggle').onclick = () => { store.set('fun', store.get('fun') === false); document.body.classList.toggle('calm', !funOn()); render(true); };
+  $('#funToggle').onclick = () => { store.set('fun', store.get('fun') === false); document.body.classList.toggle('calm', !funOn()); applyTheme(); render(true); };
   bindSquish($('#view'));
   $('#cOpen') && ($('#cOpen').onclick = () => { state.scope = 'us'; go('home'); });
   $('#cUnpair') && armDelete($('#cUnpair'), async () => {
@@ -1350,7 +1340,6 @@ function bindSettings() {
     catch (e) { toast(e.message); render(true); }
   }, 'แตะอีกครั้งเพื่อเลิกคู่');
 
-  $$('[data-themeopt]').forEach(b => b.onclick = () => { setTheme(b.dataset.themeopt === 'auto' ? null : b.dataset.themeopt); render(true); });
 }
 
 // ---------- 📒 สมุดหนี้ (ไว้จำว่าใครติดเงินเรา · ซ่อนในตั้งค่า · ไม่ปนกับรายรับรายจ่าย · ไม่แชร์ให้แฟน) ----------
@@ -1647,7 +1636,7 @@ function bindChrome() {
   $('#periodLabel').onclick = openPicker;
   $('#addBtn').onclick = () => openEntry(null);
   $('#sheetBg').onclick = closeSheet;
-  $('#themeBtn').onclick = () => { setTheme(isDark() ? 'light' : 'dark'); if (state.page === 'settings') render(true); };
+  $('#themeBtn').onclick = () => { store.set('fun', store.get('fun') === false); document.body.classList.toggle('calm', !funOn()); applyTheme(); toast(funOn() ? '🚀 เปิดลูกเล่นอวกาศแล้วครับบอส' : '🌙 โหมดนิ่ง ประหยัดแบต'); render(true); };
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeSheet(); });
   // กลับมาที่หน้าเว็บ (เช่น ไปพิมพ์ในแชทมา) ให้ดึงข้อมูลใหม่
   let hiddenAt = 0;
