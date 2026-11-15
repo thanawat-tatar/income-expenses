@@ -120,7 +120,7 @@ const afterIntro = f => {
   try {
     if (window.__introDone || !document.getElementById('holiday-magic-intro')) f();
     else addEventListener('intro:done', () => { try { f(); } catch (e) { console.warn('after intro skipped:', e?.message); } }, { once: true });
-  } catch (e) { try { f(); } catch { /* ข้าม */ } }
+  } catch { try { f(); } catch { /* ข้าม */ } }
 };
 // 🔔 เสียงคริสต์มาส: Web Audio สังเคราะห์สด (0 KB ไม่มีไฟล์เสียง) · ปลดล็อกตอนแตะครั้งแรก · โหมด ambient = ไม่ตัดเพลง/พอดแคสต์ที่เปิดอยู่
 // ปิดเองอัตโนมัติเมื่อเครื่องตั้ง "ลดการเคลื่อนไหว" หรือปิดเสียงในตั้งค่า
@@ -1354,7 +1354,7 @@ async function bindAnn(root) {
   };
   test.onclick = () => run('test', () => 'ส่งทดสอบแล้ว เช็คแชท LINE 🧪');
   paint();
-  try { q = await adminApi('POST', { action: 'quota' }); } catch (e) { q = { ok: false, members: 0, type: 'unknown' }; }
+  try { q = await adminApi('POST', { action: 'quota' }); } catch { q = { ok: false, members: 0, type: 'unknown' }; }
   if (root.isConnected) paint();
 }
 

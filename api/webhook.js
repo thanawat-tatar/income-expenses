@@ -24,7 +24,7 @@ import { slipReady, slipTurn, geminiTurn, fetchImage, readSlip, probeModels } fr
 import {
   getProfile, saveProfile, addEntries, updateEntry, recentEntries, getEntry, setEdit, getEdit, clearEdit,
   getMiss, setMiss, clearMiss, listEntries, lastBatch, deleteEntries,
-  setPending, getPending, clearPending, getUser, keepFrom, savePic,
+  setPending, getPending, clearPending, takePending, getUser, keepFrom, savePic,
 } from '../lib/store.js';
 
 const PENDING_TTL = 24 * 3600 * 1000;
@@ -34,13 +34,17 @@ export async function GET() {
 }
 
 const seenEvents = new Map();
+// log อ่านง่าย: [webhook] ที่ไหน: ข้อความ + บรรทัดแรกของ stack (ไม่มีข้อมูลผู้ใช้)
+const logErr = (where, e) => console.error(`[webhook] ${where}: ${e?.message || e}${e?.stack ? '\n' + e.stack.split('\n').slice(1, 3).join('\n') : ''}`);
+// ข้อความขาเข้า: ตัดอักขระควบคุม/อักขระล่องหน (กันตัดคำเพี้ยน + Firestore) · จำกัดความยาว
+const cleanText = t => String(t ?? '').replace(/[\u0000-\u0009\u000B-\u001F\u007F\u200B-\u200F\u2028-\u202E\uFEFF]/g, '').trim().slice(0, 2000);
 export async function POST(request) {
   const body = await request.text();
   if (!verifySignature(body, request.headers.get('x-line-signature'))) {
     return new Response('bad signature', { status: 401 });
   }
   let events = [];
-  try { events = JSON.parse(body).events || []; } catch { return new Response('bad body', { status: 400 }); }
+  try { events = JSON.parse(body).events || []; } catch { return new Response('ok'); } // body เพี้ยน → ตอบ 200 เงียบๆ
   // กันส่งซ้ำ: เหตุการณ์เดิม (รหัสเดิม) หรือเก่าเกิน 10 นาที → ข้าม (ลายเซ็นถูกก็ยังเอามายิงซ้ำไม่ได้)
   events = events.slice(0, 20).filter(ev => {
     if (typeof ev?.timestamp === 'number' && Date.now() - ev.timestamp > 10 * 60 * 1000) return false;
@@ -51,8 +55,9 @@ export async function POST(request) {
     if (seenEvents.size > 3000) for (const k of [...seenEvents.keys()].slice(0, 1000)) seenEvents.delete(k);
     return true;
   });
-  await Promise.all(events.map(ev => runCtx(() => handle(ev)).catch(err => {
-    console.error(err);
+  // ทุกเหตุการณ์แยกกันพัง (allSettled) · ตอบ 200 เสมอ ไม่ให้ LINE ยิงซ้ำไม่จบ
+  await Promise.allSettled(events.map(ev => runCtx(() => handle(ev)).catch(err => {
+    logErr(`${ev?.type}/${ev?.message?.type || String(ev?.postback?.data || '').split('&')[0] || '-'}`, err);
     if (ev.replyToken) return reply(ev.replyToken, text('ขออภัย เกิดข้อผิดพลาด ลองใหม่อีกครั้งนะครับ 🙏'));
   }).finally(() => { prefix.delete(ev.replyToken); loading.delete(ev.replyToken); })));
   return new Response('ok');
@@ -78,7 +83,7 @@ async function handle(ev) {
   const isText = ev.type === 'message' && ev.message?.type === 'text';
   const isImage = ev.type === 'message' && ev.message?.type === 'image';
   if (!isText && !isImage && !['follow', 'postback'].includes(ev.type)) return;
-  const msg = isText ? normalizeThai(ev.message.text.trim()) : '';
+  const msg = isText ? normalizeThai(cleanText(ev.message.text)) : '';
   const a = ev.type === 'postback' ? new URLSearchParams(ev.postback.data).get('a') : '';
   const t = ev.replyToken;
   if (tooMany('w:' + uid, 40)) return; // ส่งถี่ผิดปกติ (เกิน 40 ข้อความ/นาที) → ไม่ตอบ กันเปลืองโควต้า
@@ -192,7 +197,7 @@ async function picOf(id) {
 const catMap = cats => Object.fromEntries(cats.map(c => [c.id, c]));
 
 async function onText(uid, ev) {
-  const msg = ev.message.text.trim();
+  const msg = cleanText(ev.message.text);
   const profile = await getProfile(uid);
   const byId = catMap(profile.categories);
 
@@ -234,7 +239,7 @@ async function onText(uid, ev) {
   if (/^(สรุป|สรุปวันนี้|ยอดวันนี้)$/.test(msg)) {
     const today = bkkDate();
     const couple = coupled ? await getCouple(uid, me) : null;
-    const [mine, ours, pa, pb] = await Promise.all([listEntries(uid, today, today), couple ? coupleDay(uid, couple, today) : null, picOf(uid), couple ? picOf(couple.partner) : '']);
+    const [mine, ours, pa, pb] = await Promise.all([listEntries(uid, today, today), couple ? coupleDay(uid, couple, today).catch(e => { logErr('coupleDay', e); return null; }) : null, picOf(uid), couple ? picOf(couple.partner) : '']);
     return reply(ev.replyToken, [summaryMessage(mine, today, byId, pa), ...(ours ? [coupleSummaryMessage(ours, today, couple.partnerName, { me: pa, them: pb })] : [])]);
   }
   if (isHelp(msg)) return reply(ev.replyToken, helpMessage());
@@ -446,9 +451,9 @@ async function saveSlip(uid, ev, pending, cat, profile, extraCats) {
   const it = { ...pending.items[0], category: cat.id, type: cat.type };
   const batch = 'b' + pending.id, today = bkkDate();
   const word = it.word;
-  const [, saved, before] = await Promise.all([
-    clearPending(uid),
-    addEntries(uid, [it], batch),
+  if (!(await takePending(uid, pending.id))) return reply(ev.replyToken, noteCard('✅', 'จดสลิปนี้ไปแล้ว', 'ไม่จดซ้ำนะ'));
+  const [saved, before] = await Promise.all([
+    addEntries(uid, [it], batch).catch(async e => { await setPending(uid, pending).catch(() => {}); throw e; }),
     listEntries(uid, today, today),
     word ? learn(uid, profile, word, cat.id, extraCats) : extraCats ? saveProfile(uid, { categories: extraCats }) : null,
   ]);
@@ -646,10 +651,14 @@ async function onPostback(uid, ev) {
     }
     if (a === 'no') { later(clearPending(uid)); return reply(ev.replyToken, noteCard('✖️', 'ยกเลิกแล้ว', 'พิมพ์ใหม่ได้เลย')); }
 
-    // บันทึก + อ่านยอดวันนี้ พร้อมกัน (ไม่ต้องรอทีละอย่าง)
+    // หยิบการ์ดออกแบบอะตอมก่อน → กดรัว/ยิงซ้ำ บันทึกครั้งเดียว
+    if (!(await takePending(uid, pending.id))) return reply(ev.replyToken, noteCard('✅', 'บันทึกไปแล้ว', 'ไม่จดซ้ำนะ'));
     const batch = 'b' + pending.id, today = bkkDate();
     const items = pending.items.map(i => ({ ...i, date: i.date || pending.date }));
-    const [, , before] = await Promise.all([clearPending(uid), addEntries(uid, items, batch), listEntries(uid, today, today)]);
+    const [, before] = await Promise.all([
+      addEntries(uid, items, batch).catch(async e => { await setPending(uid, pending).catch(() => {}); throw e; }), // พลาด → คืนการ์ดให้กดใหม่ได้
+      listEntries(uid, today, today),
+    ]);
     const mine = items.filter(i => i.date === today);
     const list = [...before.filter(e => e.batch !== batch), ...mine];
     const net = list.reduce((s, e) => s + (e.type === 'income' ? e.amount : -e.amount), 0);
