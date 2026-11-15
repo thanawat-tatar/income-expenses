@@ -1179,11 +1179,96 @@ function openPicker() {
       draw();
     });
     $$('[data-pick]', sheet).forEach(b => b.onclick = () => pick(b.dataset.pick));
-    sheet.querySelector('[data-close]').onclick = closeSheet;
+    $('[data-close]', sheet).onclick = closeSheet;
     sheet.querySelector('[data-today]').onclick = () => pick(today);
   };
   draw();
   openSheetEl();
+}
+
+// ---------- 👑 ประกาศถึงสมาชิก (เจ้าของระบบเท่านั้น · ปุ่มนี้ไม่อยู่ใน DOM ของคนทั่วไป · เซิร์ฟเวอร์ตรวจสิทธิ์ซ้ำทุกคำขอ) ----------
+const ANN_TPL = [
+  ['🎄 อัปเดตฟีเจอร์ใหม่', '🎄 อัปเดตฟีเจอร์ใหม่แล้ว! เปิดสมุดรายรับรายจ่ายมาลองกันได้เลย พิมพ์ "วิธีใช้" ในแชทถ้าอยากดูวิธีใช้นะ ✨'],
+  ['📝 แจ้งเตือนจดบัญชี', '📝 วันนี้จดรายรับรายจ่ายหรือยังครับ? แค่พิมพ์ เช่น "ข้าว 50" ในแชทนี้ก็บันทึกให้เลย 🎅'],
+];
+function syncAnnBtn() {
+  try {
+    const old = $('#annBtn');
+    document.body.classList.toggle('is-admin', !!state.isAdmin);
+    if (!state.isAdmin) { old?.remove(); return; }
+    if (old) return;
+    const b = document.createElement('button');
+    b.id = 'annBtn'; b.className = 'ann-btn'; b.type = 'button'; b.textContent = '👑 ประกาศ';
+    b.setAttribute('aria-label', 'ประกาศถึงสมาชิก');
+    b.onclick = () => { try { openAnnounce(); } catch (e) { console.warn('announce skipped:', e?.message); } };
+    $('#themeBtn').before(b);
+  } catch (e) { console.warn('announce button skipped:', e?.message); }
+}
+async function openAnnounce() {
+  const sheet = $('#sheet');
+  let q = null, armed = 0, busy = false;
+  const MAX = 1000;
+  const quotaLine = () => {
+    if (!q) return '<span class="ann-dim">กำลังเช็คโควตา…</span>';
+    if (!q.ok) return '<span class="ann-warn">เช็คโควตา LINE ไม่ได้ ตอนนี้ส่งหาทุกคนไม่ได้</span>';
+    if (q.type !== 'limited') return `โควตาเดือนนี้: ไม่จำกัด · ใช้ไป ${fmt(q.used)} ข้อความ`;
+    return `โควตาเดือนนี้: ใช้ไป <b>${fmt(q.used)}</b> / ${fmt(q.limit)} ข้อความ`;
+  };
+  sheet.innerHTML = `<div class="grab"></div><h2 class="sheet-title">👑 ประกาศถึงสมาชิก</h2>
+    <div class="ann-quota"><div id="annQ">${quotaLine()}</div><div class="ann-bar"><i id="annBar"></i></div><small id="annTo" class="ann-dim"></small></div>
+    <span class="label">ข้อความประกาศ</span>
+    <textarea class="ann-ta" id="annText" maxlength="${MAX}" rows="5" placeholder="พิมพ์ข้อความที่จะส่งหาสมาชิกทุกคน"></textarea>
+    <div class="ann-row"><div class="ann-tpls">${ANN_TPL.map((t, i) => `<button type="button" class="ann-tpl" data-tpl="${i}">${t[0]}</button>`).join('')}</div><small id="annCnt" class="ann-dim">0/${MAX}</small></div>
+    <span class="label">พรีวิวในแชท</span>
+    <div class="ann-chat"><div class="ann-bubble" id="annPrev"><span class="ann-dim">ยังไม่มีข้อความ</span></div></div>
+    <div class="ann-actions">
+      <button class="ann-send" id="annSend" type="button">📣 ส่งข้อความหาทุกคน</button>
+      <button class="ann-test" id="annTest" type="button">🧪 ทดสอบส่งหาตัวเอง (ใช้ 1 โควตา)</button>
+    </div>
+    <button class="btn ghost ann-close" data-close type="button">ปิด</button>`;
+  const ta = $('#annText', sheet), send = $('#annSend', sheet), test = $('#annTest', sheet);
+  const disarm = () => { armed = 0; send.classList.remove('armed'); send.textContent = '📣 ส่งข้อความหาทุกคน'; };
+  const paint = () => {
+    const v = ta.value;
+    $('#annPrev', sheet).textContent = v.trim() || '';
+    if (!v.trim()) $('#annPrev', sheet).innerHTML = '<span class="ann-dim">ยังไม่มีข้อความ</span>';
+    $('#annCnt', sheet).textContent = `${v.length}/${MAX}`;
+    if (q) {
+      $('#annQ', sheet).innerHTML = quotaLine();
+      $('#annTo', sheet).textContent = `ส่งถึงสมาชิก ${q.members} คน (หักโควตา ${q.members} ข้อความ${q.left != null ? ` · เหลือ ${q.left}` : ''})`;
+      $('#annBar', sheet).style.transform = `scaleX(${q.type === 'limited' && q.limit ? Math.min(1, q.used / q.limit).toFixed(3) : 0})`;
+    }
+  };
+  ta.addEventListener('input', () => { disarm(); paint(); });
+  $$('[data-tpl]', sheet).forEach(b => b.onclick = () => { ta.value = ANN_TPL[Number(b.dataset.tpl)][1]; disarm(); paint(); });
+  sheet.querySelector('[data-close]').onclick = closeSheet;
+  const run = async (action, okMsg) => {
+    const text = ta.value.trim();
+    if (!text) { ta.focus(); return toast('ยังไม่ได้พิมพ์ข้อความ ⚠️'); }
+    if (busy) return;
+    busy = true; send.disabled = test.disabled = true;
+    try {
+      const r = await adminApi('POST', { action, text });
+      if (r.left != null && q) { q.used = (q.limit || 0) - r.left; q.left = r.left; }
+      closeSheet(); toast(okMsg(r));
+    } catch (e) {
+      if (e.message !== 'login') toast(`${/[ก-๙]/.test(e.message) ? e.message : 'ส่งไม่สำเร็จ ลองใหม่'} ⚠️`);
+    } finally { busy = false; send.disabled = test.disabled = false; disarm(); }
+  };
+  send.onclick = () => {
+    if (!q?.ok || !q.members) return toast(!q ? 'รอเช็คโควตาสักครู่ ⚠️' : q.members ? 'เช็คโควตาไม่ได้ ⚠️' : 'ยังไม่มีสมาชิกที่ยอมรับนโยบาย ⚠️');
+    if (!ta.value.trim()) { ta.focus(); return toast('ยังไม่ได้พิมพ์ข้อความ ⚠️'); }
+    if (!armed) { // แตะครั้งแรก = เตรียมส่ง (กันกดพลาด) · แตะซ้ำภายใน 4 วิ = ส่งจริง
+      armed = Date.now(); send.classList.add('armed'); send.textContent = `แตะอีกครั้งเพื่อส่งถึง ${q.members} คน`;
+      setTimeout(() => { if (armed && Date.now() - armed >= 3900) disarm(); }, 4000);
+      return;
+    }
+    run('send', r => `ส่งประกาศถึง ${r.sent} คนแล้ว 📣`);
+  };
+  test.onclick = () => run('test', () => 'ส่งทดสอบแล้ว เช็คแชท LINE 🧪');
+  paint(); openSheetEl('ann');
+  try { q = await adminApi('POST', { action: 'quota' }); } catch (e) { q = { ok: false, members: 0, type: 'unknown' }; }
+  if ($('#annQ', sheet)) paint();
 }
 
 // ---------- หลังบ้าน (เจ้าของระบบ) ----------
@@ -1207,6 +1292,11 @@ function demoAdmin(method, body) {
   const d = demoAdmin.d;
   if (method === 'POST' && body.action === 'limit') d.limit = body.limit;
   if (method === 'POST' && body.action === 'delete') d.users = d.users.filter(u => u.id !== body.id);
+  if (method === 'POST' && body.action === 'quota') return Promise.resolve({ members: 4, type: 'limited', limit: 200, used: demoAdmin.used ??= 38, left: 200 - demoAdmin.used, ok: true });
+  if (method === 'POST' && (body.action === 'send' || body.action === 'test')) {
+    const n = body.action === 'send' ? 4 : 1; demoAdmin.used = (demoAdmin.used ?? 38) + n;
+    return new Promise(r => setTimeout(() => r({ sent: n, left: 200 - demoAdmin.used }), 600));
+  }
   if (method === 'POST' && body.action === 'cleanup') return Promise.resolve({ removed: 0 });
   return Promise.resolve({ ...d, count: d.users.length });
 }
@@ -1521,7 +1611,7 @@ function bindDebts(view) {
 }
 
 // ---------- sheet เพิ่ม/แก้ไข ----------
-function openSheetEl() { document.body.classList.add('sheet-open'); const s = $('#sheet'); s.style.transform = ''; $('#sheetBg').style.opacity = ''; $('#sheetBg').classList.add('open'); s.classList.add('open'); }
+function openSheetEl(kind) { document.body.classList.add('sheet-open'); const s = $('#sheet'); s.classList.toggle('ann', kind === 'ann'); $('#sheetBg').classList.toggle('ann', kind === 'ann'); s.style.transform = ''; $('#sheetBg').style.opacity = ''; $('#sheetBg').classList.add('open'); s.classList.add('open'); }
 function closeSheet() { document.body.classList.remove('sheet-open'); const s = $('#sheet'); s.style.transform = ''; $('#sheetBg').style.opacity = ''; s.classList.remove('open'); $('#sheetBg').classList.remove('open'); }
 // ปัดหน้าต่างลงเพื่อปิด (แบบ iPhone) · ลากจากแถบด้านบน หรือจากหัวหน้าต่างตอนเลื่อนอยู่บนสุด
 function bindSheetSwipe() {
@@ -1841,6 +1931,7 @@ async function boot() {
     // 2) ดึงหมวด + รายการเดือนนี้ในครั้งเดียว
     const r = await (early || api('GET', 'boot', monthRange(ym))).catch(e => (e.message === 'unauthorized' ? api('GET', 'boot', monthRange(ym)) : Promise.reject(e)));
     applyProfile(r.profile); store.set('profile', r.profile);
+    state.isAdmin = !!r.isAdmin; syncAnnBtn();
     const wasUs = isUs();
     setCouple(r.couple);
     if (params.get('scope') === 'us' && state.couple) state.scope = 'us';
@@ -1903,7 +1994,7 @@ function demoApi(method, action, body) {
     const partner = () => db.entries.filter((e, i) => i % 3 === 0).map((e, i) => ({ ...e, id: '~' + i, owner: 'partner', amount: Math.round(e.amount * 0.8), note: e.type === 'income' ? 'ขายของ' : e.note, category: e.type === 'income' ? '~income|ขายของออนไลน์' : e.category }));
     const usList = b => [...inRange(b).map(e => ({ ...e, owner: 'me' })), ...partner().filter(e => e.date >= b.from && e.date <= b.to)].sort((a, c) => c.date.localeCompare(a.date) || c.ts - a.ts);
     const extraCats = [{ id: '~income|ขายของออนไลน์', name: 'ขายของออนไลน์', icon: '🛒', type: 'income' }];
-    if (action === 'boot') return wait({ profile: profile(), entries: inRange(body), couple: params.has('couple') && !db.unpaired ? { name: 'มิ้นท์ 🌸', pic: '', since: Date.now() - 12 * 86400e3 } : null });
+    if (action === 'boot') return wait({ isAdmin: params.has('admin'), profile: profile(), entries: inRange(body), couple: params.has('couple') && !db.unpaired ? { name: 'มิ้นท์ 🌸', pic: '', since: Date.now() - 12 * 86400e3 } : null });
     if (action === 'coupleEntries') return wait({ entries: usList(body), extraCats });
     if (action === 'coupleYear') return wait({ extraCats, months: Array.from({ length: 12 }, (_, m) => {
       const ym = `${body.year}-${String(m + 1).padStart(2, '0')}`, inc = {}, exp = {};

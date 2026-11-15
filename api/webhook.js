@@ -10,7 +10,7 @@ import {
   editListMessage, editEntryMessage, editCategoryMessage, withQuick, stuckMessage,
   consentMessage, fullMessage, wipeAskMessage, legacyNoticeMessage, adminLinkMessage, slipMessage, slipFallbackMessage, todayNet,
   pairIntroMessage, pairCodeMessage, pairAskJoinMessage, pairNotifyOwnerMessage, pairDoneMessage, coupleStatusMessage,
-  unpairAskMessage, unpairedMessage, coupleSummaryMessage, notUnderstoodMessage, teachPickMessage, checkAssets,
+  unpairAskMessage, unpairedMessage, coupleSummaryMessage, notUnderstoodMessage, teachPickMessage, checkAssets, announcePreviewMessage,
 } from '../lib/messages.js';
 import {
   createInvite, cancelInvites, codeTurn, findInvite, joinPair, inviteLeft, rememberCode, forgetCode, getCouple, unpair,
@@ -19,6 +19,7 @@ import {
 import { gate, joinWaitlist, setConsent, clearLegacyNotice, deleteUserData, isAdmin, POLICY_VERSION } from '../lib/access.js';
 import { isUndo, isEdit, isWipe, isHelp, cleanTarget, isPair, pairCode, isUnpair, isCancelCode, isOurs } from '../lib/intents.js';
 import { tooMany } from '../lib/guard.js';
+import { quotaInfo, sendAll, saveDraft, takeDraft, dropDraft } from '../lib/broadcast.js';
 import { slipReady, slipTurn, geminiTurn, fetchImage, readSlip, probeModels } from '../lib/slip.js';
 import {
   getProfile, saveProfile, addEntries, updateEntry, recentEntries, getEntry, setEdit, getEdit, clearEdit,
@@ -98,12 +99,20 @@ async function handle(ev) {
   prefix.set(t, pre);
 
   // ---- ไอดีของฉัน (เจ้าของระบบเอาไปใส่ ADMIN_UID ใน Vercel) / หลังบ้าน ----
-  if (/^(ไอดีของฉัน|ไอดี|id|my ?id|id ?ของฉัน)$/i.test(msg)) {
+  if (/^(ไอดีของฉัน|ไอดี|id|my ?id|id ?ของฉัน|\/myid)$/i.test(msg)) {
     return reply(t, [noteCard('🪪', 'ไอดีของคุณ', isAdmin(uid) ? '👑 คุณคือเจ้าของระบบ' : 'กดค้างที่ข้อความถัดไปเพื่อคัดลอก'), text(uid)]);
   }
   if (/^เช็ค\s*ai$/i.test(msg) && isAdmin(uid)) {
     if (!slipReady()) return reply(t, text('ยังไม่ได้ใส่ GEMINI_API_KEY'));
     return reply(t, text(('🤖 ผลเช็ค AI\n' + ((await probeModels()).join('\n') || 'ไม่พบรุ่นที่ใช้ได้')).slice(0, 4500)));
+  }
+  // 📣 /ประกาศ <ข้อความ> (เจ้าของระบบเท่านั้น) → การ์ดพรีวิว → กดยืนยันถึงจะส่งจริง
+  const ann = isAdmin(uid) && msg.match(/^\/ประกาศ\s+([\s\S]+)$/);
+  if (ann) {
+    try {
+      const d = await saveDraft(uid, ann[1]);
+      return reply(t, announcePreviewMessage(d.text, await quotaInfo(), d.id));
+    } catch (e) { return reply(t, noteCard('📣', 'ประกาศไม่ได้', /[ก-๙]/.test(e.message) ? e.message : 'ลองใหม่อีกครั้ง')); }
   }
   if (/^(หลังบ้าน|แอดมิน|admin)$/i.test(msg) && isAdmin(uid)) {
     return reply(t, adminLinkMessage());
@@ -647,6 +656,18 @@ async function onPostback(uid, ev) {
     const days = [...new Set(items.map(i => i.date))];
     const saved = savedMessage(items.length, days.length > 1 ? 'หลายวัน' : thaiDate(days[0]), mine.length ? net : null);
     return reply(ev.replyToken, saved);
+  }
+
+  // 📣 ปุ่มจากการ์ดพรีวิวประกาศ (ตรวจแอดมินซ้ำทุกครั้ง)
+  if (a === 'annok' || a === 'annno') {
+    if (!isAdmin(uid)) return reply(ev.replyToken, noteCard('🔒', 'เฉพาะเจ้าของระบบ'));
+    if (a === 'annno') { later(dropDraft(uid)); return reply(ev.replyToken, noteCard('✖️', 'ยกเลิกประกาศแล้ว')); }
+    const text = await takeDraft(uid, String(p.get('id') || ''));
+    if (!text) return reply(ev.replyToken, noteCard('⌛', 'ประกาศนี้หมดอายุหรือส่งไปแล้ว', 'พิมพ์ /ประกาศ ใหม่ได้เลย'));
+    try {
+      const r = await sendAll(uid, text);
+      return reply(ev.replyToken, noteCard('📣', `ส่งประกาศถึง ${r.sent} คนแล้ว`, r.left != null ? `โควตาเดือนนี้เหลือ ${r.left}` : undefined));
+    } catch (e) { return reply(ev.replyToken, noteCard('⚠️', 'ส่งไม่สำเร็จ', /[ก-๙]/.test(e.message) ? e.message : 'ลองใหม่อีกครั้ง')); }
   }
 
   if (['pair1', 'pairx', 'pairok', 'pairundo', 'paircancel', 'unpair2', 'unpairno'].includes(a)) return onPairPostback(uid, ev, a, p);

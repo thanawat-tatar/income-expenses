@@ -67,7 +67,7 @@ test('แต่ละช่วงมีวันของตัวเอง', ()
 
 test('คำที่ไม่มีจำนวนเงินถูกเตือน', () => {
   const r = parseMessage('จ่ายค่าปรับไป1,000จ่ายค่ารด.ของในวันศุกร์นี้ทอนเงินลูกค้าผิด389บาท', cats, [], T);
-  assert.equal(r.orphans[0].text, 'จ่ายค่ารด');
+  assert.equal(r.orphans[0].text, 'ค่ารด');
   assert.equal(r.items[1].note, 'ทอนเงินลูกค้าผิด');
 });
 
@@ -75,4 +75,43 @@ test('คำที่ผู้ใช้สอนไว้ใช้ได้', ()
   const custom = mergeCategories([{ id: 'c_cut', name: 'ค่าตัดผม', type: 'expense', icon: '💇' }]);
   const r = parseMessage('น้ำท่อม 60', custom, [{ word: 'น้ำท่อม', category: 'c_cut' }], T);
   assert.equal(r.items[0].category, 'c_cut');
+});
+
+// ---------- ตัวแยกคำรอบ xmas5: ชื่อรายการเต็ม · ไม่ถามสอนซ้ำเมื่อรู้จักคำแล้ว ----------
+const one = t => parseMessage(t, cats, [], T).items[0];
+test('ดื่มน้ำไป 15 บาท → ชื่อ "ดื่มน้ำ" กินดื่ม ไม่มีคำให้ถามสอน', () => {
+  const it = one('ดื่มน้ำไป 15 บาท');
+  assert.deepEqual([it.note, it.category, it.amount, it.sure, it.word, it.guess], ['ดื่มน้ำ', 'food', 15, true, '', '']);
+});
+test('ตัดคำฟุ่มเฟือยหัวท้าย แต่ไม่ตัดคำนามหลัก', () => {
+  assert.equal(one('ซื้อกาแฟมา 60').note, 'กาแฟ');
+  assert.equal(one('เติมน้ำมัน 500.-').note, 'เติมน้ำมัน');
+  assert.equal(one('เติมน้ำมัน 500.-').amount, 500);
+  assert.equal(one('จ่ายค่าไฟไปแล้ว 1200').note, 'ค่าไฟ');
+  assert.equal(one('จ่ายค่าไฟไปแล้ว 1200').category, 'rent');
+  assert.equal(one('ซื้อของใช้ 150').note, 'ซื้อของใช้');
+});
+test('คำเดียวกันหลายความหมาย: คำประสมยาวชนะคำสั้น', () => {
+  const m = { 'ค่าน้ำ 150': 'rent', 'น้ำยาล้างจาน 35': 'shopping', 'ค่าน้ำมัน 300': 'travel', 'น้ำ 10': 'food', 'ซื้อน้ำเปล่า 10': 'food', 'น้ำยาซักผ้า 80': 'shopping' };
+  for (const [t, c] of Object.entries(m)) assert.equal(one(t).category, c, t);
+});
+test('ไม่ส่งคำถามสอนเมื่อรู้จักคำแล้ว (เดาเป็นอื่นๆ เท่านั้นถึงถาม)', () => {
+  for (const t of ['ดื่มกาแฟ 50', 'ใส่น้ำมัน 200', 'ดื่มน้ำไป 15', 'ตัดผม 100', 'ซื้อเสื้อผ้า 300']) {
+    const it = one(t);
+    assert.equal(it.sure, true, t); assert.equal(it.word, '', t); assert.equal(it.guess, '', t);
+  }
+  const unk = one('ซื้อสมูทตี้กระชาย 70');
+  assert.equal(!!unk.word || unk.sure, true);
+});
+test('รายรับถูกตรวจจับอัตโนมัติ', () => {
+  for (const t of ['เงินเดือน 15000', 'พ่อให้ 500', 'แม่ให้ 300', 'แฟนให้ 200', 'ดอกเบี้ย 12', 'ปันผล 400', 'ถูกรางวัล 1000', 'โอนคืน 90', 'ได้เงินคืน 50', 'กำไร 700']) {
+    const it = one(t);
+    assert.equal(it.type, 'income', t); assert.equal(it.sure, true, t);
+  }
+  assert.equal(one('ให้แม่ 500').type, 'expense'); // "ให้แม่" = จ่ายออก
+});
+test('คำใหม่ลงหมวดเดิมที่มีจริง (ไม่มีหมวดสร้างใหม่)', () => {
+  const ids = new Set(cats.map(c => c.id));
+  for (const t of ['ดูหนัง 200', 'ซื้อเกม 300', 'เที่ยว 500', 'ตั๋วหนัง 220', 'สบู่ 40', 'ถุงขยะ 30', 'ค่าไฟฟ้า 900', 'อีซี่พาส 100', 'วิตามิน 250', 'ลาเต้ 60']) assert.ok(ids.has(one(t).category) && one(t).sure, t);
+  assert.equal(cats.length, 11);
 });

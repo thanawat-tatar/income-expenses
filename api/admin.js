@@ -4,6 +4,7 @@ import { authUser } from '../lib/line.js';
 import { isAdmin, adminOverview, setLimit, deleteUserData, removeExpired } from '../lib/access.js';
 import { getDb } from '../lib/firebase.js';
 import { tooMany, readJson } from '../lib/guard.js';
+import { quotaInfo, sendAll, sendTest, MAX_TEXT } from '../lib/broadcast.js';
 
 // บันทึกประวัติทุกการกระทำในหลังบ้าน (ใคร ทำอะไร เมื่อไหร่)
 const audit = (by, action, detail) => getDb().collection('audit').add({ at: Date.now(), by, action, detail: String(detail ?? '') }).catch(e => console.error('audit', e));
@@ -30,7 +31,7 @@ export async function POST(request) {
   const { err, user } = await admin(request);
   if (err) return err;
   try {
-    const b = await readJson(request, 2000);
+    const b = await readJson(request, MAX_TEXT * 3 + 200);
     if (!b) return json({ error: 'bad request' }, 400);
     if (b.action === 'limit') { const limit = await setLimit(b.limit); await audit(user.uid, 'limit', limit); return json({ limit }); }
     if (b.action === 'delete') {
@@ -39,6 +40,13 @@ export async function POST(request) {
       await audit(user.uid, 'delete', id);
       await deleteUserData(id);
       return json({ ok: true });
+    }
+    // 📣 ประกาศ: ตรวจแอดมินแล้วด้านบน (ไม่ใช่แอดมิน = 403 ก่อนถึงตรงนี้)
+    if (b.action === 'quota') return json(await quotaInfo());
+    if (b.action === 'send' || b.action === 'test') {
+      const r = b.action === 'send' ? await sendAll(user.uid, b.text) : await sendTest(user.uid, b.text);
+      await audit(user.uid, 'broadcast-' + b.action, r.sent);
+      return json(r);
     }
     if (b.action === 'cleanup') { const removed = await removeExpired(50); await audit(user.uid, 'cleanup', removed); return json({ removed }); }
     return json({ error: 'unknown action' }, 400);

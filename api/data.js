@@ -7,7 +7,7 @@ import {
   getProfile, saveProfile, savePic, isLinePic, addEntries, updateEntry, deleteEntries, listEntries, yearSummary, compactOld, keepFrom,
 } from '../lib/store.js';
 import { listDebts, addDebt, moveDebt, deleteDebt, cleanAmount } from '../lib/debts.js';
-import { gate, POLICY_VERSION } from '../lib/access.js';
+import { gate, POLICY_VERSION, isAdmin } from '../lib/access.js';
 import { runCtx, later } from '../lib/ctx.js';
 import { tooMany, tooBig, readJson, validId } from '../lib/guard.js';
 
@@ -66,7 +66,7 @@ async function get(request) {
       });
       const [profile, entries, [couple, us]] = await Promise.all([getProfile(user.uid), minePromise, couplePromise]);
       later(compactOld(user.uid, bkkDate())); // รวมข้อมูลเก่า เดือนละครั้ง (ทำหลังตอบ)
-      return json({ profile: { ...profile, name: user.name }, entries, couple, us, keepFrom: keepFrom(), session: makeSession(user) });
+      return json({ profile: { ...profile, name: user.name }, entries, couple, us, keepFrom: keepFrom(), session: makeSession(user), ...(isAdmin(user.uid) ? { isAdmin: true } : {}) }); // เซิร์ฟเวอร์บอกเองว่าเป็นแอดมินไหม (ไม่ส่ง ADMIN_UID ไปเบราว์เซอร์)
     }
     if (action === 'entries') {
       const from = url.searchParams.get('from'), to = url.searchParams.get('to');

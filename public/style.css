@@ -951,3 +951,40 @@ body.calm #space .bulb { animation: none; }
   animation: sleighUp 1.4s cubic-bezier(.4, 0, .2, 1) forwards; }
 @keyframes sleighUp { 0% { transform: translate3d(-160px, 40px, 0) rotate(-10deg) scale(.8); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate3d(calc(100vw + 40px), -60vh, 0) rotate(-20deg) scale(1); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .gift-fx, .foil-fx, .sleigh-fx { display: none; } }
+
+/* 👑 ประกาศ (เจ้าของระบบ): ปุ่มทองข้างปุ่มเทศกาล · หน้าต่างทึบไล่เฉดดำน้ำเงิน #070B14→#0F172A + ฟิล์มมืด (ไม่ใช้ blur / drop-shadow · ไม่มีอะไรขยับ) */
+.ann-btn { height: 32px; padding: 0 10px; border-radius: 999px; font-size: 12px; flex: none; font-weight: 700; white-space: nowrap; color: #5B3A00;
+  background: linear-gradient(135deg, #FFF3B0, #FACC15 55%, #D4A017); box-shadow: inset 0 0 0 1px rgba(161, 98, 7, .5), 0 2px 6px rgba(161, 98, 7, .3); }
+.ann-btn:active { transform: scale(.95); }
+.sheet.ann { background: linear-gradient(180deg, #070B14 0%, #0F172A 100%) !important; color: #E2E8F0;
+  box-shadow: inset 0 3px 0 #B91C1C, inset 0 4px 0 #FACC15, inset 0 6px 0 #15803D, 0 -18px 40px -10px rgba(0, 0, 0, .6) !important; }
+.sheet-bg.ann { background: rgba(2, 6, 15, .85) !important; }
+.sheet.ann h2, .sheet.ann .label { color: #F1F5F9; }
+.sheet.ann .label { opacity: .8; }
+.ann-quota { padding: 12px 14px; border-radius: 14px; background: #111C33; box-shadow: inset 0 0 0 1px rgba(250, 204, 21, .25); font-size: 14px; }
+.ann-quota b { color: #FACC15; }
+.ann-bar { height: 8px; margin: 8px 0 6px; border-radius: 4px; background: #1E293B; overflow: hidden; }
+.ann-bar i { display: block; height: 100%; width: 100%; transform-origin: 0 50%; transform: scaleX(0); border-radius: 4px; background: linear-gradient(90deg, #15803D, #FACC15 70%, #DC2626); transition: transform .5s var(--ease); }
+.ann-dim { color: #94A3B8; font-size: 12px; } .ann-warn { color: #FCA5A5; }
+.ann-ta { width: 100%; min-height: 112px; padding: 12px 14px; border-radius: 14px; resize: none; font: inherit; font-size: 16px; line-height: 1.5; color: #F8FAFC;
+  background: #0B1426; border: 1px solid #334155; outline: none; }
+.ann-ta:focus { border-color: #FACC15; }
+.ann-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+.ann-tpls { display: flex; gap: 6px; flex-wrap: wrap; }
+.ann-tpl { padding: 6px 10px; border-radius: 999px; font-size: 12px; color: #FDE68A; background: #1E293B; box-shadow: inset 0 0 0 1px rgba(250, 204, 21, .35); }
+.ann-tpl:active { transform: scale(.95); }
+.ann-chat { padding: 14px; border-radius: 14px; background: #0B1426; }
+.ann-bubble { display: inline-block; max-width: 86%; padding: 10px 14px; border-radius: 4px 18px 18px 18px; background: #FFFFFF; color: #0F172A; font-size: 15px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ann-bubble .ann-dim { color: #64748B; }
+.ann-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.ann-send, .ann-test { flex: 1 1 150px; min-height: 48px; padding: 8px 14px; border-radius: 14px; font-size: 14px; font-weight: 700; line-height: 1.3; }
+.ann-send { color: #fff; background: #B91C1C; box-shadow: inset 0 0 0 1px rgba(254, 202, 202, .35), 0 3px 0 #7F1D1D; }
+.ann-send.armed { background: #DC2626; box-shadow: inset 0 0 0 2px #FACC15, 0 3px 0 #7F1D1D; }
+.ann-test { color: #FDE68A; background: #1E293B; box-shadow: inset 0 0 0 1px rgba(250, 204, 21, .45); }
+.ann-send:active, .ann-test:active { transform: scale(.97); }
+.ann-send:disabled, .ann-test:disabled { opacity: .55; }
+.ann-close { width: 100%; margin-top: 10px; color: #CBD5E1; }
+.sheet.ann [data-close] { color: #CBD5E1; background: transparent; }
+@media (prefers-reduced-motion: reduce) { .ann-bar i { transition: none; } }
+/* แอดมิน: ขยับพวงมาลัยไปทางซ้าย ไม่ให้ทับปุ่ม 👑 ประกาศ (ทับแล้วแตะปุ่มไม่ได้) */
+body.is-admin .rope { left: 38%; }
