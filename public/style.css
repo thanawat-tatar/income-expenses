@@ -1000,10 +1000,10 @@ body.calm #space .bulb { animation: none; }
 /* 🎅 ซานต้าตัวใหญ่ยิ้มกว้าง ครึ่งตัว เกาะขอบบนการ์ดยอด (ตัวเมนหลัก · แตะแล้วทัก · ลากได้) */
 .hero-wrap:not(.us) { margin-top: 132px; }
 .hero-wrap:not(.us).small { margin-top: 92px; }
-.hero-wrap:not(.us) .peek-body { z-index: 2; right: 4px; top: -111px; }
-.hero-wrap:not(.us) .peek-body.small { top: -78px; }
-.m-hug { height: 118px !important; width: auto; aspect-ratio: 220 / 176 !important; }
-.peek-body.small .m-hug { height: 84px !important; }
+.hero-wrap:not(.us) .peek-body { z-index: 2; right: 4px; top: -116px; }
+.hero-wrap:not(.us) .peek-body.small { top: -82px; }
+.m-hug { height: 123px !important; width: auto; aspect-ratio: 220 / 184 !important; }
+.peek-body.small .m-hug { height: 88px !important; }
 .peek-body .m-hug { animation: hugSway 4.2s ease-in-out infinite; transform-origin: 50% 96%; }
 .peek-body.boing .m-hug { animation: boing .7s var(--ease); }
 @keyframes hugSway { 0%, 100% { transform: rotate(-1.4deg) translateY(0); } 50% { transform: rotate(1.4deg) translateY(-2px); } }
@@ -1025,3 +1025,7 @@ body.calm #space .bulb { animation: none; }
 /* หัวเรื่องหน้าหลังบ้าน: ฟอร์มประกาศอยู่ในหน้าเลย */
 .ann-card { background: linear-gradient(180deg, #070B14, #0F172A) !important; color: #E2E8F0; }
 .ann-card .label, .ann-card h3 { color: #F8FAFC; }
+
+/* 🎁 ของตกแต่งข้างซานต้า: กองของขวัญ ลูกอมไม้เท้า ใบฮอลลี่ ตั้งบนขอบการ์ดฝั่งซ้าย */
+.hero-deco { position: absolute; left: 2px; top: -76px; width: 108px; height: auto; z-index: 2; pointer-events: none; transform-origin: 50% 100%; animation: peekIn .9s var(--ease) .2s both; }
+body.calm .hero-deco { animation: none; }

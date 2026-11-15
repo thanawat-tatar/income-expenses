@@ -44,7 +44,7 @@ const LIFF_SDK = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
 const ICON_TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>';
 
 // ---------- ซานต้า & ซานต้าคริสต์มาส (SVG พื้นใสใน public/assets/ · วาดเองทั้งหมด) ----------
-const ASSET = { rope: 'xmas-wreath.svg?v=2', peek: 'xmas-gifts.svg?v=2', hug: 'xmas-santa-hug.svg?v=1', snow: 'xmas-gifts.svg?v=2', avatar: 'xmas-avatar.svg?v=3', couple: 'xmas-couple.svg?v=3' };
+const ASSET = { rope: 'xmas-wreath.svg?v=2', peek: 'xmas-gifts.svg?v=2', hug: 'xmas-santa-hug.svg?v=2', snow: 'xmas-gifts.svg?v=2', avatar: 'xmas-avatar.svg?v=3', couple: 'xmas-couple.svg?v=3' };
 const assetUrl = kind => `/assets/${ASSET[kind]}`;
 // 🛡️ เอฟเฟกต์ทุกตัววิ่งในกล่องกันพัง: เอฟเฟกต์พลาดแค่ไหน การจด/แก้/ลบ/ซิงก์ก็ไม่ค้าง
 const fx = f => function guarded(...a) { try { return f.apply(this, a); } catch (e) { console.warn('effect skipped:', e?.message); } };
@@ -980,7 +980,7 @@ function homeHTML(d) {
   const mood = zero ? (us ? 'wink' : 'angry') : profit ? 'happy' : 'sad';
   const mascots = us ? loversHTML() : mascotPeek(mood);
   const label = us ? `${esc(periodWord())}ของเรา 💕` : esc(periodWord());
-  const sky = funOn() ? `<div class="sky-lane"><img src="/assets/xmas-santa-sleigh.svg?v=2" alt="" draggable="false"></div>` : '';
+  const sky = funOn() ? `<div class="sky-lane"><img src="/assets/xmas-santa-sleigh.svg?v=2" alt="" draggable="false"></div>${us ? '' : '<img class="hero-deco" src="/assets/xmas-hero-deco.svg?v=1" alt="" draggable="false">'}` : '';
   const hero = `<div class="hero-wrap ${us ? 'us' : ''}">${sky}${mascots}<i class="hero-shadow"></i><div class="card hero tilt ${us ? 'love' : ''} ${zero ? '' : profit ? 'profit' : 'loss'}">
     <i class="spark s1">❄</i><i class="spark s2">✦</i><i class="spark s3">❄</i><i class="glare"></i><i class="spec"></i>
     <div class="hero-top"><span class="hero-label">${label} ${streak}</span><span class="badge">${zero ? '—' : profit ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
