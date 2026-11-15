@@ -735,9 +735,6 @@ body.calm .hero > .spec::before { translate: -35% 0; }
 .rope-body { display: block; padding-top: 0; position: relative; }
 .rope.held .rope-arm { cursor: grabbing; }
 .rope-arm.snap { transition: transform .55s cubic-bezier(.34, 1.56, .64, 1); }
-.rope.ready .rope-body { animation: wiggle .3s ease-in-out infinite; }
-.rope.spin .rope-body { animation: ropeSpin .65s cubic-bezier(.22, 1, .36, 1); }
-@keyframes ropeSpin { to { transform: rotate(180deg); } }
 .rope-body @media (prefers-reduced-motion: reduce) { .rope { display: none; } }
 body.calm .rope { display: none; }
 .corner-mascot { width: 64px; margin: -44px -6px 0 0; }
@@ -757,10 +754,6 @@ body.calm button:active, body.calm .chip:active, body.calm .entry:active { scale
 
 /* Apple-style scroll: การ์ดยอดเอียง 3D ตอนเลื่อน (คิดเฉพาะช่วงบน) · ลูกเจี๊ยบเกาะการ์ดเยื้อง+เอียงรับแรงเฉื่อยแล้วเด้งกลับ */
 .peek-body { transition: rotate .55s cubic-bezier(.34, 1.56, .64, 1); transform-origin: 50% 100%; }
-/* ดึงเชือก: ลูกเจี๊ยบดิ้นกระพือเบาๆ ระหว่างลาก · ปล่อยแล้วดีดสปริง */
-.rope.held .rope-body { animation: flap .16s ease-in-out infinite alternate; transform-origin: 50% 20%; }
-@keyframes flap { from { rotate: -3deg; scale: 1.02 .98; } to { rotate: 3deg; scale: .98 1.02; } }
-@media (prefers-reduced-motion: reduce) { .rope.held .rope-body { animation: none; } }
 
 /* ================= 🎄 Grand Festive Christmas ================= */
 html { background: #7F1D1D; }
@@ -826,8 +819,22 @@ body.us .star-fx { color: #F43F5E; }
 body.calm #themeBtn { box-shadow: 0 0 0 1px rgba(255, 255, 255, .6) !important; }
 /* พวงมาลัยห้อยริบบิ้นแดง · แตะ = สั่น + หิมะ */
 .rope-line { bottom: calc(100% - 6px) !important; background: linear-gradient(90deg, #7F1D1D, #DC2626 50%, #7F1D1D) !important; width: 4px !important; margin-left: -2px !important; }
-.rope.ring .rope-body { animation: bellRing .85s cubic-bezier(.36, .07, .19, .97); transform-origin: 50% 0; }
-@keyframes bellRing { 15% { rotate: 14deg; } 30% { rotate: -11deg; } 45% { rotate: 8deg; } 60% { rotate: -5deg; } 75% { rotate: 2deg; } 100% { rotate: 0deg; } }
+.rope-bell { position: absolute; left: 30.714%; top: 54.118%; width: 38.571%; height: auto; transform-origin: 50% 10%; /* จุดยึดห่วงบนสุด = ลูกตุ้ม */ will-change: transform; pointer-events: none; }
+.rope.ready .rope-bell { transform: rotate(6deg); transition: transform .2s ease-out; }
+.rope.bell-swing .rope-bell { animation: bellPendulum .75s cubic-bezier(.36, .07, .19, .97); }
+@keyframes bellPendulum { 0% { transform: rotate(18deg); } 25% { transform: rotate(-14deg); } 50% { transform: rotate(9deg); } 75% { transform: rotate(-4deg); } 100% { transform: rotate(0deg); } }
+/* ซิงก์จริง: วงชัมเปญทองเต้นที่กระดิ่ง + ไฟ 3 ดวงใต้พวงมาลัย (transform/opacity เท่านั้น) */
+.rope-pulse { position: absolute; left: 41%; top: 58%; width: 18%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(247, 231, 190, .85), rgba(212, 175, 55, 0) 70%); opacity: 0; pointer-events: none; transform: scale3d(.6, .6, 1); }
+.rope.syncing .rope-pulse { animation: ropePulse 1.1s ease-in-out infinite; }
+@keyframes ropePulse { 0% { opacity: .85; transform: scale3d(.6, .6, 1); } 100% { opacity: 0; transform: scale3d(2.6, 2.6, 1); } }
+.rope-lights { position: absolute; left: 50%; top: 100%; display: flex; gap: 7px; margin: 2px 0 0 -16px; opacity: 0; transition: opacity .35s; pointer-events: none; }
+.rope.syncing .rope-lights { opacity: 1; }
+.rope-lights i { width: 6px; height: 6px; border-radius: 50%; background: #F7E7BE; opacity: .25; }
+.rope.syncing .rope-lights i { animation: ropeBlink .9s ease-in-out infinite; }
+.rope.syncing .rope-lights i:nth-child(2) { animation-delay: .3s; }
+.rope.syncing .rope-lights i:nth-child(3) { animation-delay: .6s; }
+@keyframes ropeBlink { 0%, 100% { opacity: .2; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .rope-bell, .rope-pulse, .rope-lights i { animation: none !important; } }
 
 .twink { color: #FFFFFF !important; text-shadow: 0 0 6px #93C5FD; }
 
@@ -1042,18 +1049,19 @@ body.calm .hero-deco { animation: none; }
   transition: opacity .42s cubic-bezier(.22, 1, .36, 1), transform .42s cubic-bezier(.22, 1, .36, 1); will-change: opacity, transform; }
 #holiday-magic-intro.out { opacity: 0; transform: scale(1.05); pointer-events: none; }
 #intro-stardust-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-#holiday-magic-intro .intro-stage { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding-bottom: 5vh; text-align: center; }
+#holiday-magic-intro .intro-stage { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; gap: 4px; padding-bottom: 5vh; text-align: center; }
 #holiday-magic-intro .intro-crest { width: min(82vw, 340px); height: auto; overflow: visible; stroke: none; fill: none; }
 #holiday-magic-intro .intro-arc { stroke-dasharray: 1; stroke-dashoffset: 1; animation: introDraw 1.2s cubic-bezier(.4, 0, .2, 1) .4s forwards; }
 #holiday-magic-intro .intro-arc.a2 { animation-delay: .55s; }
 @keyframes introDraw { to { stroke-dashoffset: 0; } }
 #holiday-magic-intro .intro-star { opacity: 0; animation: introFade .5s ease-out var(--d) forwards; }
 #holiday-magic-intro .intro-sil { opacity: 0; animation: introFade .8s ease-out .9s forwards; }
-#holiday-magic-intro .intro-title { position: relative; overflow: hidden; padding: 2px 14px; font: 700 clamp(30px, 9.4vw, 42px)/1.25 "Mali", var(--font); color: #FFF8E7; letter-spacing: .4px;
-  text-shadow: 0 2px 0 #B7791F, 0 0 18px rgba(250, 204, 21, .35); opacity: 0; transform: translate3d(0, 10px, 0); animation: introUp .8s ease-out .8s forwards; }
-#holiday-magic-intro .intro-title::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 42%; transform: translate3d(-130%, 0, 0);
-  background: radial-gradient(ellipse at center, rgba(254, 240, 138, .9) 0%, rgba(254, 240, 138, .4) 42%, rgba(254, 240, 138, 0) 72%); mix-blend-mode: screen; animation: introSweep .9s ease-in-out 1.05s forwards; }
-@keyframes introSweep { to { transform: translate3d(330%, 0, 0); } }
+#holiday-magic-intro .intro-title { position: relative; padding: 2px 14px; font: 700 clamp(30px, 9.4vw, 42px)/1.25 "Mali", var(--font); letter-spacing: .4px; color: transparent;
+  background: linear-gradient(100deg, #FFF8E7 0%, #FFF8E7 38%, #FDE68A 46%, #FFFFFF 50%, #FDE68A 54%, #FFF8E7 62%, #FFF8E7 100%) 100% 0 / 280% 100% no-repeat;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  opacity: 0; transform: translate3d(0, 10px, 0); animation: introUp .8s ease-out .8s forwards, introSweep .95s ease-in-out 1.05s forwards; }
+#holiday-magic-intro .intro-stage::before { content: ""; position: absolute; left: -10%; right: -10%; top: 52%; height: 34%; z-index: -1; background: radial-gradient(ellipse at center, rgba(250, 204, 21, .16), rgba(250, 204, 21, 0) 70%); pointer-events: none; }
+@keyframes introSweep { to { background-position: 0 0; } }
 #holiday-magic-intro .intro-greet { font-size: 15px; color: #FDE68A; opacity: 0; transform: translate3d(0, 14px, 0); animation: introUp .8s ease-out 1.3s forwards; }
 #holiday-magic-intro .intro-skip { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom) + 22px); text-align: center; font-size: 12px; color: rgba(226, 232, 240, .5); opacity: 0; animation: introFade .6s ease 0.7s forwards; }
 @keyframes introUp { to { opacity: 1; transform: translate3d(0, 0, 0); } }

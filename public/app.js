@@ -48,7 +48,7 @@ const LIFF_SDK = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
 const ICON_TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>';
 
 // ---------- ซานต้า & ซานต้าคริสต์มาส (SVG พื้นใสใน public/assets/ · วาดเองทั้งหมด) ----------
-const ASSET = { rope: 'xmas-wreath.svg?v=2', peek: 'xmas-gifts.svg?v=2', hug: 'xmas-santa-hug.svg?v=2', snow: 'xmas-gifts.svg?v=2', avatar: 'xmas-avatar.svg?v=3', couple: 'xmas-couple.svg?v=3' };
+const ASSET = { rope: 'xmas-wreath.svg?v=3', peek: 'xmas-gifts.svg?v=2', hug: 'xmas-santa-hug.svg?v=2', snow: 'xmas-gifts.svg?v=2', avatar: 'xmas-avatar.svg?v=3', couple: 'xmas-couple.svg?v=3' };
 const assetUrl = kind => `/assets/${ASSET[kind]}`;
 // 🛡️ เอฟเฟกต์ทุกตัววิ่งในกล่องกันพัง: เอฟเฟกต์พลาดแค่ไหน การจด/แก้/ลบ/ซิงก์ก็ไม่ค้าง
 const fx = f => function guarded(...a) { try { return f.apply(this, a); } catch (e) { console.warn('effect skipped:', e?.message); } };
@@ -261,10 +261,11 @@ const ROPE_QUIPS = ['โฮ่ โฮ่ โฮ่! 🎅', 'Merry Christmas! �
 function _bindRope() {
   const el = document.createElement('div');
   el.className = 'rope'; el.setAttribute('aria-hidden', 'true');
-  el.innerHTML = `<div class="rope-arm"><i class="rope-line"></i><span class="rope-body">${mascot('rope')}</span></div>`;
+  el.innerHTML = `<div class="rope-arm"><i class="rope-line"></i><span class="rope-body">${mascot('rope')}<img class="rope-bell" src="/assets/xmas-bell.svg?v=1" alt="" draggable="false"><i class="rope-pulse"></i></span><span class="rope-lights"><i></i><i></i><i></i></span></div>`;
   document.body.appendChild(el);
   const arm = el.querySelector('.rope-arm');
   const NEED = 90;
+  const swing = () => { try { el.classList.remove('bell-swing'); void el.offsetWidth; el.classList.add('bell-swing'); setTimeout(() => el.classList.remove('bell-swing'), 800); } catch { /* เงียบ */ } };
   let ang = 0, vel = 0, raf = 0, lastY = scrollY, drag = null, pull = 0;
   const show = () => { el.hidden = !funOn() || ['settings', 'debts', 'admin'].includes(state.page); };
   const paint = () => { arm.style.transform = `translate3d(0, ${pull.toFixed(1)}px, 0) rotate(${ang.toFixed(2)}deg)`; };
@@ -286,7 +287,7 @@ function _bindRope() {
     if (el.hidden) return;
     e.preventDefault();
     arm.setPointerCapture(e.pointerId);
-    drag = { y0: e.clientY, moved: false }; el.classList.add('held'); el.classList.remove('spin');
+    drag = { y0: e.clientY, x0: e.clientX, moved: false }; el.classList.add('held'); ang = vel = 0;
   });
   arm.addEventListener('pointermove', e => {
     if (!drag) return;
@@ -294,6 +295,7 @@ function _bindRope() {
     const d = Math.max(0, e.clientY - drag.y0);
     if (d > 4) drag.moved = true;
     pull = d < NEED ? d * .7 : NEED * .7 + (d - NEED) * .2; // ยิ่งดึงยิ่งหนืด
+    ang = Math.max(-4, Math.min(4, (e.clientX - drag.x0) * .06)); // เอียงสูงสุด ±4°
     el.classList.toggle('ready', d >= NEED);
     paint();
   });
@@ -301,16 +303,17 @@ function _bindRope() {
     if (!drag) return;
     const { moved } = drag, go = el.classList.contains('ready');
     drag = null; el.classList.remove('held', 'ready');
-    pull = 0; arm.classList.add('snap'); paint(); setTimeout(() => arm.classList.remove('snap'), 600);
+    pull = 0; ang = 0; arm.classList.add('snap'); paint(); setTimeout(() => arm.classList.remove('snap'), 600);
     if (go) {
       navigator.vibrate?.(10);
       sfx.bell();
-      el.classList.add('spin'); setTimeout(() => el.classList.remove('spin'), 700);
+      swing();
       toast('🎅 กำลังรีเฟรช…');
-      clearCache(); render(true).then(() => toast('🎄 อัปเดตแล้ว!'));
+      el.classList.add('syncing');
+      clearCache(); render(true).then(() => toast('🎄 อัปเดตแล้ว!')).finally(() => el.classList.remove('syncing'));
     } else if (!moved) {
       kick(9 * (Math.random() < .5 ? -1 : 1));
-      el.classList.remove('ring'); void el.offsetWidth; el.classList.add('ring'); setTimeout(() => el.classList.remove('ring'), 900);
+      swing();
       sfx.bell();
       sparkle(el.querySelector('.rope-body'));
       const rb = el.querySelector('.rope-body')?.getBoundingClientRect();
