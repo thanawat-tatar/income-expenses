@@ -43,14 +43,14 @@ const EMOJIS = '🏷️ 🍼 👶 🎓 📚 🏥 💊 🐶 🐱 🎮 🎬 🎁 �
 const LIFF_SDK = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
 const ICON_TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>';
 
-// ---------- ของตกแต่ง VVIP (SVG พื้นใสใน public/assets/ · ทองโลหะ กำมะหยี่ คริสตัล · ไม่มีตัวการ์ตูน) ----------
-const ASSET = { rope: 'xmas-tether.svg?v=2', peek: 'xmas-ornament.svg?v=1', snow: 'xmas-ornament.svg?v=1', avatar: 'xmas-avatar.svg?v=2', couple: 'xmas-couple.svg?v=2' };
+// ---------- ซานต้า & ซานต้าคริสต์มาส (SVG พื้นใสใน public/assets/ · วาดเองทั้งหมด) ----------
+const ASSET = { rope: 'xmas-wreath.svg?v=1', peek: 'xmas-gifts.svg?v=1', snow: 'xmas-gifts.svg?v=1', avatar: 'xmas-avatar.svg?v=3', couple: 'xmas-couple.svg?v=3' };
 const assetUrl = kind => `/assets/${ASSET[kind]}`;
 // 🛡️ เอฟเฟกต์ทุกตัววิ่งในกล่องกันพัง: เอฟเฟกต์พลาดแค่ไหน การจด/แก้/ลบ/ซิงก์ก็ไม่ค้าง
 const fx = f => function guarded(...a) { try { return f.apply(this, a); } catch (e) { console.warn('effect skipped:', e?.message); } };
 const [handTitle, burst, confettiPop, bindSquish, bindRope, sparkle, celebrateStreak, showBubble, bindMascot, countUp, giftFx, starBurst, savedFx, tossFx, setTilt, bindHeroDepth, bindTilt, bindScrollChrome] =
   [_handTitle, _burst, _confettiPop, _bindSquish, _bindRope, _sparkle, _celebrateStreak, _showBubble, _bindMascot, _countUp, _giftFx, _starBurst, _savedFx, _tossFx, _setTilt, _bindHeroDepth, _bindTilt, _bindScrollChrome].map(fx);
-// mood: happy | sad | angry | wink | wow | sleep | avatar  (rope = กระดิ่งทอง · peek/sleep = ลูกแก้วหิมะ · avatar = ลูกบอลกำมะหยี่ · couple = แหวนคู่)
+// mood: happy | sad | angry | wink | wow | sleep | avatar  (rope = พวงมาลัยคริสต์มาส · peek/sleep = ต้นคริสต์มาส+กองของขวัญ · avatar = ซานต้า · couple = ซานต้า+ซานตี้ใต้มิสเซิลโท)
 function mascot(mood = 'happy', cls = '') {
   const kind = ASSET[mood] ? mood : mood === 'sleep' ? 'snow' : 'peek';
   return `<img class="mascot m-${kind} ${cls}" src="${assetUrl(kind)}" alt="" draggable="false" data-kind="${kind}">`;
@@ -61,22 +61,22 @@ addEventListener('error', e => {
   if (img instanceof HTMLImageElement && img.classList.contains('mascot')) img.style.visibility = 'hidden';
 }, true);
 
-// ลูกแก้วหิมะประดับมุมการ์ด (อยู่ชั้นหลัง ไม่บังตัวเลข · แตะ = คำทักทาย)
+// ต้นคริสต์มาส + กองของขวัญประดับมุมการ์ด (อยู่ชั้นหลัง ไม่บังตัวเลข · แตะ = ซานต้าทัก)
 function mascotPeek(mood, small, extra = '') {
-  return `<button class="peek-body ${small ? 'small' : ''} ${extra}" data-mood="${mood}" aria-label="ลูกแก้วหิมะ">${mascot(mood)}</button>`;
+  return `<button class="peek-body ${small ? 'small' : ''} ${extra}" data-mood="${mood}" aria-label="กองของขวัญ">${mascot(mood)}</button>`;
 }
 
-// ---------- คำทักทายพรีเมียม (ชม · ให้กำลังใจ · ชวนจดต่อ) ----------
+// ---------- คำพูดซานต้า (ชม · ให้กำลังใจ · ชวนจดต่อ) ----------
 const MASCOT_LINES = {
   // กำไร: ชม
-  happy: ['ยอดเยี่ยมครับ เดือนนี้มีกำไร ✨', 'ของขวัญที่ดีที่สุดคือเงินเก็บของคุณ 🎁', 'วินัยการเงินระดับพรีเมียมเลยครับ 🥂', 'ออมต่ออีกนิด ปีใหม่นี้สบายครับ 💫', 'จดครบทุกวัน น่าชื่นชมครับ ⭐',
-    'กำไรสวยงาม ฉลองเทศกาลได้อย่างอุ่นใจ 🎄', 'ให้รางวัลตัวเองสักชิ้นนะครับ 🍰', 'การเงินของคุณเปล่งประกายครับ ✨', 'ขอให้ปีหน้ามั่งคั่งยิ่งกว่านี้ครับ 🔔', 'Merry Christmas ครับ 🎁'],
+  happy: ['โฮ่ โฮ่ โฮ่! กำไรแล้ว ซานต้าให้ของขวัญเลย 🎁', 'ปีนี้คุณเป็นเด็กดีแน่นอน 🎅', 'เงินเก็บคือของขวัญที่ดีที่สุด 🎄', 'ออมต่ออีกนิด ปีใหม่สบายแน่ ✨', 'จดครบทุกวัน ซานต้าให้ดาวทอง ⭐',
+    'กำไรแบบนี้ ฉลองคริสต์มาสได้สบาย 🍗', 'ให้รางวัลตัวเองสักชิ้นนะ 🍰', 'กวางเรนเดียร์ยังอิจฉาวินัยคุณ 🦌', 'Merry Christmas! 🔔', 'ขอให้ปีหน้ารวยยิ่งกว่านี้ 🎉'],
   // ขาดทุน: ให้กำลังใจ
-  sad: ['ไม่เป็นไรครับ พรุ่งนี้เริ่มใหม่ได้เสมอ 🤍', 'ช่วงเทศกาลใช้จ่ายมากเป็นเรื่องปกติครับ 🎄', 'ลองดูหมวดที่ใช้มากที่สุดนะครับ 👀', 'ค่อยเป็นค่อยไป เดี๋ยวก็กลับมาบวกครับ 📈', 'ของขวัญที่มีค่าที่สุดคือใจครับ 🎁',
-    'จดไว้แบบนี้ จะเห็นว่าเงินไปไหนครับ 🔍', 'พักสักนิด จิบชาอุ่นๆ ก่อนนะครับ ☕', 'เราอยู่ตรงนี้เสมอครับ 🫶', 'เก็บทีละนิดก็ไปได้ไกลครับ ❄️', 'สู้ต่ออีกนิดครับ 💪'],
+  sad: ['ไม่เป็นไร พรุ่งนี้เริ่มใหม่ได้ 🤍', 'ช่วงเทศกาลจ่ายเยอะเป็นเรื่องปกติ 🎄', 'ลองดูหมวดที่ใช้มากที่สุดนะ 👀', 'ค่อยๆ เก็บ เดี๋ยวก็กลับมาบวก 📈', 'ของขวัญไม่ต้องแพง ใจสำคัญกว่า 🎁',
+    'จดไว้แบบนี้ จะรู้ว่าเงินไปไหน 🔍', 'ดื่มโกโก้อุ่นๆ พักก่อนนะ ☕', 'ซานต้าเป็นกำลังใจให้ 🫶', 'เก็บทีละนิดก็ไปได้ไกล ❄️', 'สู้ต่ออีกนิด! 💪'],
   // ยังไม่จด (0 บาท): ชวนมาจด
-  angry: ['วันนี้ยังไม่มีรายการเลยครับ ✍️', 'ใช้เงินไปกับอะไรบ้างครับวันนี้? 🤔', 'พิมพ์ในแชท LINE แค่ "ข้าว 50" ก็พอครับ ✨', 'กดปุ่ม + ด้านล่างได้เลยครับ 👇', 'จดวันละนิด มั่งคั่งวันละหน่อยครับ 💛',
-    'กระดิ่งดังแล้ว ได้เวลาจดครับ 🔔', 'จดตอนนี้ ลืมไม่ได้ครับ 📒', 'บันทึกสั้นๆ ก็มีค่าครับ ✨', 'เริ่มรายการแรกของวันกันครับ 🎁', 'รออยู่นะครับ ❄️'],
+  angry: ['ถุงเท้าคริสต์มาสยังว่างอยู่เลย 🧦', 'วันนี้ใช้เงินไปกับอะไรบ้าง? 🤔', 'พิมพ์ในแชท LINE แค่ "ข้าว 50" ก็พอ ✨', 'กดปุ่ม + ด้านล่างได้เลย 👇', 'จดวันละนิด รวยวันละหน่อย 💛',
+    'กระดิ่งดังแล้ว ได้เวลาจด 🔔', 'ซานต้ารอจดให้อยู่นะ 🎅', 'เริ่มรายการแรกของวันกัน 🎁', 'จดก่อนลืม! 📒', 'โฮ่ โฮ่ โฮ่! มาจดกัน ❄️'],
 };
 // สุ่มแบบไม่ซ้ำ: ครบ 10 ประโยคก่อนค่อยวนใหม่
 const mascotQueue = {};
@@ -129,7 +129,7 @@ function _confettiPop(el) {
     setTimeout(() => s.remove(), 520);
   }
 }
-// ของตกแต่งนุ่มเด้ง: กดแล้วยุบ ปล่อยแล้วเด้งคืน
+// ซานต้านุ่มเด้ง: กดแล้วยุบ ปล่อยแล้วเด้งคืน
 function _bindSquish(root) {
   root.querySelectorAll('.peek-body, .corner-mascot').forEach(p => {
     p.onpointerdown = () => { if (funOn()) p.classList.add('squish'); };
@@ -137,9 +137,9 @@ function _bindSquish(root) {
   });
 }
 
-// 🔔 กระดิ่งทองคำห้อยจากขอบบน: ไถจอแล้วเหวี่ยงตามแรง (คิดเฉพาะช่วงบนสุด scrollY < 120 · พ้นจอแล้วหยุดคิดทันที)
-// แตะ = กระดิ่งสั่น + ประกายทอง · ลากกระดิ่งลง = รีเฟรช (หนืดแบบ iOS · ถึงระยะแล้วหมุนตัว) · ลากเฉพาะตัวมันเท่านั้น ไม่ชนการปัดปิด LINE
-const ROPE_QUIPS = ['🔔 Merry Christmas ครับ', '✨ ขอให้เทศกาลนี้อบอุ่นครับ', '🎁 ขอให้ปีหน้ามั่งคั่งครับ', '❄️ Season\'s Greetings', '🔄 ดึงกระดิ่งลงมาเพื่อรีเฟรชได้ครับ'];
+// 🎄 พวงมาลัยคริสต์มาสห้อยจากขอบบน: ไถจอแล้วเหวี่ยงตามแรง (คิดเฉพาะช่วงบนสุด scrollY < 120 · พ้นจอแล้วหยุดคิดทันที)
+// แตะ = สั่น + ละอองหิมะ · ลากพวงมาลัยลง = รีเฟรช (หนืดแบบ iOS · ถึงระยะแล้วหมุนตัว) · ลากเฉพาะตัวมันเท่านั้น ไม่ชนการปัดปิด LINE
+const ROPE_QUIPS = ['โฮ่ โฮ่ โฮ่! 🎅', 'Merry Christmas! 🎄', 'กริ๊งๆ 🔔 ซานต้ามาแล้ว', 'ปีนี้คุณเป็นเด็กดี 🎁', 'หิมะตกแล้ว ❄️', '🔄 ดึงพวงมาลัยลงมาเพื่อรีเฟรชได้นะ'];
 function _bindRope() {
   const el = document.createElement('div');
   el.className = 'rope'; el.setAttribute('aria-hidden', 'true');
@@ -187,8 +187,8 @@ function _bindRope() {
     if (go) {
       navigator.vibrate?.(10);
       el.classList.add('spin'); setTimeout(() => el.classList.remove('spin'), 700);
-      toast('🔔 กำลังรีเฟรชครับ');
-      clearCache(); render(true).then(() => toast('✨ อัปเดตเรียบร้อยครับ'));
+      toast('🎅 กำลังรีเฟรช…');
+      clearCache(); render(true).then(() => toast('🎄 อัปเดตแล้ว!'));
     } else if (!moved) {
       kick(9 * (Math.random() < .5 ? -1 : 1));
       el.classList.remove('ring'); void el.offsetWidth; el.classList.add('ring'); setTimeout(() => el.classList.remove('ring'), 900);
@@ -215,7 +215,7 @@ function loversHTML(small) {
     ${loverFace(me.pic, 'ฉัน', 'me')}
     <i class="lheart">❤</i>
     ${loverFace(state.couple?.pic, state.couple?.name || 'แฟน', 'you')}
-    <span class="floaty f1">❀</span><span class="floaty f2">✨</span><span class="floaty f3">❀</span><span class="floaty f4">❄</span>
+    <span class="floaty f1">❤</span><span class="floaty f2">❄</span><span class="floaty f3">💖</span><span class="floaty f4">❄</span>
     ${small ? '' : `<span class="couple-mascot${flyIn() ? ' fly' : ''}">${mascot('couple')}</span>`}
   </div>`;
 }
@@ -299,7 +299,7 @@ function bindNavDrag() {
   addEventListener('pointerup', end); addEventListener('pointercancel', end);
 }
 
-// ลากของตกแต่งได้: ยืดตามนิ้ว ปล่อยแล้วเด้งดึ๋งกลับที่เดิม
+// ลากซานต้าได้: ยืดตามนิ้ว ปล่อยแล้วเด้งดึ๋งกลับที่เดิม
 function bindDrag() {
   let el = null, x0 = 0, y0 = 0, moved = false;
   addEventListener('pointerdown', e => {
@@ -504,8 +504,8 @@ function armDelete(btn, fn, label = 'แตะอีกครั้งเพื�
 document.addEventListener('touchstart', () => {}, { passive: true });
 
 // ---------- ธีม ----------
-function applyTheme() { // ธีม VVIP White Christmas (สว่างอย่างเดียว) · ปุ่มเกล็ดหิมะทองมุมขวาบน = เปิด/ปิดหิมะ โบเก้ และลูกเล่นทั้งหมด
-  $('#themeBtn').textContent = '❄\uFE0E';
+function applyTheme() { // ธีม Grand Festive Christmas · ปุ่มมุมขวาบน 🎅 = ลูกเล่นเปิดอยู่ · ❄️ = ปิด (กดสลับ)
+  $('#themeBtn').textContent = funOn() ? '🎅' : '❄️';
   $('#themeBtn').setAttribute('aria-pressed', String(funOn()));
 }
 
@@ -664,7 +664,7 @@ function syncBg(task, undo, what) {
     undo(); toast(`${what}ไม่สำเร็จ ลองใหม่นะ (${err.message})`); render(true);
   });
 }
-// 🎁 VVIP Gift-Unbox: กล่องกำมะหยี่แดงผูกโบว์ทองเด้งเปิดฝากลางจอ → พลุละอองทองคำเปลว + เกล็ดหิมะ (transform/opacity อย่างเดียว)
+// 🎁 กล่องของขวัญเด้งเปิดฝากลางจอ → พลุเกล็ดหิมะ ดาวทอง ลูกกวาดแคนดี้เคน + รถเลื่อนซานต้าพุ่งข้ามจอ (transform/opacity อย่างเดียว)
 function _giftFx() {
   if (!funOn()) return;
   const g = document.createElement('div');
@@ -674,15 +674,19 @@ function _giftFx() {
   setTimeout(() => g.remove(), 1500);
   const cx = innerWidth / 2, cy = innerHeight * .46;
   setTimeout(fx(() => {
-    for (let i = 0; i < 22; i++) {
+    for (let i = 0; i < 26; i++) {
       const s = document.createElement('span');
-      const a = -Math.PI / 2 + (Math.random() - .5) * 2.4, d = 90 + Math.random() * 150;
-      s.className = 'foil-fx' + (i % 3 ? '' : ' flake');
-      if (!(i % 3)) s.textContent = '❄';
+      const a = -Math.PI / 2 + (Math.random() - .5) * 2.8, d = 110 + Math.random() * 170;
+      const k = ['flake', 'star', 'cane', ''][i % 4];
+      s.className = 'foil-fx' + (k ? ' ' + k : '');
+      if (k === 'flake') s.textContent = '❄'; else if (k === 'star') s.textContent = '★';
       s.style.cssText = `left:${cx}px;top:${cy}px;--bx:${Math.cos(a) * d}px;--by:${Math.sin(a) * d}px;--r:${Math.random() * 540 - 270}deg;animation-delay:${Math.random() * 90}ms`;
       document.body.appendChild(s); setTimeout(() => s.remove(), 1200);
     }
   }), 330);
+  const r = document.createElement('img');
+  r.className = 'sleigh-fx'; r.src = '/assets/xmas-santa-sleigh.svg?v=1'; r.alt = '';
+  document.body.appendChild(r); setTimeout(() => r.remove(), 1500);
 }
 // ❄️ Frost Dissolve: แถวที่ถูกลบแตกเป็นประกายน้ำแข็ง + ละอองทอง
 function _starBurst(el) {
@@ -702,7 +706,7 @@ function _savedFx(data, pop) {
   if (!hero || !funOn()) return;
   if (pop) confettiPop(hero.querySelector('.hero-amount') || hero);
   giftFx();
-  if (data?.amount) toast(`🎁 บันทึก ${data.type === 'income' ? '+' : '−'}฿${fmt(data.amount)} เรียบร้อยครับ`);
+  if (data?.amount) toast(`🎅 โฮ่ โฮ่ โฮ่! บันทึก ${data.type === 'income' ? '+' : '−'}฿${fmt(data.amount)} แล้ว`);
   hero.classList.remove('thump'); void hero.offsetWidth; hero.classList.add('thump');
   navigator.vibrate?.(10);
 }
@@ -939,8 +943,8 @@ function homeHTML(d) {
   </div>`;
 }
 
-// รูปโปรไฟล์วงกลม (ไม่มีรูป → ของตกแต่ง)
-const face = (pic, cls = '') => (pic ? `<img class="face ${cls}" src="${esc(pic)}" alt="" referrerpolicy="no-referrer">` : `<i class="face ${cls}">✨</i>`);
+// รูปโปรไฟล์วงกลม (ไม่มีรูป → ซานต้า)
+const face = (pic, cls = '') => (pic ? `<img class="face ${cls}" src="${esc(pic)}" alt="" referrerpolicy="no-referrer">` : `<i class="face ${cls}">🎅</i>`);
 const myPic = () => store.get('user')?.pic || '';
 const duoHTML = () => `<span class="duo">${face(myPic())}${face(state.couple?.pic, 'p2')}</span>`;
 
@@ -1195,7 +1199,7 @@ function adminHTML(d) {
     <div class="card span">
       <h2 class="section-title">👥 ผู้ใช้ <small>${d.count} คน · ไม่แสดงยอดเงินของใคร</small></h2>
       ${users.map(u => `<div class="item-row a-user">
-        <div class="cat-ico">${u.id === d.me ? '👑' : u.consentAt ? '✨' : '💌'}</div>
+        <div class="cat-ico">${u.id === d.me ? '👑' : u.consentAt ? '🎅' : '💌'}</div>
         <div class="grow">${esc(u.name || 'ไม่มีชื่อ')} ${badge(u)}
           <small>เข้า ${dmy(u.joinedAt)} · ใช้ล่าสุด ${ago(u.lastActive, now)}${u.consentBy === 'owner' ? ' · ผู้ใช้เดิม' : ''}${u.words ? ` · สอนคำ ${u.words}` : ''}${u.couple ? ' · 💑 มีคู่' : ''}</small></div>
         ${u.id === d.me ? '' : `<button class="del-btn" data-auser="${esc(u.id)}" aria-label="ลบผู้ใช้">${ICON_TRASH}</button>`}
@@ -1308,7 +1312,7 @@ function settingsHTML() {
     <div class="card span">
       <h2 class="section-title">🎄 หน้าตา</h2>
       <button class="priv ${store.get('fun') !== false ? 'on' : ''}" id="funToggle" type="button" style="margin:10px 0 12px">
-        <span>❄️</span><div><b>ลูกเล่นคริสต์มาส</b><small>${store.get('fun') !== false ? 'หิมะคริสตัล แสงทอง กล่องของขวัญตอนบันทึก · รีบอยู่ไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
+        <span>🎅</span><div><b>ลูกเล่นคริสต์มาส</b><small>${store.get('fun') !== false ? 'หิมะตก ไฟประดับ ซานต้าบิน กล่องของขวัญตอนบันทึก · รีบอยู่ไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
     </div>
   </div>`;
 }
@@ -1556,7 +1560,7 @@ function openEntry(entry) {
         syncBg(() => p, () => applyLocal(neu, null), 'บันทึก');
       }
       closeSheet();
-      if (rush || !funOn()) toast(`${isEdit ? 'แก้ไขเรียบร้อยครับ' : 'บันทึกเรียบร้อยครับ'} ✓`);
+      if (rush || !funOn()) toast(`${isEdit ? 'แก้ไขแล้ว' : 'บันทึกแล้ว'} ✓`);
       // พาไปดูรายวันของวันนั้น
       state.mode = 'day'; state.date = data.date; state.highlight = id;
       if (state.page === 'settings') state.page = 'home';
@@ -1669,7 +1673,7 @@ function bindChrome() {
   $('#periodLabel').onclick = openPicker;
   $('#addBtn').onclick = () => openEntry(null);
   $('#sheetBg').onclick = closeSheet;
-  $('#themeBtn').onclick = () => { store.set('fun', store.get('fun') === false); document.body.classList.toggle('calm', !funOn()); applyTheme(); toast(funOn() ? '❄️ เปิดหิมะและแสงทองแล้วครับ' : '🤍 โหมดนิ่ง ประหยัดแบต'); render(true); };
+  $('#themeBtn').onclick = () => { store.set('fun', store.get('fun') === false); document.body.classList.toggle('calm', !funOn()); applyTheme(); toast(funOn() ? '🎅 โฮ่ โฮ่ โฮ่! เปิดหิมะและซานต้าแล้ว' : '❄️ โหมดนิ่ง ประหยัดแบต'); render(true); };
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeSheet(); });
   // กลับมาที่หน้าเว็บ (เช่น ไปพิมพ์ในแชทมา) ให้ดึงข้อมูลใหม่
   let hiddenAt = 0;
@@ -1684,7 +1688,7 @@ function applyProfile(p) {
 }
 function setUser(u) {
   if (!u) return;
-  $('#hello').textContent = `สวัสดีครับ ${u.name || ''} ✨`;
+  $('#hello').textContent = `สวัสดี ${u.name || ''} 🎄`;
   if (u.pic) { $('#avatar').src = u.pic; $('#avatar').hidden = false; }
 }
 const hideLoader = () => $('#loader').classList.add('hide');
@@ -1710,7 +1714,7 @@ async function initLiff() {
 }
 
 async function boot() {
-  document.body.classList.toggle('calm', !funOn()); // ปิดลูกเล่น = พื้นหลัง/ของตกแต่งนิ่ง
+  document.body.classList.toggle('calm', !funOn()); // ปิดลูกเล่น = พื้นหลัง/ซานต้านิ่ง
   bindChrome();
   bindRope();
   bindDrag();
@@ -1778,7 +1782,7 @@ async function boot() {
     if (e.message === 'not_member' || e.message === 'no_consent') { // ยังไม่ได้รับเข้า / ยังไม่กดยอมรับ / ลบข้อมูลไปแล้ว
       try { Object.keys(localStorage).filter(k => k.startsWith('ie:')).forEach(k => localStorage.removeItem(k)); } catch {}
       $('#view').innerHTML = `<div class="card empty gate">${mascot(e.message === 'no_consent' ? 'wink' : 'sleep')}
-        <b>${e.message === 'no_consent' ? 'กดยอมรับในแชทก่อนนะ 📄' : 'ยังไม่ได้เริ่มใช้งาน ✨'}</b><br>
+        <b>${e.message === 'no_consent' ? 'กดยอมรับในแชทก่อนนะ 📄' : 'ยังไม่ได้เริ่มใช้งาน 🎅'}</b><br>
         ${e.message === 'no_consent' ? 'แตะ 💖 ยอมรับ ในแชท LINE แล้วกลับมาที่นี่' : 'ทักแชท LINE ก่อน บอทจะพาเริ่มใช้งาน'}<br>
         <a class="btn" href="https://line.me/R/ti/p/@514ddese">💬 ไปที่แชท</a> <a class="btn ghost" href="/privacy.html">📄 นโยบายข้อมูล</a></div>`;
       return;
