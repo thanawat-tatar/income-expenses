@@ -1,23 +1,23 @@
-/* ---------- สี: ธีมคริสต์มาสคืนหิมะ (โหมดมืดอย่างเดียว) · ทองแชมเปญ + แดงคริสต์มาส · คู่รัก = เบอร์รี่โรสโกลด์ ---------- */
+/* ---------- สี: VVIP Luxury White Christmas · ขาวไข่มุก + ทองคำเปลว + แดงกำมะหยี่ + เขียวสน · คู่รัก = โรสโกลด์ (สว่างอย่างเดียว) ---------- */
 :root {
   --font: "Mali", "Sukhumvit Set", "Noto Sans Thai", system-ui, sans-serif;
   --radius: 20px;
   --nav-h: 68px;
   --ease: cubic-bezier(.22, 1, .36, 1); /* iOS: เปิดแผ่น/ขยายการ์ด */
-  color-scheme: dark;
+  color-scheme: light;
 }
 /* สี: ค่าที่ใช้จริง */
 :root {
-    --bg: #070B14; --surface: rgba(17, 24, 39, .72); --surface-2: rgba(30, 41, 59, .6); --text: #F8FAFC; --muted: #A8B0BF; --faint: #6B7280; --line: rgba(250, 204, 21, .10);
-    --accent: #FACC15; --accent-text: #FACC15; --accent-2: #DC2626; --accent-soft: rgba(250, 204, 21, .12); --on-accent: #1D1D1F; --accent-edge: #A16207;
-    --income: #4ADE80; --income-soft: rgba(74, 222, 128, .14); --expense: #EF4444; --expense-soft: rgba(239, 68, 68, .14);
-    --hero-profit: linear-gradient(160deg, rgba(30, 41, 70, .94) 0%, rgba(17, 24, 39, .94) 100%);
-    --hero-loss: linear-gradient(160deg, rgba(58, 20, 28, .94) 0%, rgba(17, 24, 39, .94) 100%);
-    --hero-zero: linear-gradient(160deg, rgba(24, 33, 56, .94) 0%, rgba(17, 24, 39, .94) 100%);
-    --hero-edge: #05080F; --card-edge: transparent;
-    --edge: rgba(250, 204, 21, .22); --glow: rgba(250, 204, 21, .30);
-    --shadow: 0 3px 0 var(--card-edge), 0 12px 26px rgba(0, 0, 0, .35);
-    color-scheme: dark;
+    --bg: #F8FAFC; --surface: rgba(255, 255, 255, .92); --surface-2: #F4F1EA; --text: #0F172A; --muted: #64748B; --faint: #94A3B8; --line: rgba(15, 23, 42, .08);
+    --accent: #C59B27; --accent-text: #9C7418; --accent-2: #B91C1C; --accent-soft: rgba(197, 155, 39, .12); --on-accent: #FFFFFF; --accent-edge: #8A6A1A;
+    --income: #047857; --income-soft: rgba(4, 120, 87, .09); --expense: #B91C1C; --expense-soft: rgba(185, 28, 28, .08);
+    --gold-edge: linear-gradient(135deg, rgba(212, 175, 55, .6), rgba(255, 255, 255, .9), rgba(212, 175, 55, .35));
+    --hero-profit: rgba(255, 255, 255, .92); --hero-loss: rgba(255, 255, 255, .92); --hero-zero: rgba(255, 255, 255, .92);
+    --hero-edge: transparent; --card-edge: transparent;
+    --edge: rgba(197, 155, 39, .35); --glow: rgba(212, 175, 55, .35);
+    --lux-shadow: 0 20px 40px -15px rgba(15, 23, 42, .08), 0 6px 14px -6px rgba(15, 23, 42, .05);
+    --shadow: var(--lux-shadow);
+    color-scheme: light;
   }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -96,8 +96,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .card h3 small { color: var(--muted); font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; }
 
 /* hero: จุดเด่นของหน้า */
-.hero { position: relative; overflow: hidden; color: #fff; background: var(--hero-zero); padding: 20px; }
-.hero::before { content: ""; position: absolute; left: -40px; bottom: -90px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255, 255, 255, .08); animation: float 8s ease-in-out infinite; }
+.hero { position: relative; overflow: hidden; color: var(--text); background: var(--hero-zero); padding: 20px; }
+.hero::before { content: ""; position: absolute; left: -40px; bottom: -90px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(243, 218, 138, .22), transparent 70%); animation: float 8s ease-in-out infinite; }
 .hero.profit { background: var(--hero-profit); }
 .hero.loss { background: var(--hero-loss); }
 .hero::after { content: ""; position: absolute; right: -70px; top: -80px; width: 220px; height: 220px; border-radius: 50%; }
@@ -286,10 +286,12 @@ body {
 .hero {
   border-radius: 28px;
 }
-.hero::after { background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, .35), rgba(255, 255, 255, 0) 65%); }
-.hero-amount { text-shadow: 0 3px 0 rgba(0, 0, 0, .12); }
-.pill { background: rgba(255, 255, 255, .22); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35); }
-.badge { background: rgba(255, 255, 255, .28); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4); }
+.hero::after { background: radial-gradient(circle at 30% 30%, rgba(243, 218, 138, .25), rgba(243, 218, 138, 0) 65%); }
+.hero-amount { text-shadow: none; color: #0F172A; }
+.pill { background: var(--income-soft); box-shadow: inset 0 0 0 1px rgba(4, 120, 87, .14); }
+.pill + .pill { background: var(--expense-soft); box-shadow: inset 0 0 0 1px rgba(185, 28, 28, .14); }
+.pill b { color: var(--income); } .pill + .pill b { color: var(--expense); } .pill span { color: var(--muted); opacity: 1; }
+.badge { background: linear-gradient(135deg, #FFF8E6, #F3E3B5); color: #7A5A12; box-shadow: inset 0 0 0 1px rgba(197, 155, 39, .4); }
 /* ปุ่มนูน กดแล้วยุบ */
 .btn, .nav-add {
   transition: transform .12s, box-shadow .12s;
@@ -497,7 +499,7 @@ body.us::after { opacity: 1; }
 .hero-amount.pop { animation: amtPop .45s var(--jelly); }
 @keyframes amtPop { 0% { transform: scale(1); } 40% { transform: scale(1.08, .94); } 100% { transform: scale(1); } }
 .hero.glow { animation: heroGlow 1.6s ease-in-out 2; }
-@keyframes heroGlow { 50% { box-shadow: 0 6px 0 var(--hero-edge), 0 0 0 6px rgba(255, 210, 120, .55), 0 18px 40px rgba(255, 170, 60, .5); } }
+@keyframes heroGlow { 50% { box-shadow: 0 0 0 6px rgba(212, 175, 55, .35), 0 18px 40px rgba(197, 155, 39, .35); } }
 
 /* น้องลูกเจี๊ยบตัวเล็กเกาะขอบการ์ด */
 
@@ -598,7 +600,7 @@ input { -webkit-user-select: text; user-select: text; }
 :root {
   --glass-blur: blur(22px) saturate(180%);
 }
-:root { --glass: color-mix(in srgb, var(--surface) 62%, transparent); --glass-strong: color-mix(in srgb, var(--surface) 80%, transparent); --glass-edge: rgba(255, 255, 255, .12); --glass-shadow: 0 10px 30px rgba(0, 0, 0, .45); }
+:root { --glass: rgba(255, 255, 255, .86); --glass-strong: rgba(255, 255, 255, .94); --glass-edge: rgba(197, 155, 39, .28); --glass-shadow: 0 12px 28px -14px rgba(15, 23, 42, .14); }
 
 /* Dynamic Island */
 #island { --w: 160px; position: fixed; top: calc(env(safe-area-inset-top) + 10px); left: 50%; z-index: 95; height: 40px; width: 40px;
@@ -608,7 +610,7 @@ input { -webkit-user-select: text; user-select: text; }
   transform: translateX(-50%) translateY(-70px) scale(.6); opacity: 0;
   transition: transform .5s cubic-bezier(.3, 1.45, .45, 1), width .55s cubic-bezier(.3, 1.35, .45, 1), opacity .25s; }
 #island.show { width: var(--w); transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
-#island .isl-ico { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; background: linear-gradient(135deg, #1E3A5F, #FACC15); }
+#island .isl-ico { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; background: linear-gradient(135deg, #8A6A1A, #F3DA8A 50%, #C59B27); }
 #island.bad .isl-ico { background: #F0455A; }
 #island .isl-txt { overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity .2s .18s; }
 #island.show .isl-txt { opacity: 1; }
@@ -696,9 +698,14 @@ body::before {
 .hero > .spec { position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: inherit; padding: 1.2px; overflow: hidden;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
 .hero > .spec::before { content: ""; position: absolute; inset: -80% -110%; will-change: translate; translate: var(--sx, -35%) 0;
-  background: linear-gradient(115deg, rgba(255, 255, 255, .22) 36%, #FEF9C3 47%, #FFFFFF 50%, #FACC15 53%, rgba(255, 255, 255, .22) 64%); }
+  background: linear-gradient(115deg, rgba(212, 175, 55, .5) 36%, #F3DA8A 47%, #FFFFFF 50%, #C59B27 53%, rgba(212, 175, 55, .35) 64%); }
+/* ✨ Gold Foil Shimmer: แถบแสงทองบางวิ่งพาดขอบการ์ดเป็นระยะ (อยู่ในหน้ากากขอบ 1px · transform อย่างเดียว) */
+.hero > .spec::after { content: ""; position: absolute; top: -50%; bottom: -50%; left: 0; width: 38%; will-change: transform; transform: translate3d(-160%, 0, 0) skewX(-18deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 246, 214, .2) 30%, #FFF6D6 48%, #E9C766 52%, rgba(255, 246, 214, .2) 70%, transparent); animation: foil 5.5s cubic-bezier(.45, 0, .2, 1) 1.4s infinite; }
+@keyframes foil { 0% { transform: translate3d(-160%, 0, 0) skewX(-18deg); } 38%, 100% { transform: translate3d(420%, 0, 0) skewX(-18deg); } }
+body.calm .hero > .spec::after { animation: none; opacity: 0; }
 .hero-shadow { position: absolute; left: 9%; right: 9%; bottom: -16px; height: 30px; z-index: 0; pointer-events: none; border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(30, 53, 80, .38), transparent); filter: blur(5px); opacity: .85; }
+  background: radial-gradient(closest-side, rgba(15, 23, 42, .12), transparent); filter: blur(5px); opacity: .85; }
 .hero-wrap.small .hero-shadow { bottom: -12px; height: 22px; }
 body.calm .hero > .spec::before { translate: -35% 0; }
 @media (prefers-reduced-motion: reduce) { .hero.tilt > * { translate: none !important; } }
@@ -739,7 +746,9 @@ button:not(.btn):not(.nav-add):not(.entry):not(.nav-item):active, .chip:active {
 .entry:active { scale: .98; }
 /* ลบรายการ: ลื่นเปลือกกล้วยปลิวออกข้างจอ (หลังแตะยืนยันครั้งที่ 2) */
 .entry.slip { animation: slipOut .38s cubic-bezier(.5, 0, .9, .6) forwards !important; pointer-events: none; }
-@keyframes slipOut { 0% { transform: none; opacity: 1; } 25% { transform: translateX(-4%) rotate(-3deg); } 100% { transform: translateX(120%) rotate(15deg); opacity: 0; } }
+/* ❄️ Frost Dissolve: แถวไถออกขวา + ซีดเป็นน้ำแข็งแล้วจางหาย */
+@keyframes slipOut { 0% { transform: none; opacity: 1; } 30% { transform: translateX(-2%) scale(.99); opacity: .9; } 100% { transform: translateX(70%) scale(.94); opacity: 0; } }
+.entry.slip { background: linear-gradient(90deg, rgba(219, 234, 254, .9), rgba(255, 255, 255, .4)) !important; box-shadow: inset 0 0 0 1px rgba(147, 197, 253, .6) !important; }
 @media (prefers-reduced-motion: reduce) { button:active, .chip:active, .entry:active { scale: none; } }
 body.calm button:active, body.calm .chip:active, body.calm .entry:active { scale: none; }
 .corner-mascot .mascot { clip-path: circle(50%); }
@@ -751,60 +760,74 @@ body.calm button:active, body.calm .chip:active, body.calm .entry:active { scale
 @keyframes flap { from { rotate: -3deg; scale: 1.02 .98; } to { rotate: 3deg; scale: .98 1.02; } }
 @media (prefers-reduced-motion: reduce) { .rope.held .rope-body { animation: none; } }
 
-/* ================= 🚀 ธีมอวกาศ (โหมดมืดอย่างเดียว) ================= */
-html { background: #06070B; }
+/* ================= ✨ VVIP Luxury White Christmas (สว่างอย่างเดียว) ================= */
+html { background: #F8FAFC; }
 body { background: transparent !important; }
-body::before { background: radial-gradient(40% 30% at 20% 15%, rgba(56, 189, 248, .08), transparent 70%), radial-gradient(36% 30% at 85% 35%, rgba(250, 204, 21, .06), transparent 70%), radial-gradient(45% 35% at 50% 90%, rgba(30, 58, 95, .35), transparent 70%) !important; }
-body::after { background: radial-gradient(45% 35% at 25% 25%, rgba(244, 63, 94, .16), transparent 70%), radial-gradient(40% 32% at 80% 60%, rgba(244, 114, 182, .10), transparent 70%) !important; }
-/* โหมดคู่รัก: ขอบกระจก/แสงเปลี่ยนเป็นชมพูเนบิวลา-โรสโกลด์ */
-body.us { --edge: rgba(244, 63, 94, .30); --glow: rgba(244, 63, 94, .40); --accent-text: #FB7185; }
-.hero { box-shadow: inset 0 0 0 1px var(--edge), 0 18px 40px rgba(0, 0, 0, .55), 0 0 30px color-mix(in srgb, var(--glow) 35%, transparent) !important; }
+body::before { background: radial-gradient(40% 28% at 18% 12%, rgba(243, 218, 138, .22), transparent 70%), radial-gradient(34% 26% at 86% 36%, rgba(212, 175, 55, .12), transparent 70%), radial-gradient(45% 35% at 50% 92%, rgba(253, 251, 247, .9), transparent 70%) !important; }
+body::after { background: radial-gradient(45% 35% at 25% 25%, rgba(225, 29, 72, .07), transparent 70%), radial-gradient(40% 32% at 80% 60%, rgba(212, 175, 55, .10), transparent 70%) !important; }
+/* โหมดคู่รัก: ขาวอมชมพูมุก + โรสโกลด์ */
+body.us { --edge: rgba(225, 29, 72, .32); --glow: rgba(225, 29, 72, .28); --accent-text: #BE123C; --gold-edge: linear-gradient(135deg, rgba(225, 29, 72, .55), rgba(255, 255, 255, .9), rgba(212, 175, 55, .55)); }
 .hero-amount, .entry b, .pill b { font-variant-numeric: tabular-nums; }
-/* ตัวเลื่อน (วัน/เดือน/ปี · ของฉัน/คู่รัก): แคปซูลกระจกเรืองแสงทอง / ชมพูในโหมดคู่รัก */
-.seg, .scope { background: rgba(22, 27, 44, .6) !important; box-shadow: inset 0 0 0 1px var(--edge); }
-.seg-pill, .scope-pill { background: linear-gradient(180deg, rgba(250, 204, 21, .22), rgba(250, 204, 21, .10)) !important; box-shadow: inset 0 0 0 1px rgba(250, 204, 21, .45), 0 0 16px rgba(250, 204, 21, .28) !important; }
-body.us .seg-pill, .scope[data-scope="us"] .scope-pill { background: linear-gradient(180deg, rgba(244, 63, 94, .30), rgba(244, 114, 182, .14)) !important; box-shadow: inset 0 0 0 1px rgba(251, 113, 133, .55), 0 0 18px rgba(244, 63, 94, .35) !important; }
-.seg button.active::after { content: " ❄"; font-size: 9px; color: var(--accent-text); }
-.scope[data-scope="us"] button.active { color: #fff; }
-/* กราฟ/แถบ: หลอดแสงนีออนโค้งมน */
-.bar { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .06) !important; }
-.bar i { border-radius: 99px; box-shadow: 0 0 10px currentColor; }
-.bar.in i { color: #FACC15; background: linear-gradient(90deg, #CA8A04, #FACC15); }
-.bar.out i { color: #EF4444; background: linear-gradient(90deg, #B91C1C, #EF4444); }
-body.us .bar.out i { color: #F43F5E; background: linear-gradient(90deg, #BE123C, #FB7185); }
-/* เมนูล่าง: แคปซูลเข้ม ขอบทองบาง · ปุ่ม + = ลูกบอลคริสต์มาสแดง */
-.nav { box-shadow: inset 0 0 0 1px var(--edge), 0 0 24px color-mix(in srgb, var(--glow) 30%, transparent), 0 12px 30px rgba(0, 0, 0, .55) !important; }
-.nav-add { background: radial-gradient(circle at 35% 30%, #FFB4B4 0%, #DC2626 48%, #7F1D1D 100%) !important; color: #fff !important;
-  box-shadow: 0 0 0 2px rgba(250, 204, 21, .75), 0 0 0 7px rgba(220, 38, 38, .14), 0 0 26px rgba(220, 38, 38, .5), inset 0 2px 2px rgba(255, 255, 255, .5) !important; }
-body.us .nav-add { background: radial-gradient(circle at 35% 30%, #FFE4F0 0%, #FB7185 45%, #DB2777 100%) !important; box-shadow: 0 0 0 6px rgba(244, 63, 94, .12), 0 0 26px rgba(244, 63, 94, .55), inset 0 2px 2px rgba(255, 255, 255, .6) !important; }
+/* Crystal Frost Card: ขาว 92% + ขอบทองคำเปลว 1px (ไล่เฉด) + เงาฟุ้งหลายชั้น · ไม่มี backdrop-filter */
+.card, .hero { border: 1px solid transparent !important; background: linear-gradient(rgba(255, 255, 255, .92), rgba(255, 255, 255, .92)) padding-box, var(--gold-edge) border-box !important;
+  box-shadow: var(--lux-shadow) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+.hero { box-shadow: 0 24px 44px -16px rgba(15, 23, 42, .12), 0 8px 18px -8px rgba(197, 155, 39, .18) !important; }
+.hero.love, .hero.love.profit { background: linear-gradient(160deg, rgba(255, 255, 255, .95), rgba(255, 241, 244, .95)) padding-box, var(--gold-edge) border-box !important; }
+.hero-amount { color: #0F172A !important; }
+.hero-label { color: var(--muted); opacity: 1; }
+/* ตัวเลื่อน (วัน/เดือน/ปี · ของฉัน/คู่รัก): แคปซูลขาวขอบทอง · ปุ่มที่เลือก = แผ่นทองอ่อน */
+.seg, .scope, .stepper { background: rgba(255, 255, 255, .86) !important; box-shadow: inset 0 0 0 1px var(--glass-edge), 0 10px 22px -14px rgba(15, 23, 42, .16) !important; border: 0; }
+.seg-pill, .scope-pill { background: linear-gradient(180deg, #FFFDF6, #F6EBCB) !important; box-shadow: inset 0 0 0 1px rgba(197, 155, 39, .55), 0 4px 10px -4px rgba(197, 155, 39, .45) !important; }
+body.us .seg-pill, .scope[data-scope="us"] .scope-pill { background: linear-gradient(180deg, #FFF7F9, #FBDDE5) !important; box-shadow: inset 0 0 0 1px rgba(225, 29, 72, .45), 0 4px 10px -4px rgba(225, 29, 72, .35) !important; }
+.seg button.active, .scope button.active { color: #0F172A; }
+.seg button.active::after { content: " ❄"; font-size: 9px; color: var(--accent); }
+.lens { box-shadow: 0 8px 22px -6px rgba(197, 155, 39, .4), inset 0 0 0 1px rgba(197, 155, 39, .5) !important; background: linear-gradient(160deg, #FFFFFF, #F6EBCB) !important; }
+.scope[data-scope="us"] .scope-pill.lens { background: linear-gradient(135deg, #FFF7F9, #F7D6DE) !important; }
+/* กราฟ/แถบ: รายรับทองแชมเปญ · รายจ่ายแดงกำมะหยี่ */
+.bar { height: 8px; border-radius: 99px; background: rgba(15, 23, 42, .06) !important; }
+.bar i { border-radius: 99px; }
+.bar.in i { background: linear-gradient(90deg, #A47E1B, #E9C766); }
+.bar.out i { background: linear-gradient(90deg, #7F1010, #B91C1C); }
+body.us .bar.out i { background: linear-gradient(90deg, #9F1239, #E11D48); }
+/* เมนูล่าง: แคปซูลขาวมุกขอบทอง (ไม่มี backdrop-filter → ลื่น) · ปุ่ม + = ลูกบอลกำมะหยี่แดงขอบทอง */
+.nav { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; background: rgba(255, 255, 255, .96) !important;
+  box-shadow: inset 0 0 0 1px var(--glass-edge), 0 16px 34px -14px rgba(15, 23, 42, .22) !important; }
+.nav-item { color: var(--muted); }
 .nav-item.active { color: var(--accent-text); }
-.btn { background: linear-gradient(180deg, #FDE047, #FACC15) !important; color: #1D1D1F !important; box-shadow: 0 0 18px rgba(250, 204, 21, .25) !important; }
-.btn.ghost { background: rgba(255, 255, 255, .06) !important; color: var(--text) !important; box-shadow: inset 0 0 0 1px var(--edge) !important; }
+.nav-blob { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; background: linear-gradient(160deg, #FFFDF6, #F3E3B5) !important; box-shadow: inset 0 0 0 1px rgba(197, 155, 39, .4) !important; }
+.lens { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+.nav-add { background: radial-gradient(circle at 35% 28%, #E35757 0%, #B91C1C 48%, #5E0B0B 100%) !important; color: #FFF6D6 !important;
+  box-shadow: 0 0 0 2px #E9C766, 0 0 0 3.5px rgba(138, 106, 26, .5), 0 12px 22px -6px rgba(127, 16, 16, .45), inset 0 2px 3px rgba(255, 255, 255, .35) !important; }
+body.us .nav-add { background: radial-gradient(circle at 35% 28%, #FB7185 0%, #E11D48 48%, #881337 100%) !important; }
+/* ปุ่ม: หลัก = แดงกำมะหยี่ ตัวขาว · รอง = ขาวขอบทอง */
+.btn { background: linear-gradient(180deg, #C42A2A, #991B1B) !important; color: #FFFFFF !important; box-shadow: 0 0 0 1px rgba(197, 155, 39, .55), 0 10px 18px -8px rgba(127, 16, 16, .45) !important; }
+body.us .btn { background: linear-gradient(180deg, #E11D48, #9F1239) !important; }
+.btn.ghost { background: #FFFFFF !important; color: var(--text) !important; box-shadow: inset 0 0 0 1px var(--glass-edge) !important; }
 .btn.danger-text { color: var(--expense) !important; }
-/* โหมดคู่รัก: รูป 2 คน วงแสงหมุน (ทอง + เบอร์รี่โรสโกลด์) */
-.lover-ring { background: conic-gradient(from 0deg, #FACC15, #F43F5E, #FB7185, #FEF3C7, #FACC15) !important; box-shadow: 0 0 22px rgba(244, 63, 94, .45) !important; }
-.lover.me .lover-ring { background: conic-gradient(from 0deg, #FFF1A8, #FACC15, #B38F00, #FACC15, #FFF1A8) !important; }
-.lover.you .lover-ring { background: conic-gradient(from 0deg, #FFD1E3, #F43F5E, #B7685A, #FB7185, #FFD1E3) !important; }
-.lover img, .lover b { border: 3px solid rgba(255, 255, 255, .85) !important; box-shadow: inset 0 -8px 16px rgba(250, 204, 21, .2); }
-.lheart { color: #F43F5E !important; text-shadow: 0 0 14px rgba(244, 63, 94, .7) !important; }
+/* โหมดคู่รัก: รูป 2 คนในกรอบแหวนคู่ทองคำ / โรสโกลด์ · หัวใจคริสตัลเต้น · กลีบกุหลาบหิมะลอย */
+.lover-ring { box-shadow: 0 10px 24px -8px rgba(197, 155, 39, .45) !important; }
+.lover.me .lover-ring { background: conic-gradient(from 20deg, #7A5A12, #F3DA8A, #FFF6D6, #C59B27, #8A6A1A, #E9C766, #7A5A12) !important; }
+.lover.you .lover-ring { background: conic-gradient(from 20deg, #8E3B3B, #F2B8A8, #FFE9E2, #D98C7E, #E11D48, #D4AF37, #8E3B3B) !important; box-shadow: 0 10px 24px -8px rgba(225, 29, 72, .4) !important; }
+.lover img, .lover b { border: 3px solid #FFFFFF !important; box-shadow: 0 0 0 1px rgba(197, 155, 39, .4) !important; background: linear-gradient(150deg, #F6EBCB, #FBDDE5) !important; color: #7A5A12 !important; }
+.lheart { color: #E11D48 !important; text-shadow: 0 0 0 transparent, 0 0 14px rgba(255, 255, 255, .9) !important; filter: drop-shadow(0 4px 8px rgba(225, 29, 72, .35)); }
+.floaty { color: #F9A8BC; text-shadow: 0 0 8px #fff; }
 .couple-mascot { position: absolute; right: -92px; top: 6px; width: 84px; pointer-events: none; animation: drift 6s ease-in-out infinite alternate; }
 .m-couple { width: 100%; height: auto; }
-.star-fx { position: fixed; z-index: 94; pointer-events: none; color: #FEF3C7; font-size: 14px; animation: twink .7s ease-out forwards; }
-body.us .star-fx { color: #FB7185; }
-/* ปุ่มมุมขวาบน = เปิด/ปิดลูกเล่นคริสต์มาส (🎅 / ❄️) */
-#themeBtn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-#themeBtn { color: var(--accent-text); box-shadow: inset 0 0 0 1px var(--edge), 0 0 14px color-mix(in srgb, var(--glow) 40%, transparent); }
-body.calm #themeBtn { color: var(--faint); box-shadow: inset 0 0 0 1px var(--line); }
-/* มาสคอตซานต้า */
-.rope-line { bottom: calc(100% - 6px) !important; background: repeating-linear-gradient(180deg, #FEF3C7 0 4px, #DC2626 4px 8px) !important; }
-.empty .mascot { filter: drop-shadow(0 0 18px rgba(250, 204, 21, .25)); }
-.hero.love, .hero.love.profit { background: linear-gradient(150deg, rgba(72, 20, 40, .94) 0%, rgba(17, 24, 39, .94) 55%, rgba(76, 5, 25, .94) 100%) !important; }
-.lover img, .lover b { background: linear-gradient(150deg, #1E293B, #4C0519) !important; }
+.star-fx { position: fixed; z-index: 94; pointer-events: none; color: #C59B27; font-size: 14px; animation: twink .7s ease-out forwards; text-shadow: 0 0 6px #FFF6D6; }
+body.us .star-fx { color: #E11D48; }
+/* ปุ่มมุมขวาบน: เกล็ดหิมะทองคำ ❄️ = เปิด/ปิดหิมะ โบเก้ และลูกเล่น */
+#themeBtn { font-size: 20px; line-height: 1; display: grid; place-items: center; color: #B8891C; text-shadow: 0 1px 0 #FFF6D6, 0 0 8px rgba(233, 199, 102, .7); background: linear-gradient(160deg, #FFFFFF, #FBF5E4) !important; box-shadow: inset 0 0 0 1px var(--glass-edge), 0 6px 14px -6px rgba(197, 155, 39, .5); }
+body.calm #themeBtn { color: #CBD5E1; text-shadow: none; }
+/* กระดิ่งทองห้อยเชือกทอง · แตะ = สั่น */
+.rope-line { bottom: calc(100% - 6px) !important; background: linear-gradient(90deg, #8A6A1A, #F3DA8A 50%, #A47E1B) !important; width: 2px !important; margin-left: -1px !important; }
+.rope.ring .rope-body { animation: bellRing .85s cubic-bezier(.36, .07, .19, .97); transform-origin: 50% 0; }
+@keyframes bellRing { 15% { rotate: 16deg; } 30% { rotate: -13deg; } 45% { rotate: 9deg; } 60% { rotate: -6deg; } 75% { rotate: 3deg; } 100% { rotate: 0deg; } }
+.empty .mascot { filter: drop-shadow(0 14px 18px rgba(15, 23, 42, .12)); }
 
 /* หน้าหลัก: ปุ่มลัดไปหน้ารายการ */
 .go-list { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 16px 18px; text-align: left; color: var(--text); font-size: 15px; }
 .go-list b { color: var(--accent-text); font-size: 14px; }
-/* ✍️ หัวข้อเขียนมือ */
+/* ✍️ หัวข้อเขียนมือ (Engraved Signature): หมึกดำ #0F172A · จุดประกายทองวิ่งตามปลายปากกา · ค้าง 2.5 วิ */
 .title[data-hw] { position: relative; height: 1.35em; }
 .title .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .hw { display: block; width: 100%; height: 1.35em; overflow: visible; }
@@ -813,89 +836,90 @@ body.calm #themeBtn { color: var(--faint); box-shadow: inset 0 0 0 1px var(--lin
 .hw-wipe { transform: translateX(-100%); }
 .hw.go .hw-t { transition: stroke-dashoffset 1.6s cubic-bezier(.45, .05, .35, 1); stroke-dashoffset: 0; }
 .hw.go .hw-wipe { transition: transform 1.5s cubic-bezier(.45, .05, .35, 1); transform: translateX(0); }
-.hw.done .hw-t { transition: fill-opacity .6s ease, stroke-opacity .8s ease; stroke-opacity: .25; }
 .hw.out { transition: opacity .45s ease, transform .45s ease; opacity: 0; transform: translateY(-4px); }
-.m-rope { aspect-ratio: 120 / 180 !important; }
-.m-peek { aspect-ratio: 190 / 130 !important; }
-.m-couple { aspect-ratio: 210 / 160 !important; }
-/* ซานต้าห้อยกระดิ่ง: ขนาดพอดี ไม่ชนปุ่มของฉัน/คู่รัก */
-.rope { width: 58px; margin-top: -8px; }
-/* หัวข้อเขียนมือ: ตัวขาวทึบ (ไม่มีเส้นขอบเหลือง) ค่อยๆ เขียนจากซ้ายไปขวา */
-.hw-t { fill: #FFFFFF; fill-opacity: 1; stroke: none; }
+.hw-t { fill: #0F172A; fill-opacity: 1; stroke: none; }
 .hw.done .hw-t { fill-opacity: 1; }
-/* ละอองหิมะตอนปัดลบ */
-.star-fx.burst { color: #fff; animation: burst .6s cubic-bezier(.2, .8, .3, 1) forwards; text-shadow: 0 0 8px #BAE6FD; }
+.title[data-hw] .hw { filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .9)); }
+.title .hw-tip { position: absolute; left: 0; top: .32em; width: 7px; height: 7px; border-radius: 50%; font-size: 0; background: #FFF6D6; opacity: 0; pointer-events: none;
+  box-shadow: 0 0 0 1.5px #E9C766, 0 0 10px 3px rgba(233, 199, 102, .9), 0 0 22px 6px rgba(212, 175, 55, .45); }
+.title.hw-go .hw-tip { animation: hwTip 1.5s cubic-bezier(.45, .05, .35, 1) forwards; }
+@keyframes hwTip { 0% { transform: translate3d(0, 0, 0); opacity: 0; } 8% { opacity: 1; } 88% { opacity: 1; } 100% { transform: translate3d(var(--tw, 120px), 0, 0); opacity: 0; } }
+/* ขนาดของตกแต่ง */
+.m-rope { aspect-ratio: 120 / 180 !important; }
+.m-peek { aspect-ratio: 140 / 170 !important; height: 74px !important; }
+.peek-body.small .m-peek { height: 58px !important; }
+.m-snow { height: 104px; width: auto; aspect-ratio: 140 / 170; }
+.m-couple { aspect-ratio: 210 / 160 !important; }
+.rope { width: 52px; margin-top: -8px; }
+/* ❄️ Frost Dissolve: ประกายน้ำแข็ง + ละอองทอง */
+.star-fx.burst { color: #C59B27; animation: burst .6s cubic-bezier(.2, .8, .3, 1) forwards; text-shadow: 0 0 6px #FFF6D6; }
+.star-fx.burst.ice { color: #93C5FD; text-shadow: 0 0 8px #fff, 0 0 2px #60A5FA; }
 @keyframes burst { from { transform: translate(-50%, -50%) scale(.6); opacity: 1; } to { transform: translate(calc(-50% + var(--bx)), calc(-50% + var(--by))) scale(1.1); opacity: 0; } }
-/* หน้าต่างเพิ่ม/แก้รายการ: ทึบไล่เฉดเข้ม (ไม่ใสทะลุ) · ขอบบนเส้นแสง 1px ทอง/แดง (คู่รัก = โรส) · ฉากหลังมืด ไม่เบลอ */
-.sheet { background: linear-gradient(180deg, #161B2E 0%, #0B0E17 100%) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
-  box-shadow: inset 0 1px 0 rgba(250, 204, 21, .9), 0 -14px 40px rgba(220, 38, 38, .16) !important; }
-body.us .sheet { box-shadow: inset 0 1px 0 rgba(251, 113, 133, .95), 0 -14px 40px rgba(244, 63, 94, .16) !important; }
-.sheet-bg { background: rgba(4, 6, 12, .82) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+/* หน้าต่างเพิ่ม/แก้รายการ (ห้องรับรอง VVIP): ขาวงาช้างทึบสนิท · ขอบบนเส้นทองคำเปลว 1px · ฟิล์มมืด 55% ไม่เบลอ */
+.sheet { background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+  box-shadow: inset 0 1px 0 #D4AF37, inset 0 2px 0 rgba(255, 246, 214, .9), 0 -18px 40px -10px rgba(15, 23, 42, .25) !important; }
+body.us .sheet { box-shadow: inset 0 1px 0 #E11D48, inset 0 2px 0 rgba(212, 175, 55, .6), 0 -18px 40px -10px rgba(15, 23, 42, .25) !important; }
+.sheet-bg { background: rgba(15, 23, 42, .55) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 .sheet-title { display: flex; align-items: center; gap: 8px; }
 .sheet-chick { width: 32px !important; height: 32px !important; flex: none; animation: none !important; }
-.amount-input { border-radius: 18px; margin: 2px 0 4px; background: rgba(255, 255, 255, .03); transition: box-shadow .3s, text-shadow .3s; }
-.amount-input.amt-expense { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--expense) 40%, transparent), 0 0 26px color-mix(in srgb, var(--expense) 16%, transparent); text-shadow: 0 0 18px color-mix(in srgb, var(--expense) 55%, transparent); }
-.amount-input.amt-income { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--income) 40%, transparent), 0 0 26px color-mix(in srgb, var(--income) 16%, transparent); text-shadow: 0 0 18px color-mix(in srgb, var(--income) 55%, transparent); }
+/* ช่องตัวเลข: กรอบกระจกเงินมุก เรืองตามโหมด (แดงกำมะหยี่ / เขียวสน) */
+.amount-input { border-radius: 18px; margin: 2px 0 4px; background: linear-gradient(180deg, #FFFFFF, #EEF2F7); transition: box-shadow .3s; color: #0F172A; }
+.amount-input.amt-expense { box-shadow: inset 0 0 0 1px rgba(148, 163, 184, .55), inset 0 2px 4px rgba(15, 23, 42, .05), 0 0 0 4px rgba(185, 28, 28, .08), 0 10px 26px -10px rgba(185, 28, 28, .35); color: #991B1B; }
+.amount-input.amt-income { box-shadow: inset 0 0 0 1px rgba(148, 163, 184, .55), inset 0 2px 4px rgba(15, 23, 42, .05), 0 0 0 4px rgba(4, 120, 87, .08), 0 10px 26px -10px rgba(4, 120, 87, .35); color: #065F46; }
 /* แถบเลือกอยู่เหนือฉากหลังเสมอ */
 .scope, .seg, .stepper { position: relative; z-index: 2; }
-/* ซานต้าคู่รักบินโฉบเข้ามาตอนสลับไปแท็บคู่รัก */
+/* แหวนคู่บินเข้ามาตอนสลับไปแท็บคู่รัก */
 .couple-mascot.fly { animation: flyIn 1s cubic-bezier(.22, 1, .36, 1) both, drift 6s 1s ease-in-out infinite alternate; }
 @keyframes flyIn { from { transform: translate3d(90px, -70px, 0) rotate(18deg) scale(.5); opacity: 0; } 60% { opacity: 1; } to { transform: none; opacity: 1; } }
-/* ⏸️ หยุดแอนิเมชันฉากหลังชั่วคราว: ไถจอ / เปิดหน้าต่าง / สลับแอป */
-:is(body.sheet-open, body.bg-hidden) :is(#space, #space *, .peek-body .mascot, .couple-mascot, .floaty, .lheart, .lover, .lover-ring, .spark, .rope-body),
+/* ⏸️ หยุดแอนิเมชันฉากหลังชั่วคราว: เปิดหน้าต่าง / สลับแอป */
+:is(body.sheet-open, body.bg-hidden) :is(#space, #space *, .peek-body .mascot, .couple-mascot, .floaty, .lheart, .lover, .lover-ring, .spark, .rope-body, .hero > .spec),
+:is(body.sheet-open, body.bg-hidden) .hero > .spec::after,
 :is(body.sheet-open, body.bg-hidden)::before, :is(body.sheet-open, body.bg-hidden)::after { animation-play-state: paused !important; }
-/* เลเยอร์ที่ขยับ (เมนูล่างย่อ/ขยาย · ก้อนกระจกลาก): ไม่ใช้ backdrop-filter → ลื่นบน iPhone */
-.nav { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; background: rgba(14, 19, 34, .93) !important; }
-.nav-blob { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-.lens { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 /* กันจอเลื่อนซ้าย-ขวาได้ (เอฟเฟกต์ที่ล้นขอบ) โดยไม่ทำให้แถบหัวแบบ sticky พัง */
 html, body { overflow-x: clip; }
-
-/* ⚡ สะบัดนิ้วไม่ค้าง: ฉากหลังอยู่เลเยอร์ GPU ของตัวเอง · การ์ดที่เอียงไม่มี backdrop-filter · แถวรายการแยกการคำนวณ */
-
-.hero { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: 0 0 0 1px rgba(255, 255, 255, .08), 0 10px 26px rgba(0, 0, 0, .35); }
+/* ⚡ สะบัดนิ้วไม่ค้าง: แถวรายการแยกการคำนวณ */
 .entry { contain: layout style paint; }
 
-/* ❄️ ฉากคืนคริสต์มาส: ออโรร่าจางด้านบน · หิมะ 3 ชั้นความลึก (transform อย่างเดียว) · รถเลื่อนวิ่งช่องฟ้าด้านบน · ตุ๊กตาหิมะมุมล่าง */
+/* ❄️ ฉากหลัง: ขาวหิมะอมมุก · โบเก้ทองลอย · หิมะคริสตัลสีเงิน 3 ชั้น (transform อย่างเดียว) · รถเลื่อนทองวิ่งช่องฟ้าเหนือการ์ดยอด */
 #space { position: fixed; inset: 0; z-index: -2; pointer-events: none; overflow: hidden; contain: strict; will-change: transform; transform: translateZ(0);
-  background: linear-gradient(180deg, #070B14 0%, #0F172A 100%); }
-#space .aurora { position: absolute; left: -20%; right: -20%; top: -12%; height: 46%;
-  background: radial-gradient(60% 55% at 28% 30%, rgba(45, 212, 191, .16), transparent 70%), radial-gradient(55% 50% at 78% 22%, rgba(250, 204, 21, .10), transparent 70%), radial-gradient(50% 45% at 55% 10%, rgba(99, 102, 241, .14), transparent 70%); }
-body.us #space .aurora { background: radial-gradient(60% 55% at 28% 30%, rgba(244, 63, 94, .16), transparent 70%), radial-gradient(55% 50% at 78% 22%, rgba(250, 204, 21, .10), transparent 70%), radial-gradient(50% 45% at 55% 10%, rgba(251, 113, 133, .12), transparent 70%); }
+  background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 55%, #FDFBF7 100%); }
+body.us #space { background: linear-gradient(180deg, #FFF8FA 0%, #FDF2F5 55%, #FFFBF7 100%); }
+#space .bokeh { position: absolute; inset: -10%; will-change: transform; animation: bokehDrift 24s ease-in-out infinite alternate; }
+#space .bokeh.b1 { background: radial-gradient(70px 70px at 18% 22%, rgba(233, 199, 102, .30), transparent 70%), radial-gradient(46px 46px at 78% 14%, rgba(233, 199, 102, .26), transparent 70%), radial-gradient(90px 90px at 86% 58%, rgba(243, 218, 138, .22), transparent 70%), radial-gradient(54px 54px at 12% 74%, rgba(212, 175, 55, .20), transparent 70%); }
+#space .bokeh.b2 { animation-duration: 31s; animation-direction: alternate-reverse; background: radial-gradient(34px 34px at 44% 34%, rgba(243, 218, 138, .30), transparent 70%), radial-gradient(64px 64px at 60% 86%, rgba(233, 199, 102, .22), transparent 70%), radial-gradient(28px 28px at 30% 52%, rgba(212, 175, 55, .26), transparent 70%); }
+body.us #space .bokeh.b2 { background: radial-gradient(34px 34px at 44% 34%, rgba(251, 113, 133, .2), transparent 70%), radial-gradient(64px 64px at 60% 86%, rgba(244, 114, 182, .16), transparent 70%), radial-gradient(28px 28px at 30% 52%, rgba(212, 175, 55, .26), transparent 70%); }
+@keyframes bokehDrift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(3%, -4%, 0); } }
 #space .snow { position: absolute; left: 0; right: 0; will-change: transform; animation: snowfall linear infinite; }
-#space .snow.s1 { top: -600px; bottom: 0; background-size: 210px 300px; opacity: .45; animation-duration: 26s; --fall: 600px;
-  background-image: radial-gradient(1.4px 1.4px at 20px 30px, #fff, transparent), radial-gradient(1.2px 1.2px at 120px 90px, #fff, transparent), radial-gradient(1.5px 1.5px at 70px 180px, #fff, transparent), radial-gradient(1.2px 1.2px at 180px 240px, #fff, transparent); }
+#space .snow.s1 { top: -600px; bottom: 0; background-size: 210px 300px; opacity: .55; animation-duration: 26s; --fall: 600px;
+  background-image: radial-gradient(1.6px 1.6px at 20px 30px, #A8B8CC, transparent), radial-gradient(1.4px 1.4px at 120px 90px, #B8C6D8, transparent), radial-gradient(1.7px 1.7px at 70px 180px, #A8B8CC, transparent), radial-gradient(1.4px 1.4px at 180px 240px, #C9A54A, transparent); }
 #space .snow.s2 { top: -800px; bottom: 0; background-size: 260px 400px; opacity: .6; animation-duration: 20s; --fall: 800px;
-  background-image: radial-gradient(2.2px 2.2px at 40px 60px, #fff, transparent), radial-gradient(2px 2px at 190px 150px, #fff, transparent), radial-gradient(2.4px 2.4px at 110px 300px, #fff, transparent); }
-#space .snow.s3 { top: -1000px; bottom: 0; background-size: 330px 500px; opacity: .75; animation-duration: 15s; --fall: 1000px;
-  background-image: radial-gradient(3.4px 3.4px at 60px 100px, #fff, transparent), radial-gradient(3px 3px at 250px 330px, #fff, transparent); }
+  background-image: radial-gradient(2.4px 2.4px at 40px 60px, #B8C6D8, transparent), radial-gradient(2.2px 2.2px at 190px 150px, #D4AF37, transparent), radial-gradient(2.6px 2.6px at 110px 300px, #A8B8CC, transparent); }
+#space .snow.s3 { top: -1000px; bottom: 0; background-size: 330px 500px; opacity: .7; animation-duration: 15s; --fall: 1000px;
+  background-image: radial-gradient(3.6px 3.6px at 60px 100px, #FFFFFF, #B8C6D8 60%, transparent 70%), radial-gradient(3.2px 3.2px at 250px 330px, #FFFFFF, #C9D5E3 60%, transparent 70%); }
 @keyframes snowfall { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, var(--fall), 0); } }
-#space .sleigh { position: absolute; left: 0; top: 196px; width: 150px; height: auto; opacity: .9; will-change: transform; animation: sleighRun 22s linear infinite;
-  filter: drop-shadow(0 0 10px rgba(250, 204, 21, .25)); }
+/* รถเลื่อนทอง: โชว์ตัวภายใน ~1 วิหลังเปิด · วนทุก 15 วิ · วิ่งในช่องฟ้าเหนือการ์ดยอด */
+#space .sleigh { position: absolute; left: 0; top: 200px; width: 160px; height: auto; will-change: transform; animation: sleighRun 15s linear .6s infinite both;
+  filter: drop-shadow(0 6px 10px rgba(197, 155, 39, .35)); }
 @keyframes sleighRun {
-  0% { transform: translate3d(-180px, 46px, 0) rotate(-4deg); } 18% { transform: translate3d(30vw, 20px, 0) rotate(-6deg); } 36% { transform: translate3d(70vw, 34px, 0) rotate(-3deg); }
-  52% { transform: translate3d(calc(100vw + 40px), 4px, 0) rotate(-7deg); } 100% { transform: translate3d(calc(100vw + 40px), 4px, 0) rotate(-7deg); } }
-#space .snowman { position: absolute; left: 6px; bottom: calc(96px + env(safe-area-inset-bottom)); height: 84px; width: auto; opacity: .5; }
-body.calm #space .snow, body.calm #space .sleigh { animation: none; } body.calm #space .sleigh { display: none; }
-@media (prefers-reduced-motion: reduce) { #space .snow, #space .sleigh { animation: none; } #space .sleigh { display: none; } }
-/* การ์ดยอดเงินกระจกเข้ม 88% ขอบทองแชมเปญ 1px (โหมดคู่รัก = โรส) */
-.hero { box-shadow: inset 0 0 0 1px rgba(250, 204, 21, .32), 0 18px 40px rgba(0, 0, 0, .55), 0 0 26px rgba(220, 38, 38, .10) !important; }
-body.us .hero { box-shadow: inset 0 0 0 1px rgba(251, 113, 133, .45), 0 18px 40px rgba(0, 0, 0, .55), 0 0 26px rgba(244, 63, 94, .16) !important; }
-.card { background: rgba(17, 24, 39, .72); }
-.hero-amount { color: #FFFFFF; }
-/* ปุ่มมุมขวาบน: อีโมจิ 🎅 / ❄️ */
-#themeBtn { font-size: 20px; line-height: 1; display: grid; place-items: center; }
-/* 🛷 รถเลื่อนพุ่งทะยานตอนบันทึก */
-.sleigh-fx { position: fixed; bottom: 40px; width: 150px; height: auto; z-index: 95; pointer-events: none; will-change: transform, opacity;
-  filter: drop-shadow(0 0 10px rgba(250, 204, 21, .7)); animation: sleighUp 1.2s cubic-bezier(.4, 0, .2, 1) forwards; }
-body.us .sleigh-fx { filter: drop-shadow(0 0 10px rgba(251, 113, 133, .9)); }
-@keyframes sleighUp { 0% { transform: translate3d(0, 40px, 0) rotate(-14deg) scale(.7); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate3d(60vw, -90vh, 0) rotate(-22deg) scale(1.05); opacity: 0; } }
-/* ✍️ หัวข้อลายมือ: ขาวบริสุทธิ์ + เงาเรือง · ประกายหิมะวิ่งตามปลายปากกา */
-.title[data-hw] .hw { filter: drop-shadow(0 0 6px rgba(255, 255, 255, .45)) drop-shadow(0 1px 2px rgba(0, 0, 0, .6)); }
-.title .hw-tip { position: absolute; left: 0; top: .1em; font-size: .5em; font-style: normal; color: #fff; opacity: 0; pointer-events: none; text-shadow: 0 0 8px #BAE6FD, 0 0 14px #fff; }
-.title.hw-go .hw-tip { animation: hwTip 1.5s cubic-bezier(.45, .05, .35, 1) forwards; }
-@keyframes hwTip { 0% { transform: translate3d(0, 0, 0) rotate(0); opacity: 0; } 10% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translate3d(var(--tw, 120px), 0, 0) rotate(180deg); opacity: 0; } }
-/* ตุ๊กตาหิมะในหน้าว่าง */
-.empty .mascot { filter: drop-shadow(0 0 18px rgba(186, 230, 253, .25)); }
-.m-snow { height: 96px; width: auto; aspect-ratio: 130 / 170; }
-.m-rope { aspect-ratio: 120 / 180 !important; }
+  0% { transform: translate3d(-190px, 40px, 0) rotate(-4deg); } 22% { transform: translate3d(28vw, 18px, 0) rotate(-6deg); } 44% { transform: translate3d(68vw, 30px, 0) rotate(-3deg); }
+  62% { transform: translate3d(calc(100vw + 40px), 4px, 0) rotate(-7deg); } 100% { transform: translate3d(calc(100vw + 40px), 4px, 0) rotate(-7deg); } }
+body.calm #space .snow, body.calm #space .sleigh, body.calm #space .bokeh { animation: none; } body.calm #space .sleigh { display: none; }
+@media (prefers-reduced-motion: reduce) { #space .snow, #space .sleigh, #space .bokeh { animation: none; } #space .sleigh { display: none; } }
+/* 🎁 VVIP Gift-Unbox Fountain: กล่องกำมะหยี่แดงผูกโบว์ทองเด้งกลางจอ ฝาเปิดลอยขึ้น → ละอองทองคำเปลว + เกล็ดหิมะพุ่ง */
+.gift-fx { position: fixed; left: 50%; top: 46%; width: 92px; height: 86px; margin: -43px 0 0 -46px; z-index: 96; pointer-events: none; will-change: transform, opacity;
+  animation: giftPop 1.45s cubic-bezier(.34, 1.56, .64, 1) forwards; filter: drop-shadow(0 18px 24px rgba(127, 16, 16, .35)); }
+.gift-fx i { position: absolute; left: 0; right: 0; display: block; border-radius: 6px; }
+.gift-box { bottom: 0; height: 62px; margin: 0 6px; background: radial-gradient(circle at 30% 25%, #E35757, #B91C1C 50%, #5E0B0B); }
+.gift-lid { top: 0; height: 22px; z-index: 1; background: radial-gradient(circle at 30% 20%, #E35757, #A51616 55%, #5E0B0B); animation: lidOff 1.45s cubic-bezier(.3, 1.4, .5, 1) forwards; }
+.gift-fx i b { position: absolute; left: 50%; top: 0; bottom: 0; width: 12px; margin-left: -6px; background: linear-gradient(90deg, #8A6A1A, #FFF6D6 45%, #C59B27); }
+.gift-box::after { content: ""; position: absolute; left: 0; right: 0; top: 22px; height: 10px; background: linear-gradient(180deg, #8A6A1A, #FFF6D6 45%, #C59B27); }
+.gift-lid::before, .gift-lid::after { content: ""; position: absolute; top: -16px; width: 28px; height: 20px; border: 4px solid #E9C766; border-radius: 50% 50% 40% 40%; }
+.gift-lid::before { left: 18px; transform: rotate(-22deg); } .gift-lid::after { right: 18px; transform: rotate(22deg); }
+body.us .gift-box, body.us .gift-lid { filter: hue-rotate(-12deg) saturate(1.1); }
+@keyframes giftPop { 0% { transform: scale(.3) translate3d(0, 40px, 0); opacity: 0; } 14% { transform: scale(1.06); opacity: 1; } 22% { transform: scale(.96); } 30%, 70% { transform: scale(1); opacity: 1; } 100% { transform: scale(.85) translate3d(0, 24px, 0); opacity: 0; } }
+@keyframes lidOff { 0%, 22% { transform: none; } 40% { transform: translate3d(-6px, -46px, 0) rotate(-18deg); } 100% { transform: translate3d(-18px, -70px, 0) rotate(-34deg); opacity: 0; } }
+.foil-fx { position: fixed; z-index: 97; width: 7px; height: 11px; margin: -5px 0 0 -3px; pointer-events: none; border-radius: 1.5px; opacity: 0; will-change: transform, opacity;
+  background: linear-gradient(135deg, #8A6A1A, #FFF6D6 45%, #E9C766 60%, #C59B27); animation: foilOut 1.05s cubic-bezier(.15, .7, .3, 1) forwards; }
+.foil-fx.flake { width: auto; height: auto; background: none; color: #93C5FD; font-size: 15px; text-shadow: 0 0 6px #fff; }
+@keyframes foilOut { 0% { transform: translate3d(0, 0, 0) rotate(0) scale(.6); opacity: 1; } 70% { opacity: 1; } 100% { transform: translate3d(var(--bx), calc(var(--by) + 70px), 0) rotate(var(--r)) scale(1); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .gift-fx, .foil-fx { display: none; } }
