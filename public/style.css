@@ -1046,23 +1046,23 @@ body.calm .hero-deco { animation: none; }
 /* 🎬 ฉากเปิดม่านคริสต์มาส (GPU: transform/opacity · ลบทิ้งทั้งก้อนเมื่อจบ) */
 #holiday-magic-intro { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none;
   background: radial-gradient(circle at 50% 35%, #162238 0%, #090E1A 55%, #04070D 100%);
-  transition: opacity .42s cubic-bezier(.22, 1, .36, 1), transform .42s cubic-bezier(.22, 1, .36, 1); will-change: opacity, transform; }
-#holiday-magic-intro.out { opacity: 0; transform: scale(1.05); pointer-events: none; }
+  transition: opacity .55s cubic-bezier(.22, 1, .36, 1), transform .55s cubic-bezier(.22, 1, .36, 1); will-change: opacity, transform; }
+#holiday-magic-intro.out { opacity: 0; transform: scale(1.04); pointer-events: none; }
 #intro-stardust-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 #holiday-magic-intro .intro-stage { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; gap: 4px; padding-bottom: 5vh; text-align: center; }
 #holiday-magic-intro .intro-crest { width: min(82vw, 340px); height: auto; overflow: visible; stroke: none; fill: none; }
-#holiday-magic-intro .intro-arc { stroke-dasharray: 1; stroke-dashoffset: 1; animation: introDraw 1.2s cubic-bezier(.4, 0, .2, 1) .4s forwards; }
-#holiday-magic-intro .intro-arc.a2 { animation-delay: .55s; }
+#holiday-magic-intro .intro-arc { stroke-dasharray: 1; stroke-dashoffset: 1; animation: introDraw 1.7s cubic-bezier(.25, .1, .25, 1) .6s forwards; }
+#holiday-magic-intro .intro-arc.a2 { animation-delay: .75s; }
 @keyframes introDraw { to { stroke-dashoffset: 0; } }
-#holiday-magic-intro .intro-star { opacity: 0; animation: introFade .5s ease-out var(--d) forwards; }
-#holiday-magic-intro .intro-sil { opacity: 0; animation: introFade .8s ease-out .9s forwards; }
+#holiday-magic-intro .intro-star { opacity: 0; animation: introFade .7s ease-out var(--d) forwards; }
+#holiday-magic-intro .intro-sil { opacity: 0; animation: introFade 1.3s cubic-bezier(.25, .1, .25, 1) 1s forwards; }
 #holiday-magic-intro .intro-title { position: relative; padding: 2px 14px; font: 700 clamp(30px, 9.4vw, 42px)/1.25 "Mali", var(--font); letter-spacing: .4px; color: transparent;
   background: linear-gradient(100deg, #FFF8E7 0%, #FFF8E7 38%, #FDE68A 46%, #FFFFFF 50%, #FDE68A 54%, #FFF8E7 62%, #FFF8E7 100%) 100% 0 / 280% 100% no-repeat;
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-  opacity: 0; transform: translate3d(0, 10px, 0); animation: introUp .8s ease-out .8s forwards, introSweep .95s ease-in-out 1.05s forwards; }
+  opacity: 0; transform: translate3d(0, 10px, 0); animation: introUp 1s cubic-bezier(.25, .1, .25, 1) 1.9s forwards, introSweep 1.3s ease-in-out 2s forwards; }
 #holiday-magic-intro .intro-stage::before { content: ""; position: absolute; left: -10%; right: -10%; top: 52%; height: 34%; z-index: -1; background: radial-gradient(ellipse at center, rgba(250, 204, 21, .16), rgba(250, 204, 21, 0) 70%); pointer-events: none; }
 @keyframes introSweep { to { background-position: 0 0; } }
-#holiday-magic-intro .intro-greet { font-size: 15px; color: #FDE68A; opacity: 0; transform: translate3d(0, 14px, 0); animation: introUp .8s ease-out 1.3s forwards; }
+#holiday-magic-intro .intro-greet { font-size: 15px; color: #FDE68A; opacity: 0; transform: translate3d(0, 14px, 0); animation: introUp .9s cubic-bezier(.25, .1, .25, 1) 2.4s forwards; }
 #holiday-magic-intro .intro-skip { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom) + 22px); text-align: center; font-size: 12px; color: rgba(226, 232, 240, .5); opacity: 0; animation: introFade .6s ease 0.7s forwards; }
 @keyframes introUp { to { opacity: 1; transform: translate3d(0, 0, 0); } }
 @keyframes introFade { to { opacity: 1; } }

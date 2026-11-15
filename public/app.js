@@ -1294,6 +1294,14 @@ function syncAnnBtn() {
   try { document.body.classList.toggle('is-admin', !!state.isAdmin); applyTheme(); } catch (e) { console.warn('admin button skipped:', e?.message); }
 }
 const ANN_MAX = 1000;
+const QCACHE = 'xmas_admin_quota_cache';
+async function warmAdmin() {
+  try {
+    if (DEMO || !state.isAdmin) return;
+    const r = await adminApi('POST', { action: 'quota' });
+    if (r && r.ok) store.set(QCACHE, r);
+  } catch { /* เงียบ: แค่อุ่นเครื่อง */ }
+}
 const annCardHTML = () => `<div class="card ann-card" id="annCard"><h3>📣 ประกาศถึงสมาชิก</h3>
     <div class="ann-quota"><div id="annQ"><span class="ann-dim">กำลังเช็คโควตา…</span></div><div class="ann-bar"><i id="annBar"></i></div><small id="annTo" class="ann-dim"></small></div>
     <span class="label">ข้อความประกาศ</span>
@@ -1308,6 +1316,7 @@ const annCardHTML = () => `<div class="card ann-card" id="annCard"><h3>📣 ป�
 async function bindAnn(root) {
   if (!root) return;
   let q = null, armed = 0, busy = false;
+  try { const c = store.get(QCACHE); if (c && c.ok) q = c; } catch { /* ไม่มีแคช */ }
   const quotaLine = () => {
     if (!q) return '<span class="ann-dim">กำลังเช็คโควตา…</span>';
     if (!q.ok) return '<span class="ann-warn">เช็คโควตา LINE ไม่ได้ ตอนนี้ส่งหาทุกคนไม่ได้</span>';
@@ -1353,8 +1362,8 @@ async function bindAnn(root) {
     run('send', r => `ส่งประกาศถึง ${r.sent} คนแล้ว 📣`);
   };
   test.onclick = () => run('test', () => 'ส่งทดสอบแล้ว เช็คแชท LINE 🧪');
-  paint();
-  try { q = await adminApi('POST', { action: 'quota' }); } catch { q = { ok: false, members: 0, type: 'unknown' }; }
+  paint(); // เลขจากแคชขึ้นทันที ไม่มีตัวหมุน
+  try { const r = await adminApi('POST', { action: 'quota' }); q = r; if (r.ok) { try { store.set(QCACHE, r); } catch { /* ข้าม */ } } } catch { if (!q) q = { ok: false, members: 0, type: 'unknown' }; }
   if (root.isConnected) paint();
 }
 
@@ -1395,17 +1404,28 @@ const ago = (ms, now) => {
 const dmy = ms => { const d = new Date(ms + 7 * 3600e3); return `${d.getUTCDate()} ${['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'][d.getUTCMonth()]}`; };
 
 async function renderAdmin(view, quiet) {
-  if (!quiet) view.innerHTML = `<div class="card"><div class="skeleton" style="width:40%"></div><div class="skeleton" style="height:42px;margin:12px 0;width:70%"></div><div class="skeleton"></div></div>`;
+  const skel = '<div class="card"><div class="skeleton" style="width:40%"></div><div class="skeleton" style="height:42px;margin:12px 0;width:70%"></div><div class="skeleton"></div></div>';
+  const early = state.isAdmin; // แอดมิน (จากแคช/เซิร์ฟเวอร์) → การ์ดประกาศขึ้นทันที ไม่รอรายชื่อสมาชิก
+  let rest = null;
+  try {
+    if (early && !$('#annCard', view)) {
+      view.innerHTML = annCardHTML() + `<div id="adminRest">${skel}</div>`;
+      try { bindAnn($('#annCard', view)); } catch (e) { console.warn('announce skipped:', e?.message); }
+    }
+    rest = $('#adminRest', view);
+  } catch (e) { console.warn('admin early skipped:', e?.message); }
+  if (!rest && !quiet) view.innerHTML = skel;
   let d;
   try { d = await adminApi('GET'); } catch (e) {
     const why = { not_admin: 'บัญชีนี้ไม่ใช่เจ้าของระบบ', no_admin_uid: 'ยังไม่ได้ใส่ ADMIN_UID ใน Vercel<br>พิมพ์ "ไอดีของฉัน" ในแชท แล้วนำไปใส่' }[e.message] || esc(e.message);
+    if (e.message === 'not_admin') { try { store.set('xmas_is_admin', null); store.set(QCACHE, null); state.isAdmin = false; syncAnnBtn(); } catch { /* ข้าม */ } }
     view.innerHTML = `<div class="card empty gate">${mascot('angry')}<b>เข้าหลังบ้านไม่ได้ 🔒</b><br>${why}</div>`;
     return;
   }
   if (state.page !== 'admin') return;
-  view.innerHTML = annCardHTML() + adminHTML(d);
+  if (rest && rest.isConnected) { rest.innerHTML = adminHTML(d); }
+  else { view.innerHTML = annCardHTML() + `<div id="adminRest">${adminHTML(d)}</div>`; try { bindAnn($('#annCard', view)); } catch (e) { console.warn('announce skipped:', e?.message); } }
   bindAdmin(d);
-  try { bindAnn($('#annCard', view)); } catch (e) { console.warn('announce skipped:', e?.message); }
 }
 
 function adminHTML(d) {
@@ -1983,6 +2003,7 @@ async function boot() {
     if (params.get('scope') === 'us' && state.couple) state.scope = 'us';
     const um = store.get('usmonth');
     if (state.couple && um?.ym === ym) { addUsCats(um.extraCats); state.monthCache['us:' + ym] = Promise.resolve(um.entries); }
+    try { if (store.get('xmas_is_admin') === 1) { state.isAdmin = true; syncAnnBtn(); } } catch (e) { console.warn('admin cache skipped:', e?.message); } // 👑 ขึ้นทันทีจากแคช (เซิร์ฟเวอร์ยังตรวจ ADMIN_UID ทุกคำขอ)
     const p = store.get('profile'), m = store.get('month');
     if (p && m && m.ym === ym) {
       applyProfile(p); state.monthCache[ym] = Promise.resolve(m.entries);
@@ -1997,6 +2018,7 @@ async function boot() {
       liffReady.catch(() => {});
       // มีบัตรผ่าน → ขอข้อมูลพร้อมกับเปิด LINE เลย ไม่ต้องรอ
       if (session()) { early = api('GET', 'boot', monthRange(ym)); early.catch(() => {}); }
+      warmAdmin(); // แอดมิน: แอบอุ่นเซิร์ฟเวอร์ + ดึงโควตาสดระหว่างฉากเปิดม่านเล่น
       await liffReady;
       if (!window.liff.isLoggedIn()) { store.set('sess', null); window.liff.login({ redirectUri: location.href }); return; }
       // บัตรผ่านเป็นของบัญชีอื่นในเครื่องนี้ → ล้างแล้วเริ่มใหม่
@@ -2016,6 +2038,10 @@ async function boot() {
     const r = await (early || api('GET', 'boot', monthRange(ym))).catch(e => (e.message === 'unauthorized' ? api('GET', 'boot', monthRange(ym)) : Promise.reject(e)));
     applyProfile(r.profile); store.set('profile', r.profile);
     state.isAdmin = !!r.isAdmin; syncAnnBtn();
+    try {
+      if (state.isAdmin) store.set('xmas_is_admin', 1);
+      else { store.set('xmas_is_admin', null); store.set('xmas_admin_quota_cache', null); document.body.classList.remove('is-admin'); if (state.page === 'admin') go('home'); } // แคชผิด → ถอนทันที
+    } catch (e) { console.warn('admin cache sync skipped:', e?.message); }
     const wasUs = isUs();
     setCouple(r.couple);
     if (params.get('scope') === 'us' && state.couple) state.scope = 'us';
