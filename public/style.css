@@ -915,8 +915,7 @@ body.calm #space .aurora { animation: none; }
   0% { transform: translate3d(-170px, 18px, 0) rotate(-3deg); } 18% { transform: translate3d(24vw, 6px, 0) rotate(-5deg); } 36% { transform: translate3d(58vw, 14px, 0) rotate(-2deg); }
   56% { transform: translate3d(calc(100vw + 30px), 0, 0) rotate(-6deg); } 100% { transform: translate3d(calc(100vw + 30px), 0, 0) rotate(-6deg); } }
 /* 🎅 ซานต้าน้อยโบกมือ เกาะเหนือขอบบนการ์ดยอด (เยื้องขวา · ไม่บังป้าย กำไร/ขาดทุน) */
-.santa-wave { position: absolute; right: 108px; top: -54px; width: 60px; height: auto; z-index: 0; pointer-events: none; transform-origin: 50% 100%;
-  animation: peekIn .9s var(--ease) .3s both, santaWave 2.6s ease-in-out 1.3s infinite; }
+.santa-wave { display: none; }
 @keyframes santaWave { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(-7deg); } 80% { transform: rotate(6deg); } 90% { transform: rotate(-4deg); } }
 :is(body.calm, body.sheet-open, body.bg-hidden) :is(.sky-lane img, .santa-wave) { animation-play-state: paused; }
 body.calm .sky-lane { display: none; }
@@ -925,7 +924,17 @@ body.calm .sky-lane { display: none; }
 .view.reveal > .grid > *, .view.reveal > .grid > .grid > * { animation: rise .6s var(--spring) both; animation-delay: calc(var(--ri, 0) * 70ms); }
 @keyframes rise { from { opacity: 0; transform: translate3d(0, 22px, 0) scale(.97); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .view.reveal * { animation-delay: 0s !important; } }
-#space .corner-gifts { position: absolute; right: 4px; bottom: calc(92px + env(safe-area-inset-bottom)); height: 78px; width: auto; opacity: .95; }
+/* 🏔️ ฉากคริสต์มาสหมู่บ้านหิมะ (ต้นคริสต์มาสใหญ่ บ้านไม้ มนุษย์หิมะ เสาไฟ ลูกอม ป่าสน) · นิ่งทั้งชั้น มีแค่ไฟ/ควัน/ดาวกะพริบ (opacity/transform) */
+#space svg.scene { stroke: none; stroke-width: 0; fill: none; }
+#space .scene { position: absolute; left: 50%; bottom: 0; width: min(100%, 760px); height: auto; aspect-ratio: 4 / 3; transform: translateX(-50%); opacity: .96; }
+#space .scene .win { animation: bulb 2.4s ease-in-out infinite alternate; }
+#space .scene .lt { animation: bulb 1.4s ease-in-out infinite alternate; } #space .scene .l1 { animation-delay: .35s; } #space .scene .l2 { animation-delay: .7s; } #space .scene .l3 { animation-delay: 1.05s; }
+#space .scene .starb { animation: starPulse 2.6s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+@keyframes starPulse { from { opacity: .75; transform: scale(.94); } to { opacity: 1; transform: scale(1.08); } }
+#space .scene .puff { animation: smoke 4.5s ease-out infinite; transform-box: fill-box; transform-origin: center; opacity: 0; }
+#space .scene .p2 { animation-delay: 1.5s; } #space .scene .p3 { animation-delay: 3s; }
+@keyframes smoke { 0% { opacity: 0; transform: translate(0, 6px) scale(.5); } 25% { opacity: .85; } 100% { opacity: 0; transform: translate(10px, -26px) scale(1.5); } }
+body.calm #space .scene :is(.win, .lt, .starb, .puff) { animation: none; }
 body.calm #space .bulb { animation: none; }
 @media (prefers-reduced-motion: reduce) { #space .bulb { animation: none; } }
 /* 🎁 บันทึก: กล่องของขวัญแดงโบว์ทองเด้งเปิดฝา → พลุเกล็ดหิมะ ดาวทอง แคนดี้เคน · รถเลื่อนซานต้าพุ่งข้ามจอ */
@@ -987,4 +996,32 @@ body.calm #space .bulb { animation: none; }
 .sheet.ann [data-close] { color: #CBD5E1; background: transparent; }
 @media (prefers-reduced-motion: reduce) { .ann-bar i { transition: none; } }
 /* แอดมิน: ขยับพวงมาลัยไปทางซ้าย ไม่ให้ทับปุ่ม 👑 ประกาศ (ทับแล้วแตะปุ่มไม่ได้) */
-body.is-admin .rope { left: 38%; }
+
+/* 🎅 ซานต้าตัวใหญ่ยิ้มกว้าง ครึ่งตัว เกาะขอบบนการ์ดยอด (ตัวเมนหลัก · แตะแล้วทัก · ลากได้) */
+.hero-wrap:not(.us) { margin-top: 132px; }
+.hero-wrap:not(.us).small { margin-top: 92px; }
+.hero-wrap:not(.us) .peek-body { z-index: 2; right: 4px; top: -111px; }
+.hero-wrap:not(.us) .peek-body.small { top: -78px; }
+.m-hug { height: 118px !important; width: auto; aspect-ratio: 220 / 176 !important; }
+.peek-body.small .m-hug { height: 84px !important; }
+.peek-body .m-hug { animation: hugSway 4.2s ease-in-out infinite; transform-origin: 50% 96%; }
+.peek-body.boing .m-hug { animation: boing .7s var(--ease); }
+@keyframes hugSway { 0%, 100% { transform: rotate(-1.4deg) translateY(0); } 50% { transform: rotate(1.4deg) translateY(-2px); } }
+.hero-wrap:not(.us) .hero-top { padding-right: 0; }
+/* 🛷 รถเลื่อนบินไปกลับทั่วท้องฟ้า: ซ้าย→ขวา โค้งลอยขึ้นลง แล้วกลับหันหัวไปทางซ้าย (transform อย่างเดียว) */
+.hero-wrap:not(.us) .sky-lane { top: -150px; height: 112px; left: -16px; right: -16px; }
+.hero-wrap:not(.us) .sky-lane img { width: 132px; top: 8px; animation: laneRoam 26s ease-in-out .4s infinite both; }
+@keyframes laneRoam {
+  0% { transform: translate3d(-150px, 48px, 0) rotate(-4deg); }
+  10% { transform: translate3d(18vw, 18px, 0) rotate(-8deg); }
+  22% { transform: translate3d(46vw, 40px, 0) rotate(2deg); }
+  36% { transform: translate3d(calc(100vw + 20px), 8px, 0) rotate(-6deg); }
+  40%, 52% { transform: translate3d(calc(100vw + 40px), 8px, 0) rotate(-6deg) scaleX(-1); }
+  60% { transform: translate3d(70vw, 36px, 0) rotate(-4deg) scaleX(-1); }
+  74% { transform: translate3d(30vw, 12px, 0) rotate(6deg) scaleX(-1); }
+  90% { transform: translate3d(-150px, 44px, 0) rotate(-6deg) scaleX(-1); }
+  100% { transform: translate3d(-150px, 44px, 0) rotate(-6deg) scaleX(-1); } }
+.hero-wrap:not(.us).small .sky-lane { display: none; }
+/* หัวเรื่องหน้าหลังบ้าน: ฟอร์มประกาศอยู่ในหน้าเลย */
+.ann-card { background: linear-gradient(180deg, #070B14, #0F172A) !important; color: #E2E8F0; }
+.ann-card .label, .ann-card h3 { color: #F8FAFC; }

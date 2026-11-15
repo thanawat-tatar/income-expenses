@@ -44,7 +44,7 @@ const LIFF_SDK = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
 const ICON_TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>';
 
 // ---------- ซานต้า & ซานต้าคริสต์มาส (SVG พื้นใสใน public/assets/ · วาดเองทั้งหมด) ----------
-const ASSET = { rope: 'xmas-wreath.svg?v=2', peek: 'xmas-gifts.svg?v=2', snow: 'xmas-gifts.svg?v=2', avatar: 'xmas-avatar.svg?v=3', couple: 'xmas-couple.svg?v=3' };
+const ASSET = { rope: 'xmas-wreath.svg?v=2', peek: 'xmas-gifts.svg?v=2', hug: 'xmas-santa-hug.svg?v=1', snow: 'xmas-gifts.svg?v=2', avatar: 'xmas-avatar.svg?v=3', couple: 'xmas-couple.svg?v=3' };
 const assetUrl = kind => `/assets/${ASSET[kind]}`;
 // 🛡️ เอฟเฟกต์ทุกตัววิ่งในกล่องกันพัง: เอฟเฟกต์พลาดแค่ไหน การจด/แก้/ลบ/ซิงก์ก็ไม่ค้าง
 const fx = f => function guarded(...a) { try { return f.apply(this, a); } catch (e) { console.warn('effect skipped:', e?.message); } };
@@ -63,7 +63,7 @@ addEventListener('error', e => {
 
 // ต้นคริสต์มาส + กองของขวัญประดับมุมการ์ด (อยู่ชั้นหลัง ไม่บังตัวเลข · แตะ = ซานต้าทัก)
 function mascotPeek(mood, small, extra = '') {
-  return `<button class="peek-body ${small ? 'small' : ''} ${extra}" data-mood="${mood}" aria-label="กองของขวัญ">${mascot(mood)}</button>`;
+  return `<button class="peek-body ${small ? 'small' : ''} ${extra}" data-mood="${mood}" aria-label="กองของขวัญ">${mascot('hug')}</button>`;
 }
 
 // ---------- คำพูดซานต้า (ชม · ให้กำลังใจ · ชวนจดต่อ) ----------
@@ -109,7 +109,7 @@ const FUN_CHANCE = 0.1;      // โผล่ประมาณ 1 ใน 10 ค�
 const RUSH_MS = 5000;        // บันทึกติดกันภายใน 5 วิ = กำลังรีบ → ข้ามลูกเล่นทั้งหมด
 let lastSaveAt = 0;
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-const funOn = () => store.get('fun') !== false && !reducedMotion();
+const funOn = () => !reducedMotion(); // แอนิเมชันเปิดตลอด (ไม่มีโหมดปิด) · ยกเว้นเครื่องที่ตั้ง "ลดการเคลื่อนไหว" ระดับระบบ
 const rushing = () => Date.now() - lastSaveAt < RUSH_MS;
 // ?fun=1 = โผล่ทุกครั้ง (ไว้ทดสอบ)
 const lucky = () => funOn() && !rushing() && (params.get('fun') === '1' || Math.random() < FUN_CHANCE);
@@ -575,9 +575,10 @@ function armDelete(btn, fn, label = 'แตะอีกครั้งเพื�
 document.addEventListener('touchstart', () => {}, { passive: true });
 
 // ---------- ธีม ----------
-function applyTheme() { // ธีม Grand Festive Christmas · ปุ่มมุมขวาบน 🎅 = ลูกเล่นเปิดอยู่ · ❄️ = ปิด (กดสลับ)
-  $('#themeBtn').textContent = funOn() ? '🎅' : '❄️';
-  $('#themeBtn').setAttribute('aria-pressed', String(funOn()));
+function applyTheme() { // ปุ่มมุมขวาบน = 👑 เข้าหลังบ้าน (เห็นเฉพาะเจ้าของระบบ · เซิร์ฟเวอร์ตรวจสิทธิ์ซ้ำทุกคำขอ)
+  const b = $('#themeBtn'); if (!b) return;
+  b.textContent = '👑'; b.hidden = !state.isAdmin;
+  b.setAttribute('aria-label', 'หลังบ้าน');
 }
 
 // ---------- API ----------
@@ -979,7 +980,7 @@ function homeHTML(d) {
   const mood = zero ? (us ? 'wink' : 'angry') : profit ? 'happy' : 'sad';
   const mascots = us ? loversHTML() : mascotPeek(mood);
   const label = us ? `${esc(periodWord())}ของเรา 💕` : esc(periodWord());
-  const sky = funOn() ? `<div class="sky-lane"><img src="/assets/xmas-santa-sleigh.svg?v=2" alt="" draggable="false"></div>${us ? '' : '<img class="santa-wave" src="/assets/xmas-santa-wave.svg?v=1" alt="" draggable="false">'}` : '';
+  const sky = funOn() ? `<div class="sky-lane"><img src="/assets/xmas-santa-sleigh.svg?v=2" alt="" draggable="false"></div>` : '';
   const hero = `<div class="hero-wrap ${us ? 'us' : ''}">${sky}${mascots}<i class="hero-shadow"></i><div class="card hero tilt ${us ? 'love' : ''} ${zero ? '' : profit ? 'profit' : 'loss'}">
     <i class="spark s1">❄</i><i class="spark s2">✦</i><i class="spark s3">❄</i><i class="glare"></i><i class="spec"></i>
     <div class="hero-top"><span class="hero-label">${label} ${streak}</span><span class="badge">${zero ? '—' : profit ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
@@ -1192,56 +1193,43 @@ const ANN_TPL = [
   ['📝 แจ้งเตือนจดบัญชี', '📝 วันนี้จดรายรับรายจ่ายหรือยังครับ? แค่พิมพ์ เช่น "ข้าว 50" ในแชทนี้ก็บันทึกให้เลย 🎅'],
 ];
 function syncAnnBtn() {
-  try {
-    const old = $('#annBtn');
-    document.body.classList.toggle('is-admin', !!state.isAdmin);
-    if (!state.isAdmin) { old?.remove(); return; }
-    if (old) return;
-    const b = document.createElement('button');
-    b.id = 'annBtn'; b.className = 'ann-btn'; b.type = 'button'; b.textContent = '👑 ประกาศ';
-    b.setAttribute('aria-label', 'ประกาศถึงสมาชิก');
-    b.onclick = () => { try { openAnnounce(); } catch (e) { console.warn('announce skipped:', e?.message); } };
-    $('#themeBtn').before(b);
-  } catch (e) { console.warn('announce button skipped:', e?.message); }
+  try { document.body.classList.toggle('is-admin', !!state.isAdmin); applyTheme(); } catch (e) { console.warn('admin button skipped:', e?.message); }
 }
-async function openAnnounce() {
-  const sheet = $('#sheet');
+const ANN_MAX = 1000;
+const annCardHTML = () => `<div class="card ann-card" id="annCard"><h3>📣 ประกาศถึงสมาชิก</h3>
+    <div class="ann-quota"><div id="annQ"><span class="ann-dim">กำลังเช็คโควตา…</span></div><div class="ann-bar"><i id="annBar"></i></div><small id="annTo" class="ann-dim"></small></div>
+    <span class="label">ข้อความประกาศ</span>
+    <textarea class="ann-ta" id="annText" maxlength="${ANN_MAX}" rows="5" placeholder="พิมพ์ข้อความที่จะส่งหาสมาชิกทุกคน"></textarea>
+    <div class="ann-row"><div class="ann-tpls">${ANN_TPL.map((t, i) => `<button type="button" class="ann-tpl" data-tpl="${i}">${t[0]}</button>`).join('')}</div><small id="annCnt" class="ann-dim">0/${ANN_MAX}</small></div>
+    <span class="label">พรีวิวในแชท</span>
+    <div class="ann-chat"><div class="ann-bubble" id="annPrev"><span class="ann-dim">ยังไม่มีข้อความ</span></div></div>
+    <div class="ann-actions">
+      <button class="ann-send" id="annSend" type="button">📣 ส่งข้อความหาทุกคน</button>
+      <button class="ann-test" id="annTest" type="button">🧪 ทดสอบส่งหาตัวเอง (ใช้ 1 โควตา)</button>
+    </div></div>`;
+async function bindAnn(root) {
+  if (!root) return;
   let q = null, armed = 0, busy = false;
-  const MAX = 1000;
   const quotaLine = () => {
     if (!q) return '<span class="ann-dim">กำลังเช็คโควตา…</span>';
     if (!q.ok) return '<span class="ann-warn">เช็คโควตา LINE ไม่ได้ ตอนนี้ส่งหาทุกคนไม่ได้</span>';
     if (q.type !== 'limited') return `โควตาเดือนนี้: ไม่จำกัด · ใช้ไป ${fmt(q.used)} ข้อความ`;
     return `โควตาเดือนนี้: ใช้ไป <b>${fmt(q.used)}</b> / ${fmt(q.limit)} ข้อความ`;
   };
-  sheet.innerHTML = `<div class="grab"></div><h2 class="sheet-title">👑 ประกาศถึงสมาชิก</h2>
-    <div class="ann-quota"><div id="annQ">${quotaLine()}</div><div class="ann-bar"><i id="annBar"></i></div><small id="annTo" class="ann-dim"></small></div>
-    <span class="label">ข้อความประกาศ</span>
-    <textarea class="ann-ta" id="annText" maxlength="${MAX}" rows="5" placeholder="พิมพ์ข้อความที่จะส่งหาสมาชิกทุกคน"></textarea>
-    <div class="ann-row"><div class="ann-tpls">${ANN_TPL.map((t, i) => `<button type="button" class="ann-tpl" data-tpl="${i}">${t[0]}</button>`).join('')}</div><small id="annCnt" class="ann-dim">0/${MAX}</small></div>
-    <span class="label">พรีวิวในแชท</span>
-    <div class="ann-chat"><div class="ann-bubble" id="annPrev"><span class="ann-dim">ยังไม่มีข้อความ</span></div></div>
-    <div class="ann-actions">
-      <button class="ann-send" id="annSend" type="button">📣 ส่งข้อความหาทุกคน</button>
-      <button class="ann-test" id="annTest" type="button">🧪 ทดสอบส่งหาตัวเอง (ใช้ 1 โควตา)</button>
-    </div>
-    <button class="btn ghost ann-close" data-close type="button">ปิด</button>`;
-  const ta = $('#annText', sheet), send = $('#annSend', sheet), test = $('#annTest', sheet);
+  const ta = $('#annText', root), send = $('#annSend', root), test = $('#annTest', root);
   const disarm = () => { armed = 0; send.classList.remove('armed'); send.textContent = '📣 ส่งข้อความหาทุกคน'; };
   const paint = () => {
     const v = ta.value;
-    $('#annPrev', sheet).textContent = v.trim() || '';
-    if (!v.trim()) $('#annPrev', sheet).innerHTML = '<span class="ann-dim">ยังไม่มีข้อความ</span>';
-    $('#annCnt', sheet).textContent = `${v.length}/${MAX}`;
+    if (v.trim()) $('#annPrev', root).textContent = v; else $('#annPrev', root).innerHTML = '<span class="ann-dim">ยังไม่มีข้อความ</span>';
+    $('#annCnt', root).textContent = `${v.length}/${ANN_MAX}`;
     if (q) {
-      $('#annQ', sheet).innerHTML = quotaLine();
-      $('#annTo', sheet).textContent = `ส่งถึงสมาชิก ${q.members} คน (หักโควตา ${q.members} ข้อความ${q.left != null ? ` · เหลือ ${q.left}` : ''})`;
-      $('#annBar', sheet).style.transform = `scaleX(${q.type === 'limited' && q.limit ? Math.min(1, q.used / q.limit).toFixed(3) : 0})`;
+      $('#annQ', root).innerHTML = quotaLine();
+      $('#annTo', root).textContent = `ส่งถึงสมาชิก ${q.members} คน (หักโควตา ${q.members} ข้อความ${q.left != null ? ` · เหลือ ${q.left}` : ''})`;
+      $('#annBar', root).style.transform = `scaleX(${q.type === 'limited' && q.limit ? Math.min(1, q.used / q.limit).toFixed(3) : 0})`;
     }
   };
   ta.addEventListener('input', () => { disarm(); paint(); });
-  $$('[data-tpl]', sheet).forEach(b => b.onclick = () => { ta.value = ANN_TPL[Number(b.dataset.tpl)][1]; disarm(); paint(); });
-  sheet.querySelector('[data-close]').onclick = closeSheet;
+  $$('[data-tpl]', root).forEach(b => b.onclick = () => { ta.value = ANN_TPL[Number(b.dataset.tpl)][1]; disarm(); paint(); });
   const run = async (action, okMsg) => {
     const text = ta.value.trim();
     if (!text) { ta.focus(); return toast('ยังไม่ได้พิมพ์ข้อความ ⚠️'); }
@@ -1250,7 +1238,8 @@ async function openAnnounce() {
     try {
       const r = await adminApi('POST', { action, text });
       if (r.left != null && q) { q.used = (q.limit || 0) - r.left; q.left = r.left; }
-      closeSheet(); toast(okMsg(r));
+      if (action === 'send') { ta.value = ''; }
+      toast(okMsg(r)); paint();
     } catch (e) {
       if (e.message !== 'login') toast(`${/[ก-๙]/.test(e.message) ? e.message : 'ส่งไม่สำเร็จ ลองใหม่'} ⚠️`);
     } finally { busy = false; send.disabled = test.disabled = false; disarm(); }
@@ -1266,9 +1255,9 @@ async function openAnnounce() {
     run('send', r => `ส่งประกาศถึง ${r.sent} คนแล้ว 📣`);
   };
   test.onclick = () => run('test', () => 'ส่งทดสอบแล้ว เช็คแชท LINE 🧪');
-  paint(); openSheetEl('ann');
+  paint();
   try { q = await adminApi('POST', { action: 'quota' }); } catch (e) { q = { ok: false, members: 0, type: 'unknown' }; }
-  if ($('#annQ', sheet)) paint();
+  if (root.isConnected) paint();
 }
 
 // ---------- หลังบ้าน (เจ้าของระบบ) ----------
@@ -1316,8 +1305,9 @@ async function renderAdmin(view, quiet) {
     return;
   }
   if (state.page !== 'admin') return;
-  view.innerHTML = adminHTML(d);
+  view.innerHTML = annCardHTML() + adminHTML(d);
   bindAdmin(d);
+  try { bindAnn($('#annCard', view)); } catch (e) { console.warn('announce skipped:', e?.message); }
 }
 
 function adminHTML(d) {
@@ -1472,11 +1462,6 @@ function settingsHTML() {
       <button class="priv" id="debtsOpen" type="button" style="margin:0"><span>📒</span><div><b>สมุดหนี้</b><small>จดว่าใครติดเงินเราอยู่เท่าไหร่ · เห็นแค่คุณคนเดียว</small></div><em style="font-style:normal;color:var(--faint)">›</em></button>
     </div>
 
-    <div class="card span">
-      <h2 class="section-title">🎄 หน้าตา</h2>
-      <button class="priv ${store.get('fun') !== false ? 'on' : ''}" id="funToggle" type="button" style="margin:10px 0 12px">
-        <span>🎅</span><div><b>ลูกเล่นคริสต์มาส</b><small>${store.get('fun') !== false ? 'หิมะตก ไฟประดับ ซานต้าบิน กล่องของขวัญตอนบันทึก · รีบอยู่ไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
-    </div>
   </div>`;
 }
 
@@ -1531,7 +1516,6 @@ function bindSettings() {
   }, 'ลบ?'));
 
   $('#debtsOpen').onclick = () => { state.page = 'debts'; state.anim = 'l'; render(); window.scrollTo({ top: 0 }); };
-  $('#funToggle').onclick = () => { store.set('fun', store.get('fun') === false); document.body.classList.toggle('calm', !funOn()); applyTheme(); render(true); };
   bindSquish($('#view'));
   $('#cOpen') && ($('#cOpen').onclick = () => { state.scope = 'us'; go('home'); });
   $('#cUnpair') && armDelete($('#cUnpair'), async () => {
@@ -1836,7 +1820,7 @@ function bindChrome() {
   $('#periodLabel').onclick = openPicker;
   $('#addBtn').onclick = () => openEntry(null);
   $('#sheetBg').onclick = closeSheet;
-  $('#themeBtn').onclick = () => { store.set('fun', store.get('fun') === false); document.body.classList.toggle('calm', !funOn()); applyTheme(); toast(funOn() ? '🎅 โฮ่ โฮ่ โฮ่! เปิดหิมะและซานต้าแล้ว' : '❄️ โหมดนิ่ง ประหยัดแบต'); render(true); };
+  $('#themeBtn').onclick = () => go(state.page === 'admin' ? 'home' : 'admin');
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeSheet(); });
   // กลับมาที่หน้าเว็บ (เช่น ไปพิมพ์ในแชทมา) ให้ดึงข้อมูลใหม่
   let hiddenAt = 0;
