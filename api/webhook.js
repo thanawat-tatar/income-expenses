@@ -23,7 +23,7 @@ import { slipReady, slipTurn, geminiTurn, fetchImage, readSlip, probeModels } fr
 import {
   getProfile, saveProfile, addEntries, updateEntry, recentEntries, getEntry, setEdit, getEdit, clearEdit,
   getMiss, setMiss, clearMiss, listEntries, lastBatch, deleteEntries,
-  setPending, getPending, clearPending, getUser, keepFrom,
+  setPending, getPending, clearPending, getUser, keepFrom, savePic,
 } from '../lib/store.js';
 
 const PENDING_TTL = 24 * 3600 * 1000;
@@ -170,6 +170,16 @@ async function handle(ev) {
   return onText(uid, ev);
 }
 
+// 🖼️ รูปโปรไฟล์สำหรับการ์ดสรุป: ถาม LINE ก่อน (ฟรี รอไม่เกิน 0.4 วิ) → ไม่ทันใช้ลิงก์ที่เก็บไว้ · ได้รูปใหม่ = อัปเดตเงียบๆ หลังตอบ
+async function picOf(id) {
+  const [live, u] = await Promise.all([
+    Promise.race([getLineProfile(id).then(p => p.pic).catch(() => ''), new Promise(r => setTimeout(() => r(''), 400))]),
+    getUser(id).catch(() => null),
+  ]);
+  if (live && live !== u?.pic) later(savePic(id, live).catch(() => {}));
+  return live || u?.pic || '';
+}
+
 const catMap = cats => Object.fromEntries(cats.map(c => [c.id, c]));
 
 async function onText(uid, ev) {
@@ -208,14 +218,15 @@ async function onText(uid, ev) {
     const couple = await getCouple(uid, me);
     if (!couple) return reply(ev.replyToken, noteCard('💑', 'ยังไม่ได้จับคู่กับใคร', 'ชวนแฟนมาใช้ด้วยกัน พิมพ์ "จับคู่"'));
     const today = bkkDate();
-    return reply(ev.replyToken, coupleSummaryMessage(await coupleDay(uid, couple, today), today, couple.partnerName));
+    const [ours, pa, pb] = await Promise.all([coupleDay(uid, couple, today), picOf(uid), picOf(couple.partner)]);
+    return reply(ev.replyToken, coupleSummaryMessage(ours, today, couple.partnerName, { me: pa, them: pb }));
   }
 
   if (/^(สรุป|สรุปวันนี้|ยอดวันนี้)$/.test(msg)) {
     const today = bkkDate();
     const couple = coupled ? await getCouple(uid, me) : null;
-    const [mine, ours] = await Promise.all([listEntries(uid, today, today), couple ? coupleDay(uid, couple, today) : null]);
-    return reply(ev.replyToken, [summaryMessage(mine, today, byId), ...(ours ? [coupleSummaryMessage(ours, today, couple.partnerName)] : [])]);
+    const [mine, ours, pa, pb] = await Promise.all([listEntries(uid, today, today), couple ? coupleDay(uid, couple, today) : null, picOf(uid), couple ? picOf(couple.partner) : '']);
+    return reply(ev.replyToken, [summaryMessage(mine, today, byId, pa), ...(ours ? [coupleSummaryMessage(ours, today, couple.partnerName, { me: pa, them: pb })] : [])]);
   }
   if (isHelp(msg)) return reply(ev.replyToken, helpMessage());
   if (isUndo(msg)) { // "ยกเลิก", "ยกเลิกเมื่อกี้", "ลบอันล่าสุด", "จดซ้ำ" ...

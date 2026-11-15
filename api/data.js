@@ -4,7 +4,7 @@ import { getCouple, coupleEntries, coupleYear, unpair } from '../lib/couple.js';
 import { unpairedMessage } from '../lib/messages.js';
 import { bkkDate } from '../lib/date.js';
 import {
-  getProfile, saveProfile, addEntries, updateEntry, deleteEntries, listEntries, yearSummary, compactOld, keepFrom,
+  getProfile, saveProfile, savePic, isLinePic, addEntries, updateEntry, deleteEntries, listEntries, yearSummary, compactOld, keepFrom,
 } from '../lib/store.js';
 import { listDebts, addDebt, moveDebt, deleteDebt, cleanAmount } from '../lib/debts.js';
 import { gate, POLICY_VERSION } from '../lib/access.js';
@@ -128,6 +128,10 @@ async function post(request) {
       const partner = await unpair(user.uid);
       if (partner) await push(partner, unpairedMessage()).catch(e => console.error('unpair push', e.message));
       return json({ ok: true });
+    }
+    if (action === 'pic') { // 🖼️ เว็บส่งลิงก์รูปโปรไฟล์ล่าสุดมาเงียบๆ (การ์ดสรุปในแชทใช้รูปปัจจุบัน)
+      if (!isLinePic(b.pic)) return json({ error: 'bad pic' }, 400);
+      return json({ ok: true, saved: await savePic(user.uid, b.pic) });
     }
     if (action === 'profile') {
       await saveProfile(user.uid, { categories: b.categories, keywords: b.keywords });

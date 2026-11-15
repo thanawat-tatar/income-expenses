@@ -44,12 +44,12 @@ const LIFF_SDK = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
 const ICON_TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>';
 
 // ---------- ซานต้า & ซานต้าคริสต์มาส (SVG พื้นใสใน public/assets/ · วาดเองทั้งหมด) ----------
-const ASSET = { rope: 'xmas-wreath.svg?v=1', peek: 'xmas-gifts.svg?v=1', snow: 'xmas-gifts.svg?v=1', avatar: 'xmas-avatar.svg?v=3', couple: 'xmas-couple.svg?v=3' };
+const ASSET = { rope: 'xmas-wreath.svg?v=2', peek: 'xmas-gifts.svg?v=2', snow: 'xmas-gifts.svg?v=2', avatar: 'xmas-avatar.svg?v=3', couple: 'xmas-couple.svg?v=3' };
 const assetUrl = kind => `/assets/${ASSET[kind]}`;
 // 🛡️ เอฟเฟกต์ทุกตัววิ่งในกล่องกันพัง: เอฟเฟกต์พลาดแค่ไหน การจด/แก้/ลบ/ซิงก์ก็ไม่ค้าง
 const fx = f => function guarded(...a) { try { return f.apply(this, a); } catch (e) { console.warn('effect skipped:', e?.message); } };
-const [handTitle, burst, confettiPop, bindSquish, bindRope, sparkle, celebrateStreak, showBubble, bindMascot, countUp, giftFx, starBurst, savedFx, tossFx, setTilt, bindHeroDepth, bindTilt, bindScrollChrome] =
-  [_handTitle, _burst, _confettiPop, _bindSquish, _bindRope, _sparkle, _celebrateStreak, _showBubble, _bindMascot, _countUp, _giftFx, _starBurst, _savedFx, _tossFx, _setTilt, _bindHeroDepth, _bindTilt, _bindScrollChrome].map(fx);
+const [bindSnow, revealCards, handTitle, burst, confettiPop, bindSquish, bindRope, sparkle, celebrateStreak, showBubble, bindMascot, countUp, giftFx, starBurst, savedFx, tossFx, setTilt, bindHeroDepth, bindTilt, bindScrollChrome] =
+  [_bindSnow, _revealCards, _handTitle, _burst, _confettiPop, _bindSquish, _bindRope, _sparkle, _celebrateStreak, _showBubble, _bindMascot, _countUp, _giftFx, _starBurst, _savedFx, _tossFx, _setTilt, _bindHeroDepth, _bindTilt, _bindScrollChrome].map(fx);
 // mood: happy | sad | angry | wink | wow | sleep | avatar  (rope = พวงมาลัยคริสต์มาส · peek/sleep = ต้นคริสต์มาส+กองของขวัญ · avatar = ซานต้า · couple = ซานต้า+ซานตี้ใต้มิสเซิลโท)
 function mascot(mood = 'happy', cls = '') {
   const kind = ASSET[mood] ? mood : mood === 'sleep' ? 'snow' : 'peek';
@@ -137,6 +137,75 @@ function _bindSquish(root) {
   });
 }
 
+// 🍎 การ์ดลอยขึ้นทีละใบ (เปิดหน้า / สลับ ของฉัน-คู่รัก) · ใส่ลำดับครั้งเดียวหลังวาด ไม่ยุ่งตอนเลื่อน
+function _revealCards(view) {
+  view.classList.remove('reveal');
+  if (reducedMotion()) return;
+  let i = 0;
+  view.querySelectorAll(':scope > .grid > *').forEach(el => {
+    const kids = el.classList.contains('grid') ? el.children : [el];
+    for (const k of kids) k.style.setProperty('--ri', Math.min(i++, 8));
+  });
+  void view.offsetWidth; view.classList.add('reveal');
+}
+// ❄️ หิมะ + ประกายทอง บน canvas ชั้นเดียว: ≤40 ชิ้น · วาดรูปสำเร็จไว้ก่อน (ไม่คำนวณเงาทุกเฟรม)
+// หยุดวาดทันทีเมื่อ: พับจอ · เปิดหน้าต่างบันทึก · โหมดนิ่ง · ลดการเคลื่อนไหว
+function _bindSnow() {
+  const space = $('#space');
+  if (!space || !window.HTMLCanvasElement) return;
+  const cv = document.createElement('canvas');
+  cv.className = 'snowcv';
+  space.insertBefore(cv, space.querySelector('.lights'));
+  const ctx = cv.getContext('2d', { alpha: true });
+  if (!ctx) return;
+  const sprite = (r, draw) => { const c = document.createElement('canvas'); c.width = c.height = r * 2; draw(c.getContext('2d'), r); return c; };
+  const DPR = Math.min(2, devicePixelRatio || 1);
+  const flake = sprite(Math.ceil(5 * DPR), (g, r) => {
+    const gr = g.createRadialGradient(r, r, 0, r, r, r);
+    gr.addColorStop(0, '#FFFFFF'); gr.addColorStop(.55, '#FFFFFF'); gr.addColorStop(.72, 'rgba(148,163,184,.75)'); gr.addColorStop(1, 'rgba(148,163,184,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, r * 2, r * 2);
+  });
+  const gold = sprite(Math.ceil(6 * DPR), (g, r) => {
+    const gr = g.createRadialGradient(r, r, 0, r, r, r);
+    gr.addColorStop(0, '#FFF7CC'); gr.addColorStop(.3, '#FACC15'); gr.addColorStop(1, 'rgba(250,204,21,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, r * 2, r * 2);
+  });
+  let W = 0, H = 0, raf = 0, last = 0;
+  const N = 40, parts = [];
+  const mk = top => {
+    const isGold = parts.length % 5 === 4;
+    return { x: Math.random() * W, y: top ? -12 : Math.random() * H, s: isGold ? 3 + Math.random() * 3 : 2.4 + Math.random() * 5.6,
+      vy: isGold ? 10 + Math.random() * 14 : 22 + Math.random() * 40, ph: Math.random() * 6.28, amp: 6 + Math.random() * 14, gold: isGold, tw: Math.random() * 6.28 };
+  };
+  const size = () => {
+    W = innerWidth; H = innerHeight;
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  };
+  const on = () => funOn() && !document.hidden && !document.body.classList.contains('sheet-open');
+  const frame = t => {
+    raf = 0;
+    if (!on()) { last = 0; if (!funOn()) ctx.clearRect(0, 0, W, H); return; }
+    const dt = last ? Math.min(.05, (t - last) / 1000) : 0; last = t;
+    ctx.clearRect(0, 0, W, H);
+    for (const p of parts) {
+      p.y += p.vy * dt; p.ph += dt * .9; p.tw += dt * 3;
+      if (p.y > H + 12) { const n = mk(true); n.gold = p.gold; Object.assign(p, n); }
+      const x = p.x + Math.sin(p.ph) * p.amp, sz = p.s * 2;
+      ctx.globalAlpha = p.gold ? .45 + .5 * Math.abs(Math.sin(p.tw)) : .95;
+      ctx.drawImage(p.gold ? gold : flake, x - p.s, p.y - p.s, sz, sz);
+    }
+    ctx.globalAlpha = 1;
+    raf = requestAnimationFrame(frame);
+  };
+  const wake = () => { if (!raf && on()) raf = requestAnimationFrame(frame); else if (!on() && !funOn()) ctx.clearRect(0, 0, W, H); };
+  size();
+  while (parts.length < N) parts.push(mk(false));
+  addEventListener('resize', () => { size(); wake(); }, { passive: true });
+  document.addEventListener('visibilitychange', wake);
+  new MutationObserver(wake).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  wake();
+}
 // 🎄 พวงมาลัยคริสต์มาสห้อยจากขอบบน: ไถจอแล้วเหวี่ยงตามแรง (คิดเฉพาะช่วงบนสุด scrollY < 120 · พ้นจอแล้วหยุดคิดทันที)
 // แตะ = สั่น + ละอองหิมะ · ลากพวงมาลัยลง = รีเฟรช (หนืดแบบ iOS · ถึงระยะแล้วหมุนตัว) · ลากเฉพาะตัวมันเท่านั้น ไม่ชนการปัดปิด LINE
 const ROPE_QUIPS = ['โฮ่ โฮ่ โฮ่! 🎅', 'Merry Christmas! 🎄', 'กริ๊งๆ 🔔 ซานต้ามาแล้ว', 'ปีนี้คุณเป็นเด็กดี 🎁', 'หิมะตกแล้ว ❄️', '🔄 ดึงพวงมาลัยลงมาเพื่อรีเฟรชได้นะ'];
@@ -193,6 +262,8 @@ function _bindRope() {
       kick(9 * (Math.random() < .5 ? -1 : 1));
       el.classList.remove('ring'); void el.offsetWidth; el.classList.add('ring'); setTimeout(() => el.classList.remove('ring'), 900);
       sparkle(el.querySelector('.rope-body'));
+      const rb = el.querySelector('.rope-body')?.getBoundingClientRect();
+      if (rb) setTimeout(() => burst(rb.left + rb.width / 2, rb.top + rb.height * .7, ['❄️', '✨', '⭐', '❄️', '🌟']), 120);
       toast(ROPE_QUIPS[Math.floor(Math.random() * ROPE_QUIPS.length)]);
       navigator.vibrate?.(8);
     }
@@ -685,7 +756,7 @@ function _giftFx() {
     }
   }), 330);
   const r = document.createElement('img');
-  r.className = 'sleigh-fx'; r.src = '/assets/xmas-santa-sleigh.svg?v=1'; r.alt = '';
+  r.className = 'sleigh-fx'; r.src = '/assets/xmas-santa-sleigh.svg?v=2'; r.alt = '';
   document.body.appendChild(r); setTimeout(() => r.remove(), 1500);
 }
 // ❄️ Frost Dissolve: แถวที่ถูกลบแตกเป็นประกายน้ำแข็ง + ละอองทอง
@@ -867,6 +938,7 @@ async function render(quiet) {
   }
   if (!quiet) restartAnim();
   view.innerHTML = state.page === 'home' ? homeHTML(data) : listHTML(data);
+  if (!quiet) revealCards(view);
   bindView();
   requestAnimationFrame(() => requestAnimationFrame(() => {
     $$('[data-w]', view).forEach(el => { el.style.width = el.dataset.w + '%'; });
@@ -907,7 +979,8 @@ function homeHTML(d) {
   const mood = zero ? (us ? 'wink' : 'angry') : profit ? 'happy' : 'sad';
   const mascots = us ? loversHTML() : mascotPeek(mood);
   const label = us ? `${esc(periodWord())}ของเรา 💕` : esc(periodWord());
-  const hero = `<div class="hero-wrap ${us ? 'us' : ''}">${mascots}<i class="hero-shadow"></i><div class="card hero tilt ${us ? 'love' : ''} ${zero ? '' : profit ? 'profit' : 'loss'}">
+  const sky = funOn() ? `<div class="sky-lane"><img src="/assets/xmas-santa-sleigh.svg?v=2" alt="" draggable="false"></div>${us ? '' : '<img class="santa-wave" src="/assets/xmas-santa-wave.svg?v=1" alt="" draggable="false">'}` : '';
+  const hero = `<div class="hero-wrap ${us ? 'us' : ''}">${sky}${mascots}<i class="hero-shadow"></i><div class="card hero tilt ${us ? 'love' : ''} ${zero ? '' : profit ? 'profit' : 'loss'}">
     <i class="spark s1">❄</i><i class="spark s2">✦</i><i class="spark s3">❄</i><i class="glare"></i><i class="spec"></i>
     <div class="hero-top"><span class="hero-label">${label} ${streak}</span><span class="badge">${zero ? '—' : profit ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${!zero && !profit ? '-' : ''}<span data-count="${Math.abs(net)}">0</span><small>บาท</small></div>
@@ -1717,6 +1790,7 @@ async function boot() {
   document.body.classList.toggle('calm', !funOn()); // ปิดลูกเล่น = พื้นหลัง/ซานต้านิ่ง
   bindChrome();
   bindRope();
+  bindSnow();
   bindDrag();
   bindNavDrag();
   bindSheetSwipe();
@@ -1758,6 +1832,8 @@ async function boot() {
       window.liff.getProfile().then(pr => {
         const u = { name: pr.displayName, pic: pr.pictureUrl || '' };
         store.set('user', u); setUser(u);
+        // 🖼️ ส่งลิงก์รูปล่าสุดให้การ์ดสรุปในแชทเงียบๆ (เฉพาะตอนรูปเปลี่ยน · ไม่หน่วงหน้าเว็บ)
+        if (u.pic && store.get('picSent') !== u.pic) setTimeout(() => api('POST', 'pic', { pic: u.pic }).then(() => store.set('picSent', u.pic)).catch(() => {}), 1500);
       }).catch(() => {});
     } else {
       setUser({ name: '(โหมดทดลอง)' });
