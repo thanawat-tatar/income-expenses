@@ -19,19 +19,21 @@ function _handTitle(page) {
   const words = TITLES_I18N[page] || [TITLES[page]];
   if (!funOn()) { h.textContent = TITLES[page]; h.removeAttribute('data-hw'); return; }
   h.dataset.hw = '1';
-  h.innerHTML = '<svg class="hw" aria-hidden="true"><defs><mask id="hwm" maskUnits="userSpaceOnUse"><rect class="hw-wipe" x="0" y="-20" width="100%" height="200" fill="#fff"/></mask></defs><text class="hw-t" x="2" y="1.05em" mask="url(#hwm)"></text></svg><span class="sr">' + esc(TITLES[page]) + '</span>';
+  h.innerHTML = '<svg class="hw" aria-hidden="true"><defs><mask id="hwm" maskUnits="userSpaceOnUse"><rect class="hw-wipe" x="0" y="-20" width="100%" height="200" fill="#fff"/></mask></defs><text class="hw-t" x="2" y="1.05em" mask="url(#hwm)"></text></svg><i class="hw-tip" aria-hidden="true">❄</i><span class="sr">' + esc(TITLES[page]) + '</span>';
   const t = h.querySelector('.hw-t'), svg = h.querySelector('svg');
   let i = 0;
   const write = () => {
     t.textContent = words[i]; t.style.fontFamily = `"${HW_FONTS[i]}", var(--font)`;
-    svg.classList.remove('done', 'out', 'go'); void svg.getBoundingClientRect();
+    h.classList.remove('hw-go'); svg.classList.remove('done', 'out', 'go'); void svg.getBoundingClientRect();
+    try { h.style.setProperty('--tw', `${Math.ceil(t.getComputedTextLength() + 4)}px`); } catch { /* ฟอนต์ยังไม่โหลด */ }
+    h.classList.add('hw-go');                                   // ประกายหิมะวิ่งตามปลายปากกา
     svg.classList.add('go');                                    // ลากเส้น + ไล่จากซ้ายไปขวา
     handTitle.t = setTimeout(() => {
       svg.classList.add('done');                                // เติมสีเต็มตัว
       handTitle.t = setTimeout(() => {
         svg.classList.add('out');                               // จางหาย แล้วเขียนภาษาถัดไป
         handTitle.t = setTimeout(() => { i = (i + 1) % words.length; write(); }, 520);
-      }, 2600);
+      }, 2500);                                                 // ค้างให้อ่านชัด 2.5 วิ
     }, 1700);
   };
   write();
@@ -39,20 +41,18 @@ function _handTitle(page) {
 const TITLES = { home: 'ภาพรวม', list: 'รายการ', settings: 'ตั้งค่า', debts: '📒 สมุดหนี้', admin: 'หลังบ้าน 👑' };
 const EMOJIS = '🏷️ 🍼 👶 🎓 📚 🏥 💊 🐶 🐱 🎮 🎬 🎁 💄 👕 👟 🛒 🧴 🧺 🚌 🚕 🅿️ 🛵 ⛽ 🔧 📱 💡 💧 🏠 💳 🏦 💸 💼 🛍️ ☕ 🍜 🍺 🚬 🙏 🎉 ✈️ 🏋️ 💇 🧾 💰'.split(' ');
 const LIFF_SDK = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
-const ICON_ROCKET = '<svg viewBox="0 0 24 24"><path d="M12 2c3 2 5 6 4.5 11l-2 3h-5l-2-3C7 8 9 4 12 2z"/><circle cx="12" cy="9" r="1.8"/><path d="M9.5 16l-2.5 3M14.5 16l2.5 3M12 18v3"/></svg>';
 const ICON_TRASH = '<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3"/></svg>';
 
-// ---------- น้องไก่อวกาศ (SVG พื้นใสใน public/assets/) ----------
-const ASSET = { rope: 'space-chick-tether.svg?v=3', peek: 'space-chick-crew.svg?v=3', flash: 'space-chick-scout.svg?v=3', avatar: 'space-chick-avatar.svg?v=3', couple: 'space-chick-couple.svg?v=3' };
+// ---------- น้องซานต้า (SVG พื้นใสใน public/assets/) ----------
+const ASSET = { rope: 'xmas-tether.svg?v=1', peek: 'xmas-peek.svg?v=1', snow: 'xmas-snowman.svg?v=1', avatar: 'xmas-avatar.svg?v=1', couple: 'xmas-couple.svg?v=1' };
 const assetUrl = kind => `/assets/${ASSET[kind]}`;
-const isNight = () => { const h = new Date().getHours(); return h >= 20 || h < 6; };
 // 🛡️ เอฟเฟกต์ทุกตัววิ่งในกล่องกันพัง: เอฟเฟกต์พลาดแค่ไหน การจด/แก้/ลบ/ซิงก์ก็ไม่ค้าง
 const fx = f => function guarded(...a) { try { return f.apply(this, a); } catch (e) { console.warn('effect skipped:', e?.message); } };
-const [handTitle, burst, confettiPop, bindSquish, bindRope, sparkle, celebrateStreak, showBubble, bindMascot, countUp, rocketFx, starBurst, bindShootingStars, savedFx, tossFx, setTilt, bindHeroDepth, bindTilt, bindScrollChrome] =
-  [_handTitle, _burst, _confettiPop, _bindSquish, _bindRope, _sparkle, _celebrateStreak, _showBubble, _bindMascot, _countUp, _rocketFx, _starBurst, _bindShootingStars, _savedFx, _tossFx, _setTilt, _bindHeroDepth, _bindTilt, _bindScrollChrome].map(fx);
-// mood: happy | sad | angry | wink | wow | sleep(=ถือไฟฉาย) | avatar
+const [handTitle, burst, confettiPop, bindSquish, bindRope, sparkle, celebrateStreak, showBubble, bindMascot, countUp, sleighFx, starBurst, savedFx, tossFx, setTilt, bindHeroDepth, bindTilt, bindScrollChrome] =
+  [_handTitle, _burst, _confettiPop, _bindSquish, _bindRope, _sparkle, _celebrateStreak, _showBubble, _bindMascot, _countUp, _sleighFx, _starBurst, _savedFx, _tossFx, _setTilt, _bindHeroDepth, _bindTilt, _bindScrollChrome].map(fx);
+// mood: happy | sad | angry | wink | wow | sleep(=ตุ๊กตาหิมะ) | avatar
 function mascot(mood = 'happy', cls = '') {
-  const kind = ASSET[mood] ? mood : mood === 'sleep' ? 'flash' : 'peek';
+  const kind = ASSET[mood] ? mood : mood === 'sleep' ? 'snow' : 'peek';
   return `<img class="mascot m-${kind} ${cls}" src="${assetUrl(kind)}" alt="" draggable="false" data-kind="${kind}">`;
 }
 // รูปโหลดไม่ได้ (เน็ตหลุด) → ซ่อนไว้เงียบๆ ไม่ให้ขึ้นไอคอนรูปเสีย
@@ -61,23 +61,22 @@ addEventListener('error', e => {
   if (img instanceof HTMLImageElement && img.classList.contains('mascot')) img.style.visibility = 'hidden';
 }, true);
 
-// น้องลูกเจี๊ยบเกาะหลังการ์ด (กลางคืน 20:00–06:00 = ตัวถือไฟฉาย ส่องแสงขึ้นไปที่ตัวเลข)
+// น้องซานต้าโผล่หลังการ์ด (อยู่ชั้นหลัง ไม่บังตัวเลข)
 function mascotPeek(mood, small, extra = '') {
-  const night = isNight() && !extra;
-  return `<button class="peek-body ${small ? 'small' : ''} ${night ? 'night' : ''} ${extra}" data-mood="${mood}" aria-label="น้องลูกเจี๊ยบ">${night ? `<span class="torch-rig">${mascot('sleep')}<i class="torch-beam"></i></span>` : mascot(mood)}</button>`;
+  return `<button class="peek-body ${small ? 'small' : ''} ${extra}" data-mood="${mood}" aria-label="น้องซานต้า">${mascot(mood)}</button>`;
 }
 
-// ---------- คำพูดน้องลูกเจี๊ยบ (ลูกสมุนคุยกับบอส: ชม ให้กำลังใจ ชวนจดต่อ) ----------
+// ---------- คำพูดน้องซานต้า (น้องซานต้าคุยกับบอส: ชม ให้กำลังใจ ชวนจดต่อ) ----------
 const MASCOT_LINES = {
   // กำไร: ชม
-  happy: ['🚀 พร้อมทะยานครับบอส! กำไรแล้ว', 'บอสเก่งที่สุดในโลก! 🎉', 'เยี่ยม! เงินเข้า เงินเก็บ 💰', 'รับทราบครับบอส ออมต่อ! ✊', 'จดครบแบบนี้ รวยแน่บอส ✨',
-    'ลูกสมุนภูมิใจในตัวบอส 🥹', 'บอสสุดยอด! จรวดพร้อมฉลอง 🚀✨', 'ให้รางวัลตัวเองหน่อยครับบอส 🍰', 'บอสคนเก่ง 💛', 'พรุ่งนี้กำไรอีกนะบอส ✌️'],
+  happy: ['โฮ่ โฮ่ โฮ่! กำไรแล้วครับบอส 🎅', 'บอสเก่งที่สุดในโลก! 🎉', 'ของขวัญชิ้นใหญ่คือเงินเก็บ 🎁', 'รับทราบครับบอส ออมต่อ! ✊', 'จดครบแบบนี้ ซานต้าให้ดาวเลย ⭐',
+    'น้องซานต้าภูมิใจในตัวบอส 🥹', 'กำไรแบบนี้ ฉลองคริสต์มาสได้สบาย 🎄', 'ให้รางวัลตัวเองหน่อยครับบอส 🍰', 'บอสคนเก่ง 💛', 'ปีใหม่นี้รวยแน่บอส ✨'],
   // ขาดทุน: ให้กำลังใจ
-  sad: ['ไม่เป็นไรครับบอส พรุ่งนี้เอาคืน 💪', 'ใจเย็นๆ บอส ค่อยๆ ออม 🐥', 'ลูกสมุนอยู่ข้างๆ บอสเสมอ 🫶', 'ลองดูหมวดไหนจ่ายเยอะสุดครับบอส 👀', 'ขาดทุนนิดหน่อย ไม่เป็นไรบอส 🥺',
-    'พรุ่งนี้ลดของไม่จำเป็นกันนะบอส ✂️', 'จดไว้แบบนี้ เดี๋ยวก็รู้ว่าเงินรั่วตรงไหน 🔍', 'สู้ๆ ครับบอส! 🤗', 'บอสเหนื่อยไหม พักบ้างนะ 💛', 'เก็บทีละนิด เดี๋ยวก็กลับมาบวกครับบอส 📈'],
+  sad: ['ไม่เป็นไรครับบอส พรุ่งนี้เอาคืน 💪', 'ใจเย็นๆ บอส ค่อยๆ ออม ❄️', 'น้องซานต้าอยู่ข้างๆ บอสเสมอ 🫶', 'ลองดูหมวดไหนจ่ายเยอะสุดครับบอส 👀', 'ช่วงเทศกาลจ่ายเยอะ ไม่เป็นไรบอส 🥺',
+    'ของขวัญไม่ต้องแพง ใจสำคัญกว่าบอส 🎁', 'จดไว้แบบนี้ เดี๋ยวก็รู้ว่าเงินรั่วตรงไหน 🔍', 'สู้ๆ ครับบอส! 🤗', 'บอสเหนื่อยไหม พักบ้างนะ ☕', 'เก็บทีละนิด เดี๋ยวก็กลับมาบวกครับบอส 📈'],
   // ยังไม่จด (0 บาท): ชวนมาจด
-  angry: ['บอส! ยังไม่จดเลยนะ 😤', 'ลูกสมุนหิว… ขอรายการหน่อยบอส 🐥', 'วันนี้บอสใช้เงินไปกับอะไรครับ? 🤔', 'ไม่จด = เงินรั่วนะบอส! 💸', 'พิมพ์ในแชท LINE แค่ "ข้าว 50" ก็พอครับบอส ✍️',
-    'ลูกสมุนรออยู่นะบอส… 🙄', 'จดวันละนิด รวยวันละหน่อย 💛', 'กดปุ่ม + ด้านล่างเลยบอส! 👇', 'หอบังคับการเรียกบอส 📡', 'จดเดี๋ยวนี้เลยครับบอส! 🐥'],
+  angry: ['บอส! ยังไม่จดเลยนะ 😤', 'ถุงเท้าคริสต์มาสยังว่าง… จดหน่อยบอส 🧦', 'วันนี้บอสใช้เงินไปกับอะไรครับ? 🤔', 'ไม่จด = เงินรั่วนะบอส! 💸', 'พิมพ์ในแชท LINE แค่ "ข้าว 50" ก็พอครับบอส ✍️',
+    'น้องซานต้ารออยู่นะบอส… 🙄', 'จดวันละนิด รวยวันละหน่อย 💛', 'กดปุ่ม + ด้านล่างเลยบอส! 👇', 'กระดิ่งดังแล้ว ได้เวลาจด 🔔', 'จดเดี๋ยวนี้เลยครับบอส! 🎅'],
 };
 // สุ่มแบบไม่ซ้ำ: ครบ 10 ประโยคก่อนค่อยวนใหม่
 const mascotQueue = {};
@@ -94,7 +93,7 @@ function mascotSay(mood) {
   lastLine = mascotQueue[mood].pop();
   return lastLine;
 }
-function _burst(x, y, emojis = ['💖', '✨', '🪙', '💕', '🌸']) {
+function _burst(x, y, emojis = ['💖', '✨', '❄️', '🎁', '⭐']) {
   for (let i = 0; i < 10; i++) {
     const s = document.createElement('span');
     s.className = 'particle';
@@ -119,7 +118,7 @@ const lucky = () => funOn() && !rushing() && (params.get('fun') === '1' || Math.
 function _confettiPop(el) {
   if (!el) return;
   const r = el.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
-  const bits = ['✦', '★', '♥', '✧', '●'];
+  const bits = ['❄', '★', '♥', '✦', '●'];
   for (let i = 0; i < 14; i++) {
     const s = document.createElement('span');
     s.className = 'confetti';
@@ -130,7 +129,7 @@ function _confettiPop(el) {
     setTimeout(() => s.remove(), 520);
   }
 }
-// น้องลูกเจี๊ยบนุ่มเด้ง: กดแล้วยุบ ปล่อยแล้วเด้งคืน
+// น้องซานต้านุ่มเด้ง: กดแล้วยุบ ปล่อยแล้วเด้งคืน
 function _bindSquish(root) {
   root.querySelectorAll('.peek-body, .corner-mascot').forEach(p => {
     p.onpointerdown = () => { if (funOn()) p.classList.add('squish'); };
@@ -138,9 +137,9 @@ function _bindSquish(root) {
   });
 }
 
-// 🪢 น้องลูกเจี๊ยบห้อยเชือกจากขอบบน: ไถจอแล้วเหวี่ยงตามแรง (คิดเฉพาะช่วงบนสุด scrollY < 120 · พ้นจอแล้วหยุดคิดทันที)
-// แตะ = เด้ง + แซว · ลากตัวน้องลูกเจี๊ยบลง = รีเฟรช (หนืดแบบ iOS · ถึงระยะแล้วหมุนตัว) · ลากเฉพาะตัวมันเท่านั้น ไม่ชนการปัดปิด LINE
-const ROPE_QUIPS = ['พร้อมลุยครับบอส! 👋', '🛰️ รับทราบครับบอส!', 'บอสจะไปไหนครับ?', 'รับทราบครับบอส!', 'ปล่อยลูกสมุนลงไปหน่อย~', 'ดึงลงมาสิบอส รีเฟรชให้ 🔄'];
+// 🪢 น้องซานต้าห้อยเชือกจากขอบบน: ไถจอแล้วเหวี่ยงตามแรง (คิดเฉพาะช่วงบนสุด scrollY < 120 · พ้นจอแล้วหยุดคิดทันที)
+// แตะ = เด้ง + แซว · ลากตัวน้องซานต้าลง = รีเฟรช (หนืดแบบ iOS · ถึงระยะแล้วหมุนตัว) · ลากเฉพาะตัวมันเท่านั้น ไม่ชนการปัดปิด LINE
+const ROPE_QUIPS = ['โฮ่ โฮ่ โฮ่! 🎅', 'เมอร์รี่คริสต์มาสครับบอส 🎄', 'กริ๊งๆ 🔔 มีของขวัญมั้ยบอส?', 'บอสเป็นเด็กดีปีนี้ 🎁', 'หนาวจัง ❄️ จดเงินให้อุ่นใจ', 'ดึงลงมาสิบอส รีเฟรชให้ 🔄'];
 function _bindRope() {
   const el = document.createElement('div');
   el.className = 'rope'; el.setAttribute('aria-hidden', 'true');
@@ -188,7 +187,7 @@ function _bindRope() {
     if (go) {
       navigator.vibrate?.(10);
       el.classList.add('spin'); setTimeout(() => el.classList.remove('spin'), 700);
-      toast('🛰️ กำลังรีเฟรชครับบอส');
+      toast('🔔 กำลังรีเฟรชครับบอส');
       clearCache(); render(true).then(() => toast('รับทราบครับบอส! อัปเดตแล้ว ✨'));
     } else if (!moved) {
       kick(9 * (Math.random() < .5 ? -1 : 1));
@@ -226,7 +225,7 @@ function _sparkle(el) {
   const r = el.getBoundingClientRect();
   for (let i = 0; i < 3; i++) {
     const s = document.createElement('span');
-    s.className = 'twink'; s.textContent = '✦';
+    s.className = 'twink'; s.textContent = '❄';
     s.style.cssText = `left:${r.left + r.width * (.2 + .3 * i)}px;top:${r.top + 4}px;--dx:${(i - 1) * 14}px`;
     document.body.appendChild(s);
     setTimeout(() => s.remove(), 500);
@@ -298,7 +297,7 @@ function bindNavDrag() {
   addEventListener('pointerup', end); addEventListener('pointercancel', end);
 }
 
-// ลากน้องลูกเจี๊ยบได้: ยืดตามนิ้ว ปล่อยแล้วเด้งดึ๋งกลับที่เดิม
+// ลากน้องซานต้าได้: ยืดตามนิ้ว ปล่อยแล้วเด้งดึ๋งกลับที่เดิม
 function bindDrag() {
   let el = null, x0 = 0, y0 = 0, moved = false;
   addEventListener('pointerdown', e => {
@@ -337,7 +336,7 @@ function _celebrateStreak() {
   if (!funOn() || isUs() || state.page !== 'home' || state.mode !== 'day' || state.date !== todayISO()) return;
   if (![3, 7, 14, 30, 60, 100].includes(n) || (store.get('cel') || 0) >= n) return;
   store.set('cel', n);
-  rocketFx();
+  sleighFx();
   const hero = $('.hero');
   if (!hero) return;
   hero.classList.add('glow');
@@ -372,7 +371,7 @@ function _bindMascot(root) {
       if (l.dataset.dragged) { delete l.dataset.dragged; return; }
       l.classList.remove('love-pop'); void l.offsetWidth; l.classList.add('love-pop');
       const r = l.getBoundingClientRect();
-      burst(r.left + r.width / 2, r.top + r.height / 2, ['💖', '⭐', '💕', '✨', '🌙']);
+      burst(r.left + r.width / 2, r.top + r.height / 2, ['💖', '⭐', '💕', '✨', '❄️']);
       navigator.vibrate?.(12);
     };
   });
@@ -503,8 +502,8 @@ function armDelete(btn, fn, label = 'แตะอีกครั้งเพื�
 document.addEventListener('touchstart', () => {}, { passive: true });
 
 // ---------- ธีม ----------
-function applyTheme() { // โหมดมืดอวกาศอย่างเดียว · ปุ่มมุมขวาบน = เปิด/ปิดลูกเล่นอวกาศ
-  $('#themeBtn').innerHTML = ICON_ROCKET;
+function applyTheme() { // ธีมคริสต์มาสโหมดมืดอย่างเดียว · ปุ่มมุมขวาบน = เปิด/ปิดลูกเล่นคริสต์มาส (🎅 เปิด · ❄️ ปิด)
+  $('#themeBtn').textContent = funOn() ? '🎅' : '❄️';
   $('#themeBtn').setAttribute('aria-pressed', String(funOn()));
 }
 
@@ -663,52 +662,40 @@ function syncBg(task, undo, what) {
     undo(); toast(`${what}ไม่สำเร็จ ลองใหม่นะ (${err.message})`); render(true);
   });
 }
-// 🚀 จรวดจิ๋วพุ่งจากล่างจอ + ประกายดาว (ทอง / ชมพูในโหมดคู่รัก)
-function _rocketFx() {
+// 🛷 รถเลื่อนซานต้าพุ่งทะยานจากล่างจอ + เกล็ดหิมะและประกายทอง (โหมดคู่รัก = ประกายชมพู)
+function _sleighFx() {
   if (!funOn()) return;
-  const x = innerWidth * (.3 + Math.random() * .4);
-  const r = document.createElement('span');
-  r.className = 'rocket-fx'; r.textContent = '🚀';
-  r.style.cssText = `left:${x}px;--dx:${Math.round(Math.random() * 80 - 40)}px`;
+  const x = innerWidth * (.05 + Math.random() * .25);
+  const r = document.createElement('img');
+  r.className = 'sleigh-fx'; r.src = '/assets/xmas-sleigh.svg?v=1'; r.alt = '';
+  r.style.cssText = `left:${x}px`;
   document.body.appendChild(r);
-  setTimeout(() => r.remove(), 1200);
-  for (let i = 0; i < 10; i++) setTimeout(() => {
+  setTimeout(() => r.remove(), 1300);
+  for (let i = 0; i < 10; i++) setTimeout(fx(() => {
     const s = document.createElement('span');
-    s.className = 'star-fx'; s.textContent = i % 2 ? '✦' : '★';
-    s.style.cssText = `left:${x + Math.random() * 60 - 30}px;top:${innerHeight * (.9 - i * .12)}px`;
+    s.className = 'star-fx'; s.textContent = i % 2 ? '❄' : '★';
+    s.style.cssText = `left:${x + 40 + i * innerWidth * .05 + Math.random() * 30}px;top:${innerHeight * (.9 - i * .08)}px`;
     document.body.appendChild(s); setTimeout(() => s.remove(), 750);
-  }, i * 90);
+  }), i * 80);
 }
-// ✨ ประกายดาวกระจายจากแถวที่ถูกลบ
+// ❄️ ละอองหิมะวิ้งวับกระจายจากแถวที่ถูกลบ
 function _starBurst(el) {
   const r = el.getBoundingClientRect();
   for (let i = 0; i < 9; i++) {
     const s = document.createElement('span');
-    s.className = 'star-fx burst'; s.textContent = i % 3 ? '✦' : '★';
+    s.className = 'star-fx burst'; s.textContent = i % 3 ? '❄' : '✦';
     const a = (i / 9) * Math.PI * 2;
     s.style.cssText = `left:${r.left + r.width * (.2 + Math.random() * .6)}px;top:${r.top + r.height / 2}px;--bx:${Math.round(Math.cos(a) * 46)}px;--by:${Math.round(Math.sin(a) * 30)}px`;
     document.body.appendChild(s); setTimeout(() => s.remove(), 650);
   }
 }
 // ⏸️ หยุดแอนิเมชันฉากหลังชั่วคราว: ไถจอ / เปิดหน้าต่าง / สลับไปแอปอื่น (กลับมาแล้วเล่นต่อเอง)
-const fxPaused = () => document.hidden || /\b(sheet-open|bg-hidden)\b/.test(document.body.className);
 document.addEventListener('visibilitychange', () => document.body.classList.toggle('bg-hidden', document.hidden));
-// 🌠 ดาวตกพาดฟ้าทุกๆ ~7 วิ (หยุดเมื่อปิดลูกเล่น/แท็บไม่ได้เปิดอยู่)
-function _bindShootingStars() {
-  setInterval(fx(() => {
-    if (!funOn() || fxPaused()) return;
-    const s = document.createElement('i');
-    s.className = 'shoot';
-    s.style.cssText = `left:${Math.round(innerWidth * (.2 + Math.random() * .7))}px;top:${Math.round(innerHeight * Math.random() * .35)}px`;
-    $('#space')?.appendChild(s);
-    setTimeout(() => s.remove(), 1300);
-  }), 7000);
-}
 function _savedFx(data, pop) {
   const hero = $('.hero');
   if (!hero || !funOn()) return;
   if (pop) confettiPop(hero.querySelector('.hero-amount') || hero);
-  rocketFx();
+  sleighFx();
   hero.classList.remove('thump'); void hero.offsetWidth; hero.classList.add('thump');
   navigator.vibrate?.(10);
 }
@@ -910,7 +897,7 @@ function homeHTML(d) {
   const mascots = us ? loversHTML() : mascotPeek(mood);
   const label = us ? `${esc(periodWord())}ของเรา 💕` : esc(periodWord());
   const hero = `<div class="hero-wrap ${us ? 'us' : ''}">${mascots}<i class="hero-shadow"></i><div class="card hero tilt ${us ? 'love' : ''} ${zero ? '' : profit ? 'profit' : 'loss'}">
-    <i class="spark s1">✦</i><i class="spark s2">✦</i><i class="spark s3">✦</i><i class="glare"></i><i class="spec"></i>
+    <i class="spark s1">❄</i><i class="spark s2">✦</i><i class="spark s3">❄</i><i class="glare"></i><i class="spec"></i>
     <div class="hero-top"><span class="hero-label">${label} ${streak}</span><span class="badge">${zero ? '—' : profit ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${!zero && !profit ? '-' : ''}<span data-count="${Math.abs(net)}">0</span><small>บาท</small></div>
     <div class="split">
@@ -945,8 +932,8 @@ function homeHTML(d) {
   </div>`;
 }
 
-// รูปโปรไฟล์วงกลม (ไม่มีรูป → น้องลูกเจี๊ยบ)
-const face = (pic, cls = '') => (pic ? `<img class="face ${cls}" src="${esc(pic)}" alt="" referrerpolicy="no-referrer">` : `<i class="face ${cls}">🐥</i>`);
+// รูปโปรไฟล์วงกลม (ไม่มีรูป → น้องซานต้า)
+const face = (pic, cls = '') => (pic ? `<img class="face ${cls}" src="${esc(pic)}" alt="" referrerpolicy="no-referrer">` : `<i class="face ${cls}">🎅</i>`);
 const myPic = () => store.get('user')?.pic || '';
 const duoHTML = () => `<span class="duo">${face(myPic())}${face(state.couple?.pic, 'p2')}</span>`;
 
@@ -1201,7 +1188,7 @@ function adminHTML(d) {
     <div class="card span">
       <h2 class="section-title">👥 ผู้ใช้ <small>${d.count} คน · ไม่แสดงยอดเงินของใคร</small></h2>
       ${users.map(u => `<div class="item-row a-user">
-        <div class="cat-ico">${u.id === d.me ? '👑' : u.consentAt ? '🐥' : '💌'}</div>
+        <div class="cat-ico">${u.id === d.me ? '👑' : u.consentAt ? '🎅' : '💌'}</div>
         <div class="grow">${esc(u.name || 'ไม่มีชื่อ')} ${badge(u)}
           <small>เข้า ${dmy(u.joinedAt)} · ใช้ล่าสุด ${ago(u.lastActive, now)}${u.consentBy === 'owner' ? ' · ผู้ใช้เดิม' : ''}${u.words ? ` · สอนคำ ${u.words}` : ''}${u.couple ? ' · 💑 มีคู่' : ''}</small></div>
         ${u.id === d.me ? '' : `<button class="del-btn" data-auser="${esc(u.id)}" aria-label="ลบผู้ใช้">${ICON_TRASH}</button>`}
@@ -1312,9 +1299,9 @@ function settingsHTML() {
     </div>
 
     <div class="card span">
-      <h2 class="section-title">🚀 หน้าตา</h2>
+      <h2 class="section-title">🎄 หน้าตา</h2>
       <button class="priv ${store.get('fun') !== false ? 'on' : ''}" id="funToggle" type="button" style="margin:10px 0 12px">
-        <span>🐥</span><div><b>ลูกเล่นไก่อวกาศ</b><small>${store.get('fun') !== false ? 'ไฟฉายส่องดาว จรวดตอนบันทึก · รีบอยู่ไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
+        <span>🎅</span><div><b>ลูกเล่นคริสต์มาส</b><small>${store.get('fun') !== false ? 'หิมะตก รถเลื่อนซานต้าตอนบันทึก · รีบอยู่ไม่กวน' : 'ปิดอยู่ · แอปนิ่งๆ ไม่มีเซอร์ไพรส์'}</small></div><i></i></button>
     </div>
   </div>`;
 }
@@ -1668,14 +1655,14 @@ function bindChrome() {
   $$('#scope button').forEach(b => b.onclick = () => {
     if (state.scope === b.dataset.scope) return;
     state.anim = b.dataset.scope === 'us' ? 'l' : 'r'; state.flyIn = b.dataset.scope === 'us'; state.scope = b.dataset.scope; render();
-    if (b.dataset.scope === 'us') { const r = b.getBoundingClientRect(); burst(r.left + r.width / 2, r.top, ['💕', '💖', '🐥', '✨']); }
+    if (b.dataset.scope === 'us') { const r = b.getBoundingClientRect(); burst(r.left + r.width / 2, r.top, ['💕', '💖', '🎄', '✨']); }
   });
   $('#prev').onclick = () => { state.anim = 'r'; state.date = shiftDate(state.date, state.mode, -1); render(); };
   $('#next').onclick = () => { state.anim = 'l'; state.date = shiftDate(state.date, state.mode, 1); render(); };
   $('#periodLabel').onclick = openPicker;
   $('#addBtn').onclick = () => openEntry(null);
   $('#sheetBg').onclick = closeSheet;
-  $('#themeBtn').onclick = () => { store.set('fun', store.get('fun') === false); document.body.classList.toggle('calm', !funOn()); applyTheme(); toast(funOn() ? '🚀 เปิดลูกเล่นอวกาศแล้วครับบอส' : '🌙 โหมดนิ่ง ประหยัดแบต'); render(true); };
+  $('#themeBtn').onclick = () => { store.set('fun', store.get('fun') === false); document.body.classList.toggle('calm', !funOn()); applyTheme(); toast(funOn() ? '🎅 โฮ่ โฮ่ โฮ่! เปิดลูกเล่นคริสต์มาสแล้ว' : '❄️ โหมดนิ่ง ประหยัดแบต'); render(true); };
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeSheet(); });
   // กลับมาที่หน้าเว็บ (เช่น ไปพิมพ์ในแชทมา) ให้ดึงข้อมูลใหม่
   let hiddenAt = 0;
@@ -1690,7 +1677,7 @@ function applyProfile(p) {
 }
 function setUser(u) {
   if (!u) return;
-  $('#hello').textContent = `สวัสดี ${u.name || ''} 🐥`;
+  $('#hello').textContent = `สวัสดี ${u.name || ''} 🎅`;
   if (u.pic) { $('#avatar').src = u.pic; $('#avatar').hidden = false; }
 }
 const hideLoader = () => $('#loader').classList.add('hide');
@@ -1716,10 +1703,9 @@ async function initLiff() {
 }
 
 async function boot() {
-  document.body.classList.toggle('calm', !funOn()); // ปิดลูกเล่น = พื้นหลัง/น้องลูกเจี๊ยบนิ่ง
+  document.body.classList.toggle('calm', !funOn()); // ปิดลูกเล่น = พื้นหลัง/น้องซานต้านิ่ง
   bindChrome();
   bindRope();
-  bindShootingStars();
   bindDrag();
   bindNavDrag();
   bindSheetSwipe();
@@ -1785,7 +1771,7 @@ async function boot() {
     if (e.message === 'not_member' || e.message === 'no_consent') { // ยังไม่ได้รับเข้า / ยังไม่กดยอมรับ / ลบข้อมูลไปแล้ว
       try { Object.keys(localStorage).filter(k => k.startsWith('ie:')).forEach(k => localStorage.removeItem(k)); } catch {}
       $('#view').innerHTML = `<div class="card empty gate">${mascot(e.message === 'no_consent' ? 'wink' : 'sleep')}
-        <b>${e.message === 'no_consent' ? 'กดยอมรับในแชทก่อนนะ 📄' : 'ยังไม่ได้เริ่มใช้งาน 🐥'}</b><br>
+        <b>${e.message === 'no_consent' ? 'กดยอมรับในแชทก่อนนะ 📄' : 'ยังไม่ได้เริ่มใช้งาน 🎅'}</b><br>
         ${e.message === 'no_consent' ? 'แตะ 💖 ยอมรับ ในแชท LINE แล้วกลับมาที่นี่' : 'ทักแชท LINE ก่อน บอทจะพาเริ่มใช้งาน'}<br>
         <a class="btn" href="https://line.me/R/ti/p/@514ddese">💬 ไปที่แชท</a> <a class="btn ghost" href="/privacy.html">📄 นโยบายข้อมูล</a></div>`;
       return;

@@ -82,7 +82,7 @@ async function handle(ev) {
   const t = ev.replyToken;
   if (tooMany('w:' + uid, 40)) return; // ส่งถี่ผิดปกติ (เกิน 40 ข้อความ/นาที) → ไม่ตอบ กันเปลืองโควต้า
   loading.set(t, later(showLoading(uid, isImage ? 40 : 10))); // ขึ้น "…" ในแชททันที ระหว่างบอทคิด
-  later(checkAssets()); // มีรูปน้องลูกเจี๊ยบใน public/assets/ ไหม (เช็คครั้งเดียวต่อเครื่อง)
+  later(checkAssets()); // มีรูปน้องซานต้าใน public/assets/ ไหม (เช็คครั้งเดียวต่อเครื่อง)
 
   // ---- ด่านรับคน ---- (อ่านข้อมูลทั้งหมดที่ต้องใช้ในรอบเดียว)
   const g = await gate(uid, { all: true });
@@ -92,7 +92,7 @@ async function handle(ev) {
     return reply(t, fullMessage(g.queue));
   }
   const pre = [];
-  if (g.fromQueue) pre.push(noteCard('🎉', 'ถึงคิวคุณแล้ว!', '🚀 ยินดีต้อนรับสู่ยานครับบอส!'));
+  if (g.fromQueue) pre.push(noteCard('🎉', 'ถึงคิวคุณแล้ว!', '🎅 โฮ่ โฮ่ โฮ่! ยินดีต้อนรับครับบอส'));
   if (g.back) pre.push(noteCard('🥺', 'หายไปนานเลย คิดถึงนะ', 'ถ้าไม่ใช้ 30 วัน ข้อมูลจะถูกลบ'));
   if (g.user.legacyNotice) { pre.push(legacyNoticeMessage()); await clearLegacyNotice(uid); }
   prefix.set(t, pre);
@@ -137,7 +137,7 @@ async function handle(ev) {
       return reply(t, [noteCard('💖', 'ขอบคุณที่ไว้ใจนะ!', 'รหัสเชิญหมดอายุแล้ว ให้แฟนพิมพ์ "จับคู่" ส่งมาใหม่นะ'), helpMessage()]);
     }
     if (consented && !current) return reply(t, noteCard('💖', 'ขอบคุณที่ยอมรับฉบับใหม่!', 'ลองส่งรูปสลิปมาได้เลย 📸'));
-    return reply(t, [noteCard('💖', 'ขอบคุณที่ไว้ใจนะ!', 'รับทราบครับบอส! เริ่มจดได้เลย 🐥'), helpMessage()]);
+    return reply(t, [noteCard('💖', 'ขอบคุณที่ไว้ใจนะ!', 'รับทราบครับบอส! เริ่มจดได้เลย 🎅'), helpMessage()]);
   }
   if (a === 'deny') {
     if (current) return reply(t, noteCard('🤔', 'ยอมรับไว้แล้ว', 'ถ้าอยากลบ พิมพ์ "ลบข้อมูลของฉัน"'));
@@ -152,19 +152,19 @@ async function handle(ev) {
     const pc = isText ? pairCode(msg) : null;
     if (pc && validCode(pc)) { // จำรหัสคู่ไว้ (เก็บแค่ค่าแฮช) กดยอมรับแล้วไปต่อได้เลย
       await rememberCode(uid, codeHash(pc));
-      return reply(t, [noteCard('💌', 'ได้รับคำเชิญจากแฟนแล้ว!', 'กด 💖 ยอมรับทั้งหมด ก่อนนะ แล้วจับคู่ต่อได้เลย'), consentMessage('👋 ยินดีต้อนรับ 🐥')]);
+      return reply(t, [noteCard('💌', 'ได้รับคำเชิญจากแฟนแล้ว!', 'กด 💖 ยอมรับทั้งหมด ก่อนนะ แล้วจับคู่ต่อได้เลย'), consentMessage('👋 ยินดีต้อนรับ 🎅')]);
     }
     return reply(t, [
       ...(welcome ? [] : consented
         ? [noteCard('📄', 'นโยบายข้อมูลอัปเดตแล้ว', 'เพิ่มเรื่องอ่านสลิปด้วย AI · อ่านแล้วกดยอมรับนะ')]
         : [noteCard('📄', 'ต้องกดยอมรับก่อนนะ', 'ถึงจะจดรายการให้ได้')]),
-      consentMessage(welcome ? '👋 ยินดีต้อนรับ 🐥' : consented ? '📄 นโยบายฉบับใหม่' : undefined),
+      consentMessage(welcome ? '👋 ยินดีต้อนรับ 🎅' : consented ? '📄 นโยบายฉบับใหม่' : undefined),
     ]);
   }
   // ข้อความยาวผิดปกติ (กันคนส่งข้อความยักษ์มาถ่วงระบบ)
   if (msg.length > 1500) return reply(t, noteCard('📏', 'ข้อความยาวเกินไป', 'แบ่งส่งทีละส่วนได้เลย (ครั้งละไม่เกิน 30 รายการ)'));
 
-  if (ev.type === 'follow') return reply(t, helpMessage('👋 ยินดีต้อนรับ 🐥'));
+  if (ev.type === 'follow') return reply(t, helpMessage('👋 ยินดีต้อนรับ 🎅'));
   if (ev.type === 'postback') return onPostback(uid, ev);
   if (isImage) return onImage(uid, ev);
   return onText(uid, ev);
@@ -435,7 +435,7 @@ async function saveSlip(uid, ev, pending, cat, profile, extraCats) {
   const list = [...before.filter(e => e.batch !== batch), ...(it.date === today ? [it] : [])];
   const net = list.reduce((sum, e) => sum + (e.type === 'income' ? e.amount : -e.amount), 0);
   // รายการไม่ใช่ของวันนี้ → ไม่โชว์ยอดวันนี้ (กันสับสน) บอกแค่ว่าจดลงวันไหน
-  const msg = noteCard('✅', `จดแล้ว ${cat.icon} ${cat.name} ${it.type === 'income' ? '+' : '-'}${baht(it.amount)}`,
+  const msg = noteCard('🎅', `โฮ่ โฮ่ โฮ่! จดแล้ว ${cat.icon} ${cat.name} ${it.type === 'income' ? '+' : '-'}${baht(it.amount)}`,
     `${it.date === today ? todayNet(net) : `จดลงวันที่ ${thaiDate(it.date)}`}${word ? ` · จำ "${word}" แล้ว` : ''}`);
   return reply(ev.replyToken, withQuick(msg, [
     ['↩️ ยกเลิก', `a=del&b=${batch}`, 'ยกเลิกรายการนี้'],

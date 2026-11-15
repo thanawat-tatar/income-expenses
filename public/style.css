@@ -1,4 +1,4 @@
-/* ---------- สี: ธีมอวกาศ (โหมดมืดอย่างเดียว) ---------- */
+/* ---------- สี: ธีมคริสต์มาสคืนหิมะ (โหมดมืดอย่างเดียว) · ทองแชมเปญ + แดงคริสต์มาส · คู่รัก = เบอร์รี่โรสโกลด์ ---------- */
 :root {
   --font: "Mali", "Sukhumvit Set", "Noto Sans Thai", system-ui, sans-serif;
   --radius: 20px;
@@ -8,14 +8,14 @@
 }
 /* สี: ค่าที่ใช้จริง */
 :root {
-    --bg: #06070B; --surface: rgba(22, 27, 44, .65); --surface-2: rgba(40, 48, 72, .55); --text: #F5F5F7; --muted: #A1A1AA; --faint: #6B7280; --line: rgba(255, 230, 150, .10);
-    --accent: #FFD60A; --accent-text: #FFD60A; --accent-2: #F59E0B; --accent-soft: rgba(255, 214, 10, .12); --on-accent: #1D1D1F; --accent-edge: #B38F00;
-    --income: #34D399; --income-soft: rgba(52, 211, 153, .14); --expense: #F87171; --expense-soft: rgba(248, 113, 113, .14);
-    --hero-profit: linear-gradient(160deg, #2A4A75 0%, #1E3A5F 55%, #101E33 100%);
-    --hero-loss: linear-gradient(160deg, #2A2E3E 0%, #181B27 100%);
-    --hero-zero: linear-gradient(160deg, #24395A 0%, #162238 100%);
+    --bg: #070B14; --surface: rgba(17, 24, 39, .72); --surface-2: rgba(30, 41, 59, .6); --text: #F8FAFC; --muted: #A8B0BF; --faint: #6B7280; --line: rgba(250, 204, 21, .10);
+    --accent: #FACC15; --accent-text: #FACC15; --accent-2: #DC2626; --accent-soft: rgba(250, 204, 21, .12); --on-accent: #1D1D1F; --accent-edge: #A16207;
+    --income: #4ADE80; --income-soft: rgba(74, 222, 128, .14); --expense: #EF4444; --expense-soft: rgba(239, 68, 68, .14);
+    --hero-profit: linear-gradient(160deg, rgba(30, 41, 70, .94) 0%, rgba(17, 24, 39, .94) 100%);
+    --hero-loss: linear-gradient(160deg, rgba(58, 20, 28, .94) 0%, rgba(17, 24, 39, .94) 100%);
+    --hero-zero: linear-gradient(160deg, rgba(24, 33, 56, .94) 0%, rgba(17, 24, 39, .94) 100%);
     --hero-edge: #05080F; --card-edge: transparent;
-    --edge: rgba(255, 230, 150, .18); --glow: rgba(255, 214, 10, .35); --nebula: #38BDF8;
+    --edge: rgba(250, 204, 21, .22); --glow: rgba(250, 204, 21, .30);
     --shadow: 0 3px 0 var(--card-edge), 0 12px 26px rgba(0, 0, 0, .35);
     color-scheme: dark;
   }
@@ -424,8 +424,8 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 .priv small { display: block; font-size: 12px; color: var(--muted); }
 .priv > i { width: 44px; height: 26px; border-radius: 999px; background: var(--line); position: relative; flex: none; transition: background .25s; }
 .priv > i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); transition: transform .3s var(--ease); }
-.priv.on { background: color-mix(in srgb, #FFCC00 22%, var(--surface-2)); }
-.priv.on > i { background: linear-gradient(135deg, #1E3A5F, #FFCC00); }
+.priv.on { background: color-mix(in srgb, #FACC15 22%, var(--surface-2)); }
+.priv.on > i { background: linear-gradient(135deg, #1E3A5F, #FACC15); }
 .priv.on > i::after { transform: translateX(18px); }
 
 /* การ์ดคู่ของฉันในหน้าตั้งค่า */
@@ -451,7 +451,7 @@ a.btn { display: inline-flex; align-items: center; justify-content: center; text
 
 /* ดาวกระจายตอนบันทึก */
 .confetti { position: fixed; z-index: 90; pointer-events: none; font-size: 15px; line-height: 1; color: #1E3A5F; filter: hue-rotate(var(--h)) drop-shadow(0 1px 0 rgba(255, 255, 255, .8)); animation: confetti .5s cubic-bezier(.15, .8, .3, 1) forwards; }
-.confetti:nth-child(3n) { color: #FFCC00; }
+.confetti:nth-child(3n) { color: #FACC15; }
 .confetti:nth-child(3n+1) { color: #FFC24B; }
 @keyframes confetti { from { transform: translate(-50%, -50%) scale(.3); opacity: 1; } 70% { opacity: 1; } to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(var(--r)); opacity: 0; } }
 
@@ -608,7 +608,7 @@ input { -webkit-user-select: text; user-select: text; }
   transform: translateX(-50%) translateY(-70px) scale(.6); opacity: 0;
   transition: transform .5s cubic-bezier(.3, 1.45, .45, 1), width .55s cubic-bezier(.3, 1.35, .45, 1), opacity .25s; }
 #island.show { width: var(--w); transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
-#island .isl-ico { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; background: linear-gradient(135deg, #1E3A5F, #FFCC00); }
+#island .isl-ico { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; background: linear-gradient(135deg, #1E3A5F, #FACC15); }
 #island.bad .isl-ico { background: #F0455A; }
 #island .isl-txt { overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity .2s .18s; }
 #island.show .isl-txt { opacity: 1; }
@@ -696,7 +696,7 @@ body::before {
 .hero > .spec { position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: inherit; padding: 1.2px; overflow: hidden;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
 .hero > .spec::before { content: ""; position: absolute; inset: -80% -110%; will-change: translate; translate: var(--sx, -35%) 0;
-  background: linear-gradient(115deg, rgba(255, 255, 255, .22) 36%, #FFF4C2 47%, #FFFFFF 50%, #FFCC00 53%, rgba(255, 255, 255, .22) 64%); }
+  background: linear-gradient(115deg, rgba(255, 255, 255, .22) 36%, #FEF9C3 47%, #FFFFFF 50%, #FACC15 53%, rgba(255, 255, 255, .22) 64%); }
 .hero-shadow { position: absolute; left: 9%; right: 9%; bottom: -16px; height: 30px; z-index: 0; pointer-events: none; border-radius: 50%;
   background: radial-gradient(closest-side, rgba(30, 53, 80, .38), transparent); filter: blur(5px); opacity: .85; }
 .hero-wrap.small .hero-shadow { bottom: -12px; height: 22px; }
@@ -710,7 +710,6 @@ body.calm .hero > .spec::before { translate: -35% 0; }
 /* 🐥 น้องลูกเจี๊ยบ (SVG พื้นใสใน public/assets/) */
 .mascot { display: block; user-select: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
 .m-peek { height: 76px; width: auto; }
-.m-flash { height: 100px; width: auto; }
 .m-avatar { width: 100%; height: auto; aspect-ratio: 1; border-radius: 22px; }
 .m-rope { width: 66px; height: auto; }
 .peek-body { width: auto; top: -70px; }
@@ -744,9 +743,6 @@ button:not(.btn):not(.nav-add):not(.entry):not(.nav-item):active, .chip:active {
 @media (prefers-reduced-motion: reduce) { button:active, .chip:active, .entry:active { scale: none; } }
 body.calm button:active, body.calm .chip:active, body.calm .entry:active { scale: none; }
 .corner-mascot .mascot { clip-path: circle(50%); }
-.peek-body.night { top: -98px; }
-.peek-body.small.night { top: -78px; }
-.peek-body.small.night .mascot { height: 80px; }
 
 /* Apple-style scroll: การ์ดยอดเอียง 3D ตอนเลื่อน (คิดเฉพาะช่วงบน) · ลูกเจี๊ยบเกาะการ์ดเยื้อง+เอียงรับแรงเฉื่อยแล้วเด้งกลับ */
 .peek-body { transition: rotate .55s cubic-bezier(.34, 1.56, .64, 1); transform-origin: 50% 100%; }
@@ -758,84 +754,53 @@ body.calm button:active, body.calm .chip:active, body.calm .entry:active { scale
 /* ================= 🚀 ธีมอวกาศ (โหมดมืดอย่างเดียว) ================= */
 html { background: #06070B; }
 body { background: transparent !important; }
-body::before { background: radial-gradient(40% 30% at 20% 15%, rgba(56, 189, 248, .08), transparent 70%), radial-gradient(36% 30% at 85% 35%, rgba(255, 214, 10, .06), transparent 70%), radial-gradient(45% 35% at 50% 90%, rgba(30, 58, 95, .35), transparent 70%) !important; }
-body::after { background: radial-gradient(45% 35% at 25% 25%, rgba(255, 107, 157, .16), transparent 70%), radial-gradient(40% 32% at 80% 60%, rgba(244, 114, 182, .10), transparent 70%) !important; }
+body::before { background: radial-gradient(40% 30% at 20% 15%, rgba(56, 189, 248, .08), transparent 70%), radial-gradient(36% 30% at 85% 35%, rgba(250, 204, 21, .06), transparent 70%), radial-gradient(45% 35% at 50% 90%, rgba(30, 58, 95, .35), transparent 70%) !important; }
+body::after { background: radial-gradient(45% 35% at 25% 25%, rgba(244, 63, 94, .16), transparent 70%), radial-gradient(40% 32% at 80% 60%, rgba(244, 114, 182, .10), transparent 70%) !important; }
 /* โหมดคู่รัก: ขอบกระจก/แสงเปลี่ยนเป็นชมพูเนบิวลา-โรสโกลด์ */
-body.us { --edge: rgba(255, 107, 157, .30); --glow: rgba(255, 107, 157, .40); --accent-text: #FF8FB6; }
+body.us { --edge: rgba(244, 63, 94, .30); --glow: rgba(244, 63, 94, .40); --accent-text: #FB7185; }
 .hero { box-shadow: inset 0 0 0 1px var(--edge), 0 18px 40px rgba(0, 0, 0, .55), 0 0 30px color-mix(in srgb, var(--glow) 35%, transparent) !important; }
 .hero-amount, .entry b, .pill b { font-variant-numeric: tabular-nums; }
-/* ฉากอวกาศ: ดาว + ของซ่อน (พระจันทร์ ดาวเคราะห์ กลุ่มดาว) · ไฟฉายส่ายเผยให้เห็น · ไถจอ = หยุดชั่วคราว */
-#space { position: fixed; inset: 0; z-index: -2; pointer-events: none; overflow: hidden; background: linear-gradient(180deg, #06070B 0%, #0A0F1C 55%, #0E1322 100%); }
-#space .stars { position: absolute; inset: 0;
-  background-image: radial-gradient(1.2px 1.2px at 12% 18%, #fff, transparent), radial-gradient(1px 1px at 32% 72%, #fff, transparent), radial-gradient(1.4px 1.4px at 68% 28%, #fff, transparent),
-    radial-gradient(1px 1px at 84% 62%, #fff, transparent), radial-gradient(1.2px 1.2px at 52% 46%, #fff, transparent), radial-gradient(1px 1px at 22% 88%, #fff, transparent),
-    radial-gradient(1px 1px at 92% 12%, #fff, transparent), radial-gradient(1.3px 1.3px at 42% 8%, #fff, transparent), radial-gradient(1px 1px at 6% 52%, #fff, transparent); }
-#space .obj { position: absolute; animation: drift 9s ease-in-out infinite alternate; }
-#space .moon { right: 10%; top: 13%; border-radius: 50%; }
-#space .planet { left: 8%; top: 38%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #FFE29A, #F59E0B 60%, #9A5B00); animation-duration: 12s; }
-#space .planet::after { content: ""; position: absolute; left: -12px; right: -12px; top: 11px; height: 8px; border-radius: 50%; border: 2px solid rgba(255, 230, 150, .8); transform: rotate(-18deg); }
-#space .constel { left: 46%; top: 60%; width: 120px; height: 70px; animation-duration: 14s;
-  background: radial-gradient(3px 3px at 6% 70%, #fff, transparent), radial-gradient(3px 3px at 30% 30%, #fff, transparent), radial-gradient(3px 3px at 58% 50%, #fff, transparent), radial-gradient(3px 3px at 90% 12%, #fff, transparent); }
-@keyframes drift { from { transform: translate3d(0, -6px, 0); } to { transform: translate3d(0, 6px, 0); } }
-body.calm #space * { animation: none !important; }
-@media (prefers-reduced-motion: reduce) { #space * { animation: none !important; } }
 /* ตัวเลื่อน (วัน/เดือน/ปี · ของฉัน/คู่รัก): แคปซูลกระจกเรืองแสงทอง / ชมพูในโหมดคู่รัก */
 .seg, .scope { background: rgba(22, 27, 44, .6) !important; box-shadow: inset 0 0 0 1px var(--edge); }
-.seg-pill, .scope-pill { background: linear-gradient(180deg, rgba(255, 214, 10, .22), rgba(255, 214, 10, .10)) !important; box-shadow: inset 0 0 0 1px rgba(255, 214, 10, .45), 0 0 16px rgba(255, 214, 10, .28) !important; }
-body.us .seg-pill, .scope[data-scope="us"] .scope-pill { background: linear-gradient(180deg, rgba(255, 107, 157, .30), rgba(244, 114, 182, .14)) !important; box-shadow: inset 0 0 0 1px rgba(255, 143, 182, .55), 0 0 18px rgba(255, 107, 157, .35) !important; }
-.seg button.active::after { content: " ✦"; font-size: 9px; color: var(--accent-text); }
+.seg-pill, .scope-pill { background: linear-gradient(180deg, rgba(250, 204, 21, .22), rgba(250, 204, 21, .10)) !important; box-shadow: inset 0 0 0 1px rgba(250, 204, 21, .45), 0 0 16px rgba(250, 204, 21, .28) !important; }
+body.us .seg-pill, .scope[data-scope="us"] .scope-pill { background: linear-gradient(180deg, rgba(244, 63, 94, .30), rgba(244, 114, 182, .14)) !important; box-shadow: inset 0 0 0 1px rgba(251, 113, 133, .55), 0 0 18px rgba(244, 63, 94, .35) !important; }
+.seg button.active::after { content: " ❄"; font-size: 9px; color: var(--accent-text); }
 .scope[data-scope="us"] button.active { color: #fff; }
 /* กราฟ/แถบ: หลอดแสงนีออนโค้งมน */
 .bar { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .06) !important; }
 .bar i { border-radius: 99px; box-shadow: 0 0 10px currentColor; }
-.bar.in i { color: var(--income); background: linear-gradient(90deg, #10B981, #34D399); }
-.bar.out i { color: #F59E0B; background: linear-gradient(90deg, #F59E0B, #FFD60A); }
-body.us .bar.out i { color: #FF6B9D; background: linear-gradient(90deg, #F472B6, #FFD60A); }
-/* เมนูล่าง: แคปซูลกระจกเข้ม ขอบเรืองแสง · ปุ่ม + = ดาวฤกษ์ทองเรืองแสง */
+.bar.in i { color: #FACC15; background: linear-gradient(90deg, #CA8A04, #FACC15); }
+.bar.out i { color: #EF4444; background: linear-gradient(90deg, #B91C1C, #EF4444); }
+body.us .bar.out i { color: #F43F5E; background: linear-gradient(90deg, #BE123C, #FB7185); }
+/* เมนูล่าง: แคปซูลเข้ม ขอบทองบาง · ปุ่ม + = ลูกบอลคริสต์มาสแดง */
 .nav { box-shadow: inset 0 0 0 1px var(--edge), 0 0 24px color-mix(in srgb, var(--glow) 30%, transparent), 0 12px 30px rgba(0, 0, 0, .55) !important; }
-.nav-add { background: radial-gradient(circle at 35% 30%, #FFF6C2 0%, #FFD60A 45%, #F59E0B 100%) !important; color: #1D1D1F !important;
-  box-shadow: 0 0 0 6px rgba(255, 214, 10, .10), 0 0 26px rgba(255, 214, 10, .55), inset 0 2px 2px rgba(255, 255, 255, .6) !important; }
-body.us .nav-add { background: radial-gradient(circle at 35% 30%, #FFE4F0 0%, #FF8FB6 45%, #DB2777 100%) !important; box-shadow: 0 0 0 6px rgba(255, 107, 157, .12), 0 0 26px rgba(255, 107, 157, .55), inset 0 2px 2px rgba(255, 255, 255, .6) !important; }
+.nav-add { background: radial-gradient(circle at 35% 30%, #FFB4B4 0%, #DC2626 48%, #7F1D1D 100%) !important; color: #fff !important;
+  box-shadow: 0 0 0 2px rgba(250, 204, 21, .75), 0 0 0 7px rgba(220, 38, 38, .14), 0 0 26px rgba(220, 38, 38, .5), inset 0 2px 2px rgba(255, 255, 255, .5) !important; }
+body.us .nav-add { background: radial-gradient(circle at 35% 30%, #FFE4F0 0%, #FB7185 45%, #DB2777 100%) !important; box-shadow: 0 0 0 6px rgba(244, 63, 94, .12), 0 0 26px rgba(244, 63, 94, .55), inset 0 2px 2px rgba(255, 255, 255, .6) !important; }
 .nav-item.active { color: var(--accent-text); }
-.btn { background: linear-gradient(180deg, #FFE45C, #FFD60A) !important; color: #1D1D1F !important; box-shadow: 0 0 18px rgba(255, 214, 10, .25) !important; }
+.btn { background: linear-gradient(180deg, #FDE047, #FACC15) !important; color: #1D1D1F !important; box-shadow: 0 0 18px rgba(250, 204, 21, .25) !important; }
 .btn.ghost { background: rgba(255, 255, 255, .06) !important; color: var(--text) !important; box-shadow: inset 0 0 0 1px var(--edge) !important; }
 .btn.danger-text { color: var(--expense) !important; }
-/* โหมดคู่รัก: รูป 2 คนในกรอบหมวกนักบิน (ทอง + โรสโกลด์) วงโคจรแสงหมุน */
-.lover-ring { background: conic-gradient(from 0deg, #FFD60A, #FF6B9D, #F472B6, #38BDF8, #FFD60A) !important; box-shadow: 0 0 22px rgba(255, 107, 157, .45) !important; }
-.lover.me .lover-ring { background: conic-gradient(from 0deg, #FFF1A8, #FFD60A, #B38F00, #FFD60A, #FFF1A8) !important; }
-.lover.you .lover-ring { background: conic-gradient(from 0deg, #FFD1E3, #FF6B9D, #B7685A, #F472B6, #FFD1E3) !important; }
-.lover img, .lover b { border: 3px solid rgba(255, 255, 255, .85) !important; box-shadow: inset 0 -8px 16px rgba(56, 189, 248, .25); }
-.lheart { color: #FF6B9D !important; text-shadow: 0 0 14px rgba(255, 107, 157, .7) !important; }
+/* โหมดคู่รัก: รูป 2 คน วงแสงหมุน (ทอง + เบอร์รี่โรสโกลด์) */
+.lover-ring { background: conic-gradient(from 0deg, #FACC15, #F43F5E, #FB7185, #FEF3C7, #FACC15) !important; box-shadow: 0 0 22px rgba(244, 63, 94, .45) !important; }
+.lover.me .lover-ring { background: conic-gradient(from 0deg, #FFF1A8, #FACC15, #B38F00, #FACC15, #FFF1A8) !important; }
+.lover.you .lover-ring { background: conic-gradient(from 0deg, #FFD1E3, #F43F5E, #B7685A, #FB7185, #FFD1E3) !important; }
+.lover img, .lover b { border: 3px solid rgba(255, 255, 255, .85) !important; box-shadow: inset 0 -8px 16px rgba(250, 204, 21, .2); }
+.lheart { color: #F43F5E !important; text-shadow: 0 0 14px rgba(244, 63, 94, .7) !important; }
 .couple-mascot { position: absolute; right: -92px; top: 6px; width: 84px; pointer-events: none; animation: drift 6s ease-in-out infinite alternate; }
 .m-couple { width: 100%; height: auto; }
-/* 🚀 จรวดทะยานตอนบันทึก/ฉลอง */
-.rocket-fx { position: fixed; bottom: -40px; z-index: 95; pointer-events: none; will-change: transform, opacity;
-  filter: drop-shadow(0 0 10px rgba(255, 214, 10, .8)); animation: launch 1.1s cubic-bezier(.4, 0, .2, 1) forwards; }
-body.us .rocket-fx { filter: drop-shadow(0 0 10px rgba(255, 107, 157, .9)); }
-@keyframes launch { 0% { transform: translate3d(0, 0, 0) rotate(-45deg) scale(.8); opacity: 0; } 12% { opacity: 1; } 100% { transform: translate3d(var(--dx, 0px), -112vh, 0) rotate(-45deg) scale(1.15); opacity: 0; } }
-.star-fx { position: fixed; z-index: 94; pointer-events: none; color: #FFD60A; font-size: 14px; animation: twink .7s ease-out forwards; }
-body.us .star-fx { color: #FF8FB6; }
-/* ปุ่มมุมขวาบน = เปิด/ปิดลูกเล่นอวกาศ */
+.star-fx { position: fixed; z-index: 94; pointer-events: none; color: #FEF3C7; font-size: 14px; animation: twink .7s ease-out forwards; }
+body.us .star-fx { color: #FB7185; }
+/* ปุ่มมุมขวาบน = เปิด/ปิดลูกเล่นคริสต์มาส (🎅 / ❄️) */
 #themeBtn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 #themeBtn { color: var(--accent-text); box-shadow: inset 0 0 0 1px var(--edge), 0 0 14px color-mix(in srgb, var(--glow) 40%, transparent); }
 body.calm #themeBtn { color: var(--faint); box-shadow: inset 0 0 0 1px var(--line); }
-/* มาสคอตไก่อวกาศ */
-.rope-line { bottom: calc(100% - 6px) !important; background: repeating-linear-gradient(180deg, #E2E8F0 0 4px, #1E3A5F 4px 8px) !important; }
-.empty .mascot { filter: drop-shadow(0 0 18px rgba(255, 214, 10, .25)); }
-.hero.love, .hero.love.profit { background: linear-gradient(150deg, #4A2450 0%, #1E3A5F 55%, #5A2240 100%) !important; }
-.lover img, .lover b { background: linear-gradient(150deg, #1E3A5F, #4A2450) !important; }
+/* มาสคอตซานต้า */
+.rope-line { bottom: calc(100% - 6px) !important; background: repeating-linear-gradient(180deg, #FEF3C7 0 4px, #DC2626 4px 8px) !important; }
+.empty .mascot { filter: drop-shadow(0 0 18px rgba(250, 204, 21, .25)); }
+.hero.love, .hero.love.profit { background: linear-gradient(150deg, rgba(72, 20, 40, .94) 0%, rgba(17, 24, 39, .94) 55%, rgba(76, 5, 25, .94) 100%) !important; }
+.lover img, .lover b { background: linear-gradient(150deg, #1E293B, #4C0519) !important; }
 
-/* ฉากอวกาศ: ปรับให้เห็นชัด */
-.card { background: rgba(22, 27, 44, .55); }
-#space .stars { opacity: 1; background-size: 280px 420px; animation: twinkle2 4s ease-in-out infinite alternate; }
-@keyframes twinkle2 { from { opacity: .65; } to { opacity: 1; } }
-#space .moon { width: 70px; height: 70px; box-shadow: inset -18px 8px 0 0 #FFF3C4, 0 0 40px rgba(255, 243, 196, .15); }
-#space .planet { width: 38px; height: 38px; }
-#space .shoot { position: absolute; width: 120px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, rgba(255, 255, 255, 0), #fff); transform-origin: 100% 50%;
-  animation: shoot 1.2s cubic-bezier(.4, 0, .2, 1) forwards; filter: drop-shadow(0 0 6px #fff); }
-@keyframes shoot { 0% { transform: translate3d(0, 0, 0) rotate(-24deg) scaleX(.2); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate3d(-260px, 120px, 0) rotate(-24deg) scaleX(1); opacity: 0; } }
-.rocket-fx { font-size: 52px; }
-body.calm #space .shoot { display: none; }
 /* หน้าหลัก: ปุ่มลัดไปหน้ารายการ */
 .go-list { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 16px 18px; text-align: left; color: var(--text); font-size: 15px; }
 .go-list b { color: var(--accent-text); font-size: 14px; }
@@ -852,47 +817,32 @@ body.calm #space .shoot { display: none; }
 .hw.out { transition: opacity .45s ease, transform .45s ease; opacity: 0; transform: translateY(-4px); }
 .m-rope { aspect-ratio: 120 / 180 !important; }
 .m-peek { aspect-ratio: 190 / 130 !important; }
-.m-flash { aspect-ratio: 140 / 160 !important; }
 .m-couple { aspect-ratio: 210 / 160 !important; }
-/* ไก่ไฟฉาย: ตัวไก่ + ไฟฉาย + ลำแสง อยู่ในกล่องเดียว ส่ายไปพร้อมกัน · อยู่หลังการ์ด ไม่บังตัวเลข */
-.torch-rig { position: relative; display: block; transform-origin: 46% 92%; animation: torchSway 6s ease-in-out infinite alternate; }
-.torch-rig .mascot { animation: none !important; position: relative; z-index: 1; }
-.torch-beam { position: absolute; left: 71%; top: 19%; width: 220px; height: 300px; margin-left: -110px; margin-top: -300px; transform-origin: 50% 100%; rotate: -25deg;
-  pointer-events: none; z-index: 0; mix-blend-mode: screen; opacity: .45;
-  background: conic-gradient(from -14deg at 50% 100%, rgba(255, 236, 160, .9), rgba(255, 236, 160, 0) 28deg, transparent 332deg, rgba(255, 236, 160, .9));
-  -webkit-mask: linear-gradient(to top, #000 8%, transparent 92%); mask: linear-gradient(to top, #000 8%, transparent 92%); }
-body.us .torch-beam { background: conic-gradient(from -14deg at 50% 100%, rgba(255, 170, 205, .9), rgba(255, 170, 205, 0) 28deg, transparent 332deg, rgba(255, 170, 205, .9)); }
-@keyframes torchSway { from { rotate: -9deg; } to { rotate: 7deg; } }
-.peek-body.night { z-index: 0; }
-body.calm .torch-rig { animation: none; } body.calm .torch-beam { display: none; }
-@media (prefers-reduced-motion: reduce) { .torch-rig { animation: none; } }
-/* ไก่ห้อยเชือก: เล็กลง 12% ขยับขึ้น 8px ไม่ชนปุ่มคู่รัก */
+/* ซานต้าห้อยกระดิ่ง: ขนาดพอดี ไม่ชนปุ่มของฉัน/คู่รัก */
 .rope { width: 58px; margin-top: -8px; }
-/* ฉากหลังจางลง ไม่แย่งสายตาจากตัวเลข */
-#space .obj { opacity: .35; }
 /* หัวข้อเขียนมือ: ตัวขาวทึบ (ไม่มีเส้นขอบเหลือง) ค่อยๆ เขียนจากซ้ายไปขวา */
-.hw-t { fill: #fff; fill-opacity: 1; stroke: none; }
+.hw-t { fill: #FFFFFF; fill-opacity: 1; stroke: none; }
 .hw.done .hw-t { fill-opacity: 1; }
-/* ประกายดาวตอนปัดลบ */
-.star-fx.burst { animation: burst .6s cubic-bezier(.2, .8, .3, 1) forwards; text-shadow: 0 0 8px currentColor; }
+/* ละอองหิมะตอนปัดลบ */
+.star-fx.burst { color: #fff; animation: burst .6s cubic-bezier(.2, .8, .3, 1) forwards; text-shadow: 0 0 8px #BAE6FD; }
 @keyframes burst { from { transform: translate(-50%, -50%) scale(.6); opacity: 1; } to { transform: translate(calc(-50% + var(--bx)), calc(-50% + var(--by))) scale(1.1); opacity: 0; } }
-/* หน้าต่างเพิ่ม/แก้รายการ: ทึบไล่เฉดเข้ม (ไม่ใสทะลุ) · ขอบบนเส้นแสง 1px ทอง/ชมพู · ฉากหลังมืด ไม่เบลอ */
-.sheet { background: linear-gradient(180deg, #141A2E 0%, #0A0D17 100%) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
-  box-shadow: inset 0 1px 0 rgba(255, 214, 10, .9), 0 -14px 40px rgba(255, 214, 10, .10) !important; }
-body.us .sheet { box-shadow: inset 0 1px 0 rgba(255, 107, 157, .9), 0 -14px 40px rgba(255, 107, 157, .12) !important; }
+/* หน้าต่างเพิ่ม/แก้รายการ: ทึบไล่เฉดเข้ม (ไม่ใสทะลุ) · ขอบบนเส้นแสง 1px ทอง/แดง (คู่รัก = โรส) · ฉากหลังมืด ไม่เบลอ */
+.sheet { background: linear-gradient(180deg, #161B2E 0%, #0B0E17 100%) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+  box-shadow: inset 0 1px 0 rgba(250, 204, 21, .9), 0 -14px 40px rgba(220, 38, 38, .16) !important; }
+body.us .sheet { box-shadow: inset 0 1px 0 rgba(251, 113, 133, .95), 0 -14px 40px rgba(244, 63, 94, .16) !important; }
 .sheet-bg { background: rgba(4, 6, 12, .82) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 .sheet-title { display: flex; align-items: center; gap: 8px; }
 .sheet-chick { width: 32px !important; height: 32px !important; flex: none; animation: none !important; }
 .amount-input { border-radius: 18px; margin: 2px 0 4px; background: rgba(255, 255, 255, .03); transition: box-shadow .3s, text-shadow .3s; }
 .amount-input.amt-expense { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--expense) 40%, transparent), 0 0 26px color-mix(in srgb, var(--expense) 16%, transparent); text-shadow: 0 0 18px color-mix(in srgb, var(--expense) 55%, transparent); }
 .amount-input.amt-income { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--income) 40%, transparent), 0 0 26px color-mix(in srgb, var(--income) 16%, transparent); text-shadow: 0 0 18px color-mix(in srgb, var(--income) 55%, transparent); }
-/* ลำแสงไฟฉายอยู่ชั้นหลัง ไม่พาดทับตัวหนังสือในแถบเลือก */
+/* แถบเลือกอยู่เหนือฉากหลังเสมอ */
 .scope, .seg, .stepper { position: relative; z-index: 2; }
-/* ไก่คู่รักบินโฉบเข้ามาตอนสลับไปแท็บคู่รัก */
+/* ซานต้าคู่รักบินโฉบเข้ามาตอนสลับไปแท็บคู่รัก */
 .couple-mascot.fly { animation: flyIn 1s cubic-bezier(.22, 1, .36, 1) both, drift 6s 1s ease-in-out infinite alternate; }
 @keyframes flyIn { from { transform: translate3d(90px, -70px, 0) rotate(18deg) scale(.5); opacity: 0; } 60% { opacity: 1; } to { transform: none; opacity: 1; } }
 /* ⏸️ หยุดแอนิเมชันฉากหลังชั่วคราว: ไถจอ / เปิดหน้าต่าง / สลับแอป */
-:is(body.sheet-open, body.bg-hidden) :is(#space, #space *, .torch-rig, .peek-body .mascot, .couple-mascot, .floaty, .lheart, .lover, .lover-ring, .spark, .rope-body),
+:is(body.sheet-open, body.bg-hidden) :is(#space, #space *, .peek-body .mascot, .couple-mascot, .floaty, .lheart, .lover, .lover-ring, .spark, .rope-body),
 :is(body.sheet-open, body.bg-hidden)::before, :is(body.sheet-open, body.bg-hidden)::after { animation-play-state: paused !important; }
 /* เลเยอร์ที่ขยับ (เมนูล่างย่อ/ขยาย · ก้อนกระจกลาก): ไม่ใช้ backdrop-filter → ลื่นบน iPhone */
 .nav { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; background: rgba(14, 19, 34, .93) !important; }
@@ -902,6 +852,50 @@ body.us .sheet { box-shadow: inset 0 1px 0 rgba(255, 107, 157, .9), 0 -14px 40px
 html, body { overflow-x: clip; }
 
 /* ⚡ สะบัดนิ้วไม่ค้าง: ฉากหลังอยู่เลเยอร์ GPU ของตัวเอง · การ์ดที่เอียงไม่มี backdrop-filter · แถวรายการแยกการคำนวณ */
-#space { will-change: transform; contain: strict; transform: translateZ(0); }
+
 .hero { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: 0 0 0 1px rgba(255, 255, 255, .08), 0 10px 26px rgba(0, 0, 0, .35); }
 .entry { contain: layout style paint; }
+
+/* ❄️ ฉากคืนคริสต์มาส: ออโรร่าจางด้านบน · หิมะ 3 ชั้นความลึก (transform อย่างเดียว) · รถเลื่อนวิ่งช่องฟ้าด้านบน · ตุ๊กตาหิมะมุมล่าง */
+#space { position: fixed; inset: 0; z-index: -2; pointer-events: none; overflow: hidden; contain: strict; will-change: transform; transform: translateZ(0);
+  background: linear-gradient(180deg, #070B14 0%, #0F172A 100%); }
+#space .aurora { position: absolute; left: -20%; right: -20%; top: -12%; height: 46%;
+  background: radial-gradient(60% 55% at 28% 30%, rgba(45, 212, 191, .16), transparent 70%), radial-gradient(55% 50% at 78% 22%, rgba(250, 204, 21, .10), transparent 70%), radial-gradient(50% 45% at 55% 10%, rgba(99, 102, 241, .14), transparent 70%); }
+body.us #space .aurora { background: radial-gradient(60% 55% at 28% 30%, rgba(244, 63, 94, .16), transparent 70%), radial-gradient(55% 50% at 78% 22%, rgba(250, 204, 21, .10), transparent 70%), radial-gradient(50% 45% at 55% 10%, rgba(251, 113, 133, .12), transparent 70%); }
+#space .snow { position: absolute; left: 0; right: 0; will-change: transform; animation: snowfall linear infinite; }
+#space .snow.s1 { top: -600px; bottom: 0; background-size: 210px 300px; opacity: .45; animation-duration: 26s; --fall: 600px;
+  background-image: radial-gradient(1.4px 1.4px at 20px 30px, #fff, transparent), radial-gradient(1.2px 1.2px at 120px 90px, #fff, transparent), radial-gradient(1.5px 1.5px at 70px 180px, #fff, transparent), radial-gradient(1.2px 1.2px at 180px 240px, #fff, transparent); }
+#space .snow.s2 { top: -800px; bottom: 0; background-size: 260px 400px; opacity: .6; animation-duration: 20s; --fall: 800px;
+  background-image: radial-gradient(2.2px 2.2px at 40px 60px, #fff, transparent), radial-gradient(2px 2px at 190px 150px, #fff, transparent), radial-gradient(2.4px 2.4px at 110px 300px, #fff, transparent); }
+#space .snow.s3 { top: -1000px; bottom: 0; background-size: 330px 500px; opacity: .75; animation-duration: 15s; --fall: 1000px;
+  background-image: radial-gradient(3.4px 3.4px at 60px 100px, #fff, transparent), radial-gradient(3px 3px at 250px 330px, #fff, transparent); }
+@keyframes snowfall { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, var(--fall), 0); } }
+#space .sleigh { position: absolute; left: 0; top: 196px; width: 150px; height: auto; opacity: .9; will-change: transform; animation: sleighRun 22s linear infinite;
+  filter: drop-shadow(0 0 10px rgba(250, 204, 21, .25)); }
+@keyframes sleighRun {
+  0% { transform: translate3d(-180px, 46px, 0) rotate(-4deg); } 18% { transform: translate3d(30vw, 20px, 0) rotate(-6deg); } 36% { transform: translate3d(70vw, 34px, 0) rotate(-3deg); }
+  52% { transform: translate3d(calc(100vw + 40px), 4px, 0) rotate(-7deg); } 100% { transform: translate3d(calc(100vw + 40px), 4px, 0) rotate(-7deg); } }
+#space .snowman { position: absolute; left: 6px; bottom: calc(96px + env(safe-area-inset-bottom)); height: 84px; width: auto; opacity: .5; }
+body.calm #space .snow, body.calm #space .sleigh { animation: none; } body.calm #space .sleigh { display: none; }
+@media (prefers-reduced-motion: reduce) { #space .snow, #space .sleigh { animation: none; } #space .sleigh { display: none; } }
+/* การ์ดยอดเงินกระจกเข้ม 88% ขอบทองแชมเปญ 1px (โหมดคู่รัก = โรส) */
+.hero { box-shadow: inset 0 0 0 1px rgba(250, 204, 21, .32), 0 18px 40px rgba(0, 0, 0, .55), 0 0 26px rgba(220, 38, 38, .10) !important; }
+body.us .hero { box-shadow: inset 0 0 0 1px rgba(251, 113, 133, .45), 0 18px 40px rgba(0, 0, 0, .55), 0 0 26px rgba(244, 63, 94, .16) !important; }
+.card { background: rgba(17, 24, 39, .72); }
+.hero-amount { color: #FFFFFF; }
+/* ปุ่มมุมขวาบน: อีโมจิ 🎅 / ❄️ */
+#themeBtn { font-size: 20px; line-height: 1; display: grid; place-items: center; }
+/* 🛷 รถเลื่อนพุ่งทะยานตอนบันทึก */
+.sleigh-fx { position: fixed; bottom: 40px; width: 150px; height: auto; z-index: 95; pointer-events: none; will-change: transform, opacity;
+  filter: drop-shadow(0 0 10px rgba(250, 204, 21, .7)); animation: sleighUp 1.2s cubic-bezier(.4, 0, .2, 1) forwards; }
+body.us .sleigh-fx { filter: drop-shadow(0 0 10px rgba(251, 113, 133, .9)); }
+@keyframes sleighUp { 0% { transform: translate3d(0, 40px, 0) rotate(-14deg) scale(.7); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate3d(60vw, -90vh, 0) rotate(-22deg) scale(1.05); opacity: 0; } }
+/* ✍️ หัวข้อลายมือ: ขาวบริสุทธิ์ + เงาเรือง · ประกายหิมะวิ่งตามปลายปากกา */
+.title[data-hw] .hw { filter: drop-shadow(0 0 6px rgba(255, 255, 255, .45)) drop-shadow(0 1px 2px rgba(0, 0, 0, .6)); }
+.title .hw-tip { position: absolute; left: 0; top: .1em; font-size: .5em; font-style: normal; color: #fff; opacity: 0; pointer-events: none; text-shadow: 0 0 8px #BAE6FD, 0 0 14px #fff; }
+.title.hw-go .hw-tip { animation: hwTip 1.5s cubic-bezier(.45, .05, .35, 1) forwards; }
+@keyframes hwTip { 0% { transform: translate3d(0, 0, 0) rotate(0); opacity: 0; } 10% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translate3d(var(--tw, 120px), 0, 0) rotate(180deg); opacity: 0; } }
+/* ตุ๊กตาหิมะในหน้าว่าง */
+.empty .mascot { filter: drop-shadow(0 0 18px rgba(186, 230, 253, .25)); }
+.m-snow { height: 96px; width: auto; aspect-ratio: 130 / 170; }
+.m-rope { aspect-ratio: 120 / 180 !important; }
