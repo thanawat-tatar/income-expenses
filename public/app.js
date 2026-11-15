@@ -32,7 +32,11 @@ function _handTitle(page) {
       svg.classList.add('done');                                // เติมสีเต็มตัว
       handTitle.t = setTimeout(() => {
         svg.classList.add('out');                               // จางหาย แล้วเขียนภาษาถัดไป
-        handTitle.t = setTimeout(() => { i = (i + 1) % words.length; write(); }, 520);
+        const next = () => { // ไถลงพ้นการ์ดยอด = หยุดวนภาษาชั่วคราว (ประหยัดแรงเครื่อง)
+          if (scrollY > 220 && !document.hidden) { handTitle.t = setTimeout(next, 700); return; }
+          i = (i + 1) % words.length; write();
+        };
+        handTitle.t = setTimeout(next, 520);
       }, 2500);                                                 // ค้างให้อ่านชัด 2.5 วิ
     }, 1700);
   };
@@ -111,6 +115,51 @@ let lastSaveAt = 0;
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const funOn = () => !reducedMotion(); // แอนิเมชันเปิดตลอด (ไม่มีโหมดปิด) · ยกเว้นเครื่องที่ตั้ง "ลดการเคลื่อนไหว" ระดับระบบ
 const rushing = () => Date.now() - lastSaveAt < RUSH_MS;
+// ฉากเปิดม่าน (index.html) กำลังเล่นอยู่ → รอจบก่อนค่อยเริ่มเอฟเฟกต์ที่ใช้ canvas (กัน canvas ซ้อนกัน)
+const afterIntro = f => {
+  try {
+    if (window.__introDone || !document.getElementById('holiday-magic-intro')) f();
+    else addEventListener('intro:done', () => { try { f(); } catch (e) { console.warn('after intro skipped:', e?.message); } }, { once: true });
+  } catch (e) { try { f(); } catch { /* ข้าม */ } }
+};
+// 🔔 เสียงคริสต์มาส: Web Audio สังเคราะห์สด (0 KB ไม่มีไฟล์เสียง) · ปลดล็อกตอนแตะครั้งแรก · โหมด ambient = ไม่ตัดเพลง/พอดแคสต์ที่เปิดอยู่
+// ปิดเองอัตโนมัติเมื่อเครื่องตั้ง "ลดการเคลื่อนไหว" หรือปิดเสียงในตั้งค่า
+const sfx = (() => {
+  let ctx = null, master = null;
+  const enabled = () => { try { return store.get('sound') !== false && !reducedMotion(); } catch { return false; } };
+  const unlock = () => {
+    try {
+      try { if (navigator.audioSession) navigator.audioSession.type = 'ambient'; } catch { /* ไม่รองรับ */ }
+      if (!ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        ctx = new AC(); master = ctx.createGain(); master.gain.value = .55; master.connect(ctx.destination);
+      }
+      if (ctx.state !== 'running') ctx.resume?.();
+    } catch { /* เสียงพลาดไม่กระทบแอป */ }
+  };
+  ['pointerdown', 'touchend', 'click'].forEach(ev => addEventListener(ev, unlock, { passive: true, capture: true }));
+  const tone = (f, t, dur, gain) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + .006); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + .03);
+  };
+  const play = fn => {
+    try {
+      if (!enabled() || !ctx) return;
+      const go = () => { try { fn(ctx.currentTime + .01); } catch { /* ข้าม */ } };
+      if (ctx.state === 'running') go(); else ctx.resume?.().then(go).catch(() => {});
+    } catch { /* ข้าม */ }
+  };
+  return {
+    unlock,
+    // กระดิ่งเลื่อนหิมะ ~0.35 วิ
+    bell: () => play(t => [[2349, .15], [3136, .11], [3951, .08], [5274, .05]].forEach(([f, g], i) => tone(f * (1 + i * .0015), t + i * .008, .35 - i * .03, g))),
+    // กล่องดนตรี celesta C6 → E6 → G6 ~0.55 วิ
+    celesta: () => play(t => [1046.5, 1318.5, 1568].forEach((f, i) => { tone(f, t + i * .13, .3, .15); tone(f * 2, t + i * .13, .16, .04); })),
+  };
+})();
 // ?fun=1 = โผล่ทุกครั้ง (ไว้ทดสอบ)
 const lucky = () => funOn() && !rushing() && (params.get('fun') === '1' || Math.random() < FUN_CHANCE);
 
@@ -255,12 +304,14 @@ function _bindRope() {
     pull = 0; arm.classList.add('snap'); paint(); setTimeout(() => arm.classList.remove('snap'), 600);
     if (go) {
       navigator.vibrate?.(10);
+      sfx.bell();
       el.classList.add('spin'); setTimeout(() => el.classList.remove('spin'), 700);
       toast('🎅 กำลังรีเฟรช…');
       clearCache(); render(true).then(() => toast('🎄 อัปเดตแล้ว!'));
     } else if (!moved) {
       kick(9 * (Math.random() < .5 ? -1 : 1));
       el.classList.remove('ring'); void el.offsetWidth; el.classList.add('ring'); setTimeout(() => el.classList.remove('ring'), 900);
+      sfx.bell();
       sparkle(el.querySelector('.rope-body'));
       const rb = el.querySelector('.rope-body')?.getBoundingClientRect();
       if (rb) setTimeout(() => burst(rb.left + rb.width / 2, rb.top + rb.height * .7, ['❄️', '✨', '⭐', '❄️', '🌟']), 120);
@@ -778,6 +829,7 @@ function _savedFx(data, pop) {
   if (!hero || !funOn()) return;
   if (pop) confettiPop(hero.querySelector('.hero-amount') || hero);
   giftFx();
+  sfx.celesta();
   if (data?.amount) toast(`🎅 โฮ่ โฮ่ โฮ่! บันทึก ${data.type === 'income' ? '+' : '−'}฿${fmt(data.amount)} แล้ว`);
   hero.classList.remove('thump'); void hero.offsetWidth; hero.classList.add('thump');
   navigator.vibrate?.(10);
@@ -1052,14 +1104,50 @@ function listHTML(d) {
     <div class="hero-top"><span class="hero-label">${esc(periodWord())}${us ? 'ของเรา' : ''} · ${d.entries.length} รายการ</span><span class="badge">${net >= 0 ? '▲ กำไร' : '▼ ขาดทุน'}</span></div>
     <div class="hero-amount">${net < 0 ? '-' : ''}${fmt(Math.abs(net))}<small>บาท</small></div>
     <div class="split"><div class="pill"><span><i>💰</i>รายรับ</span><b>+${fmt(d.ti)}</b></div><div class="pill"><span><i>💸</i>รายจ่าย</span><b>-${fmt(d.te)}</b></div></div></div></div>`;
-  const groups = {};
-  for (const e of d.entries) (groups[e.date] ||= []).push(e);
-  return top + Object.entries(groups).map(([date, list]) => {
-    const net = list.reduce((s, e) => s + (e.type === 'income' ? e.amount : -e.amount), 0);
-    return `<div class="day-group"><div class="day-head"><span>${thaiDay(date)}</span>
-      <b class="${net >= 0 ? 'amt-in' : 'amt-out'}">${net >= 0 ? '+' : '-'}${fmt(Math.abs(net))}</b></div>
-      ${list.map(entryHTML).join('')}</div>`;
-  }).join('');
+  const nets = dayNets(d.entries), first = Math.min(LIST_CHUNK, d.entries.length);
+  state.listCtx = { entries: d.entries, nets, shown: first };
+  return top + `<div id="dayGroups">${chunkHTML(d.entries, nets, 0, first)}</div>` + (d.entries.length > first ? '<div id="listMore" class="list-more"></div>' : '');
+}
+// ⚡ รายการยาว: วาด 25 แถวแรกก่อน แล้วค่อยต่อทีละ 25 เมื่อไถใกล้ท้าย (IntersectionObserver)
+const LIST_CHUNK = DEMO && Number(params.get('chunk')) > 0 ? Number(params.get('chunk')) : 25;
+function dayNets(entries) {
+  const m = {};
+  for (const e of entries) m[e.date] = (m[e.date] || 0) + (e.type === 'income' ? e.amount : -e.amount);
+  return m;
+}
+const dayHeadHTML = (date, net) => `<div class="day-head"><span>${thaiDay(date)}</span><b class="${net >= 0 ? 'amt-in' : 'amt-out'}">${net >= 0 ? '+' : '-'}${fmt(Math.abs(net))}</b></div>`;
+function chunkHTML(entries, nets, from, to) {
+  let html = '', cur = null;
+  for (let i = from; i < to; i++) {
+    const e = entries[i];
+    if (e.date !== cur) { if (cur !== null) html += '</div>'; cur = e.date; html += `<div class="day-group" data-date="${esc(e.date)}">${dayHeadHTML(e.date, nets[e.date])}`; }
+    html += entryHTML(e, i);
+  }
+  return html + (cur !== null ? '</div>' : '');
+}
+function bindMoreList(view) {
+  try {
+    state.listIO?.disconnect(); state.listIO = null;
+    const more = $('#listMore', view), c = state.listCtx;
+    if (!more || !c || !window.IntersectionObserver) return;
+    const io = new IntersectionObserver(es => {
+      if (!es.some(x => x.isIntersecting)) return;
+      const host = $('#dayGroups', view); if (!host) return;
+      const from = c.shown, to = Math.min(c.entries.length, from + LIST_CHUNK); c.shown = to;
+      const last = host.lastElementChild, tmp = document.createElement('div');
+      tmp.innerHTML = chunkHTML(c.entries, c.nets, from, to);
+      const fg = tmp.firstElementChild;
+      if (fg && last && last.dataset.date === fg.dataset.date) { // วันเดียวกับกลุ่มสุดท้าย → ต่อเข้ากลุ่มเดิม ไม่ซ้ำหัววัน
+        fg.querySelector('.day-head')?.remove();
+        while (fg.firstElementChild) last.appendChild(fg.firstElementChild);
+        fg.remove();
+      }
+      while (tmp.firstElementChild) host.appendChild(tmp.firstElementChild);
+      bindEntries(host);
+      if (to >= c.entries.length) { io.disconnect(); more.remove(); }
+    }, { rootMargin: '700px 0px' });
+    io.observe(more); state.listIO = io;
+  } catch (e) { console.warn('progressive list skipped:', e?.message); }
 }
 
 // เอียงการ์ด + แสงวิ้งวิ่งตาม (x, y = -0.5 ถึง 0.5)
@@ -1115,17 +1203,24 @@ function _bindTilt(root) {
   });
 }
 
+function bindEntries(root) {
+  $$('.entry', root).forEach(b => {
+    if (b.onclick) return;
+    b.onclick = async () => {
+      if (b.hasAttribute('data-partner')) return toast('รายการของแฟน แก้ได้เฉพาะเจ้าของนะ 💕');
+      const list = await getMonth(b.dataset.ym);
+      const e = list.find(x => x.id === b.dataset.id);
+      if (e) openEntry(e);
+    };
+  });
+}
 function bindView() {
   const view = $('#view');
   bindTilt(view);
   bindHeroDepth.reset?.();
   bindMascot(view);
-  $$('.entry', view).forEach(b => b.onclick = async () => {
-    if (b.hasAttribute('data-partner')) return toast('รายการของแฟน แก้ได้เฉพาะเจ้าของนะ 💕');
-    const list = await getMonth(b.dataset.ym);
-    const e = list.find(x => x.id === b.dataset.id);
-    if (e) openEntry(e);
-  });
+  bindEntries(view);
+  bindMoreList(view);
   $$('[data-month]', view).forEach(b => b.onclick = () => {
     state.mode = 'month';
     state.date = `${state.date.slice(0, 4)}-${String(Number(b.dataset.month) + 1).padStart(2, '0')}-01`;
@@ -1459,6 +1554,7 @@ function settingsHTML() {
     </div>
 
     <div class="card span">
+      <button class="priv ${store.get('sound') !== false && !reducedMotion() ? 'on' : ''}" id="soundToggle" type="button" style="margin:0 0 10px"><span>${store.get('sound') !== false && !reducedMotion() ? '🔔' : '🔕'}</span><div><b>เสียงคริสต์มาส</b><small>${reducedMotion() ? 'ปิดอยู่ เพราะเครื่องตั้งลดการเคลื่อนไหว' : store.get('sound') !== false ? 'กระดิ่งตอนดึงพวงมาลัย · กล่องดนตรีตอนบันทึกสำเร็จ' : 'ปิดเสียงอยู่'}</small></div></button>
       <button class="priv" id="debtsOpen" type="button" style="margin:0"><span>📒</span><div><b>สมุดหนี้</b><small>จดว่าใครติดเงินเราอยู่เท่าไหร่ · เห็นแค่คุณคนเดียว</small></div><em style="font-style:normal;color:var(--faint)">›</em></button>
     </div>
 
@@ -1515,6 +1611,7 @@ function bindSettings() {
     saveProfile({ keywords }, 'ลบคำแล้ว');
   }, 'ลบ?'));
 
+  $('#soundToggle').onclick = () => { try { store.set('sound', store.get('sound') === false); sfx.unlock(); render(true); setTimeout(() => sfx.bell(), 60); } catch (e) { console.warn('sound toggle skipped:', e?.message); } };
   $('#debtsOpen').onclick = () => { state.page = 'debts'; state.anim = 'l'; render(); window.scrollTo({ top: 0 }); };
   bindSquish($('#view'));
   $('#cOpen') && ($('#cOpen').onclick = () => { state.scope = 'us'; go('home'); });
@@ -1864,7 +1961,7 @@ async function boot() {
   document.body.classList.toggle('calm', !funOn()); // ปิดลูกเล่น = พื้นหลัง/ซานต้านิ่ง
   bindChrome();
   bindRope();
-  bindSnow();
+  afterIntro(bindSnow);
   bindDrag();
   bindNavDrag();
   bindSheetSwipe();
