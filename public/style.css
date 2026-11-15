@@ -301,7 +301,7 @@ body {
   box-shadow: 0 3px 0 var(--card-edge), inset 0 1px 0 rgba(255, 255, 255, .7);
 }
 .stepper, .icon-btn { box-shadow: var(--shadow); }
-.entry { box-shadow: 0 2px 0 var(--card-edge); }
+.entry { box-shadow: inset 0 -2px 0 var(--card-edge); }
 .card .entry { box-shadow: none; }
 .chip.on { box-shadow: 0 3px 0 var(--card-edge); }
 .nav { border-color: var(--line); }
@@ -659,7 +659,6 @@ body { background-attachment: scroll !important; }
 body::before {
   transform: translateZ(0);
 }
-body.scrolling::before, body.scrolling .glare::after, body.scrolling .lover-ring { animation-play-state: paused !important; }
 
 /* กระจกที่ลากได้: ปุ่มสลับทุกอัน */
 .scope, .seg, .type-toggle.has-pill { touch-action: pan-y; }
@@ -778,7 +777,6 @@ body.us { --edge: rgba(255, 107, 157, .30); --glow: rgba(255, 107, 157, .40); --
 #space .constel { left: 46%; top: 60%; width: 120px; height: 70px; animation-duration: 14s;
   background: radial-gradient(3px 3px at 6% 70%, #fff, transparent), radial-gradient(3px 3px at 30% 30%, #fff, transparent), radial-gradient(3px 3px at 58% 50%, #fff, transparent), radial-gradient(3px 3px at 90% 12%, #fff, transparent); }
 @keyframes drift { from { transform: translate3d(0, -6px, 0); } to { transform: translate3d(0, 6px, 0); } }
-body.scrolling #space *, body.scrolling #space { animation-play-state: paused !important; }
 body.calm #space * { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { #space * { animation: none !important; } }
 /* ตัวเลื่อน (วัน/เดือน/ปี · ของฉัน/คู่รัก): แคปซูลกระจกเรืองแสงทอง / ชมพูในโหมดคู่รัก */
@@ -866,7 +864,6 @@ body.calm #space .shoot { display: none; }
 body.us .torch-beam { background: conic-gradient(from -14deg at 50% 100%, rgba(255, 170, 205, .9), rgba(255, 170, 205, 0) 28deg, transparent 332deg, rgba(255, 170, 205, .9)); }
 @keyframes torchSway { from { rotate: -9deg; } to { rotate: 7deg; } }
 .peek-body.night { z-index: 0; }
-body.scrolling .torch-rig { animation-play-state: paused; }
 body.calm .torch-rig { animation: none; } body.calm .torch-beam { display: none; }
 @media (prefers-reduced-motion: reduce) { .torch-rig { animation: none; } }
 /* ไก่ห้อยเชือก: เล็กลง 12% ขยับขึ้น 8px ไม่ชนปุ่มคู่รัก */
@@ -895,11 +892,16 @@ body.us .sheet { box-shadow: inset 0 1px 0 rgba(255, 107, 157, .9), 0 -14px 40px
 .couple-mascot.fly { animation: flyIn 1s cubic-bezier(.22, 1, .36, 1) both, drift 6s 1s ease-in-out infinite alternate; }
 @keyframes flyIn { from { transform: translate3d(90px, -70px, 0) rotate(18deg) scale(.5); opacity: 0; } 60% { opacity: 1; } to { transform: none; opacity: 1; } }
 /* ⏸️ หยุดแอนิเมชันฉากหลังชั่วคราว: ไถจอ / เปิดหน้าต่าง / สลับแอป */
-:is(body.scrolling, body.sheet-open, body.bg-hidden) :is(#space, #space *, .torch-rig, .peek-body .mascot, .couple-mascot, .floaty, .lheart, .lover, .lover-ring, .spark, .rope-body),
-:is(body.scrolling, body.sheet-open, body.bg-hidden)::before, :is(body.scrolling, body.sheet-open, body.bg-hidden)::after { animation-play-state: paused !important; }
+:is(body.sheet-open, body.bg-hidden) :is(#space, #space *, .torch-rig, .peek-body .mascot, .couple-mascot, .floaty, .lheart, .lover, .lover-ring, .spark, .rope-body),
+:is(body.sheet-open, body.bg-hidden)::before, :is(body.sheet-open, body.bg-hidden)::after { animation-play-state: paused !important; }
 /* เลเยอร์ที่ขยับ (เมนูล่างย่อ/ขยาย · ก้อนกระจกลาก): ไม่ใช้ backdrop-filter → ลื่นบน iPhone */
 .nav { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; background: rgba(14, 19, 34, .93) !important; }
 .nav-blob { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 .lens { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 /* กันจอเลื่อนซ้าย-ขวาได้ (เอฟเฟกต์ที่ล้นขอบ) โดยไม่ทำให้แถบหัวแบบ sticky พัง */
 html, body { overflow-x: clip; }
+
+/* ⚡ สะบัดนิ้วไม่ค้าง: ฉากหลังอยู่เลเยอร์ GPU ของตัวเอง · การ์ดที่เอียงไม่มี backdrop-filter · แถวรายการแยกการคำนวณ */
+#space { will-change: transform; contain: strict; transform: translateZ(0); }
+.hero { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: 0 0 0 1px rgba(255, 255, 255, .08), 0 10px 26px rgba(0, 0, 0, .35); }
+.entry { contain: layout style paint; }

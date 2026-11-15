@@ -691,7 +691,7 @@ function _starBurst(el) {
   }
 }
 // ⏸️ หยุดแอนิเมชันฉากหลังชั่วคราว: ไถจอ / เปิดหน้าต่าง / สลับไปแอปอื่น (กลับมาแล้วเล่นต่อเอง)
-const fxPaused = () => document.hidden || /\b(scrolling|sheet-open)\b/.test(document.body.className);
+const fxPaused = () => document.hidden || /\b(sheet-open|bg-hidden)\b/.test(document.body.className);
 document.addEventListener('visibilitychange', () => document.body.classList.toggle('bg-hidden', document.hidden));
 // 🌠 ดาวตกพาดฟ้าทุกๆ ~7 วิ (หยุดเมื่อปิดลูกเล่น/แท็บไม่ได้เปิดอยู่)
 function _bindShootingStars() {
@@ -1007,10 +1007,10 @@ function _bindHeroDepth() {
   const frame = () => {
     raf = 0;
     const y = scrollY;
-    if (y > 260 && done) return;
-    done = y > 260;
+    if (y > 220 && done) return; // ไถพ้นการ์ดแล้ว: ตั้งค่าสุดท้ายครั้งเดียวแล้วหยุดคำนวณ
+    done = y > 220;
     const off = still.matches || !funOn();
-    const p = off ? 0 : Math.min(1, y / 260), q = off ? 0 : Math.min(1, y / 120);
+    const p = off ? 0 : Math.min(1, y / 220), q = off ? 0 : Math.min(1, y / 120);
     $$('.hero.tilt').forEach(h => {
       h.style.setProperty('--dy', `${(-p * 7).toFixed(1)}px`);
       if (!h.matches(':hover')) h.style.setProperty('--rx', `${(p * 6).toFixed(2)}deg`); // เอียง 3D ตามการเลื่อน (ไม่ทับตอนนิ้วกดเอียงอยู่)
@@ -1030,9 +1030,6 @@ function _bindHeroDepth() {
   bindHeroDepth.kick = () => { if (!raf) raf = requestAnimationFrame(frame); };
   bindHeroDepth.reset = () => { done = false; bindHeroDepth.kick(); };
   addEventListener('scroll', bindHeroDepth.kick, { passive: true });
-  // ไถจอ = หยุดแอนิเมชันฉากอวกาศชั่วคราว (ลื่นกว่า) · หยุดนิ้วแล้วขยับต่อ
-  let still2 = 0;
-  addEventListener('scroll', () => { document.body.classList.add('scrolling'); clearTimeout(still2); still2 = setTimeout(() => document.body.classList.remove('scrolling'), 160); }, { passive: true });
 }
 
 function _bindTilt(root) {
@@ -1656,8 +1653,6 @@ function _bindScrollChrome() {
       raf = 0;
       const y = scrollY, b = document.body;
       b.classList.toggle('scrolled', y > 24);
-      b.classList.add('scrolling');
-      clearTimeout(bindScrollChrome.t); bindScrollChrome.t = setTimeout(() => b.classList.remove('scrolling'), 160);
       if (Math.abs(y - lastY) > 10) {
         const min = y > lastY && y > 140;
         if (b.classList.contains('nav-min') !== min) b.classList.toggle('nav-min', min);
