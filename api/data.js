@@ -4,7 +4,7 @@ import { getCouple, coupleEntries, coupleYear, unpair } from '../lib/couple.js';
 import { unpairedMessage } from '../lib/messages.js';
 import { bkkDate } from '../lib/date.js';
 import {
-  getProfile, saveProfile, savePic, isLinePic, addEntries, updateEntry, deleteEntries, listEntries, yearSummary, compactOld, keepFrom,
+  getProfile, saveProfile, savePic, isLinePic, addEntries, updateEntry, deleteEntries, listEntries, yearSummary, rangeTotals, compactOld, keepFrom,
 } from '../lib/store.js';
 import { listDebts, addDebt, moveDebt, deleteDebt, cleanAmount } from '../lib/debts.js';
 import { gate, POLICY_VERSION, isAdmin } from '../lib/access.js';
@@ -85,6 +85,11 @@ async function get(request) {
       const from = url.searchParams.get('from'), to = url.searchParams.get('to');
       if (!okRange(from, to)) return json({ error: 'bad date' }, 400);
       return json(await coupleEntries(user.uid, couple, from, to));
+    }
+    if (action === 'range') { // 📅 ใช้ไปกี่บาท จากวัน–ถึงวัน (ไม่เกิน 366 วัน)
+      const from = url.searchParams.get('from'), to = url.searchParams.get('to');
+      if (!okRange(from, to, 366)) return json({ error: 'bad date' }, 400);
+      return json(await rangeTotals(user.uid, from, to));
     }
     if (action === 'year') {
       const y = Number(url.searchParams.get('year'));

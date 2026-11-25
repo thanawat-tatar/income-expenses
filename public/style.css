@@ -1066,3 +1066,14 @@ body.calm .hero-deco { animation: none; }
 #holiday-magic-intro .intro-skip { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom) + 22px); text-align: center; font-size: 12px; color: rgba(226, 232, 240, .5); opacity: 0; animation: introFade .6s ease 0.7s forwards; }
 @keyframes introUp { to { opacity: 1; transform: translate3d(0, 0, 0); } }
 @keyframes introFade { to { opacity: 1; } }
+
+/* 📅 ช่วงวันที่ */
+.range-btn { margin-top: 0; }
+.range-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.range-out { margin-top: 12px; display: grid; gap: 10px; max-height: 38vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.range-hero { text-align: center; padding: 6px 0 2px; }
+.range-hero small { color: var(--muted); font-size: 13px; }
+.range-amt { font-size: 38px; font-weight: 800; color: var(--expense); line-height: 1.15; font-variant-numeric: tabular-nums; }
+.range-amt small { font-size: 15px; color: var(--muted); font-weight: 600; }
+.range-net { text-align: center; font-weight: 700; font-size: 15px; }
+.card.flat { box-shadow: none; }

@@ -1063,8 +1063,9 @@ function homeHTML(d) {
       : `<div class="card">${emptyEntries}</div>`;
   }
 
+  const rangeBtn = us || d.perMonth ? '' : `<button class="card go-list range-btn" data-range type="button"><span>📅 ดูช่วงวันที่</span><b>ใช้ไปกี่บาท ›</b></button>`;
   return `<div class="grid home">
-    <div class="grid">${hero}${middle}</div>
+    <div class="grid">${hero}${middle}${rangeBtn}</div>
     <div class="grid">
       <div class="card"><h3>💸 รายจ่าย <small>${fmt(d.te)} ฿</small></h3>${catRows(d.exp, d.te, 'out')}</div>
       <div class="card"><h3>💰 รายรับ <small>${fmt(d.ti)} ฿</small></h3>${catRows(d.inc, d.ti, 'in')}</div>
@@ -1232,6 +1233,52 @@ function bindView() {
   $$('[data-go]', view).forEach(b => b.onclick = () => go(b.dataset.go));
   $$('[data-add]', view).forEach(b => b.onclick = () => openEntry(null));
   $$('[data-month-view]', view).forEach(b => b.onclick = () => { state.mode = 'month'; render(); });
+  $$('[data-range]', view).forEach(b => b.onclick = openRange);
+}
+
+// ---------- 📅 ช่วงวันที่: จากวัน–ถึงวัน ใช้ไปกี่บาท ----------
+function openRange() {
+  const sheet = $('#sheet'), t = todayISO();
+  const saved = store.get('range');
+  let from = saved?.from || `${ymOf(t)}-01`, to = saved?.to || t;
+  const quick = [['7 วัน', shiftDate(t, 'day', -6), t], ['30 วัน', shiftDate(t, 'day', -29), t], ['เดือนนี้', `${ymOf(t)}-01`, t], ['เดือนก่อน', `${ymOf(shiftDate(`${ymOf(t)}-01`, 'day', -1))}-01`, shiftDate(`${ymOf(t)}-01`, 'day', -1)]];
+  sheet.innerHTML = `<div class="grab"></div><h2 class="sheet-title">📅 ช่วงวันที่</h2>
+    <div class="chips">${quick.map((q, i) => `<button class="chip" data-q="${i}">${q[0]}</button>`).join('')}</div>
+    <div class="range-dates"><div><span class="label">จากวันที่</span><input class="input" id="rFrom" type="date" value="${from}" max="${t}"></div>
+    <div><span class="label">ถึงวันที่</span><input class="input" id="rTo" type="date" value="${to}" max="${t}"></div></div>
+    <div id="rOut" class="range-out"></div>
+    <div class="actions"><button class="btn ghost" id="rClose">ปิด</button></div>`;
+  openSheetEl();
+  let seq = 0;
+  const run = async () => {
+    const f = $('#rFrom').value, e = $('#rTo').value, out = $('#rOut'), me = ++seq;
+    if (!f || !e) { out.innerHTML = ''; return; }
+    if (f > e) { out.innerHTML = `<div class="empty">วันเริ่มต้องไม่เกินวันจบ</div>`; return; }
+    if ((Date.parse(e) - Date.parse(f)) / 86400000 > 366) { out.innerHTML = `<div class="empty">เลือกได้ไม่เกิน 1 ปี</div>`; return; }
+    store.set('range', { from: f, to: e });
+    out.innerHTML = `<div class="skeleton" style="height:64px"></div>`;
+    try {
+      const r = await api('GET', 'range', { from: f, to: e });
+      if (me !== seq) return;
+      const net = r.ti - r.te;
+      out.innerHTML = `<div class="range-hero"><small>ใช้ไปทั้งหมด</small><div class="range-amt">${fmt(r.te)}<small> บาท</small></div></div>
+        <div class="split"><div class="pill"><span><i>💰</i>รายรับ</span><b>+${fmt(r.ti)}</b></div><div class="pill"><span><i>💸</i>รายจ่าย</span><b>-${fmt(r.te)}</b></div></div>
+        <div class="range-net ${net >= 0 ? 'amt-in' : 'amt-out'}">สุทธิ ${net >= 0 ? '+' : '-'}${fmt(Math.abs(net))} บาท</div>
+        <div class="card flat"><h3>💸 รายจ่ายตามหมวด</h3>${catRowsStatic(r.exp, r.te, 'out')}</div>
+        ${r.ti ? `<div class="card flat"><h3>💰 รายรับตามหมวด</h3>${catRowsStatic(r.inc, r.ti, 'in')}</div>` : ''}`;
+      $$('[data-w]', out).forEach(el => { el.style.width = el.dataset.w + '%'; });
+    } catch (err) {
+      if (me === seq) out.innerHTML = `<div class="empty">โหลดไม่สำเร็จ · ${esc(err.message)}</div>`;
+    }
+  };
+  $$('[data-q]', sheet).forEach(b => b.onclick = () => { const q = quick[Number(b.dataset.q)]; $('#rFrom').value = q[1]; $('#rTo').value = q[2]; run(); });
+  $('#rFrom').onchange = run; $('#rTo').onchange = run;
+  $('#rClose').onclick = closeSheet;
+  run();
+}
+// รายการหมวดแบบไม่ต้องรอแอนิเมชัน (ใช้ในหน้าต่างช่วงวันที่)
+function catRowsStatic(map, total, cls) {
+  return catRows(map, total, cls).replace(/data-w="([\d.]+)"/g, 'data-w="$1" style="width:$1%"');
 }
 
 // ---------- ปฏิทินเลือกวัน/เดือน/ปี ----------
@@ -2117,6 +2164,7 @@ function demoApi(method, action, body) {
     }) });
     if (action === 'profile') return wait(profile());
     if (action === 'entries') return wait({ entries: inRange(body) });
+    if (action === 'range') { const l = inRange(body), inc = {}, exp = {}; l.forEach(e => { const t = e.type === 'income' ? inc : exp; t[e.category] = (t[e.category] || 0) + e.amount; }); const sm = o => Object.values(o).reduce((a, b) => a + b, 0); return wait({ inc, exp, ti: sm(inc), te: sm(exp), entries: l.length }); }
     if (action === 'year') return wait({ months: Array.from({ length: 12 }, (_, m) => {
       const ym = `${body.year}-${String(m + 1).padStart(2, '0')}`, inc = {}, exp = {};
       const days = {};
